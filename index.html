@@ -77,14 +77,15 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 18px; border-bottom: 1px solid var(--line);
   }
-  .topbar .brand-sm { font-size: 20px; font-weight: 700; color: var(--teal-deep); }
+  .topbar .brand-sm { font-size: 20px; font-weight: 700; color: var(--teal-deep); cursor: pointer; }
   .topbar-right { display: flex; align-items: center; gap: 10px; }
   .logout-btn { border: none; background: none; color: var(--ink-soft); font-size: 12px; cursor: pointer; }
   .avatar {
     width: 34px; height: 34px; border-radius: 50%; background: var(--coral-soft);
     color: var(--coral); display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 13px; flex-shrink: 0;
+    font-weight: 700; font-size: 13px; flex-shrink: 0; overflow: hidden; cursor: pointer;
   }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
   .composer { background: var(--card); margin: 14px; border-radius: 14px; border: 1px solid var(--line); padding: 14px; }
   .composer-top { display: flex; gap: 10px; }
@@ -129,10 +130,14 @@
   .post-stats { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; color: var(--ink-soft); }
   .post-actions { display: flex; border-top: 1px solid var(--line); }
   .action-btn {
-    flex: 1; border: none; background: none; padding: 11px 0; font-size: 13px; font-weight: 600;
-    color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex: 1; border: none; background: none; padding: 10px 0; font-size: 11px; font-weight: 600;
+    color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
   }
   .action-btn.liked { color: var(--coral); }
+  .action-btn.reposted { color: var(--teal-deep); }
+  .action-btn.saved { color: var(--teal-deep); }
+  .post-head-info.author-link { cursor: pointer; }
+  .avatar.author-link { cursor: pointer; }
 
   .comments-box { border-top: 1px solid var(--line); padding: 10px 14px; }
   .comment-line { font-size: 13px; margin-bottom: 6px; line-height: 1.5; }
@@ -194,6 +199,73 @@
     padding: 7px 14px; font-size: 13px; color: var(--ink); cursor: pointer;
   }
   .privacy-option.selected { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+
+  /* ---------- PROFILE SCREEN ---------- */
+  .profile-topbar {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .profile-back-btn { border: none; background: none; font-size: 20px; color: var(--ink); cursor: pointer; padding: 4px 6px; }
+  .profile-title { font-size: 16px; font-weight: 700; }
+  .profile-hero { padding: 28px 20px 18px; text-align: center; }
+  .profile-avatar-wrap { position: relative; width: 92px; height: 92px; margin: 0 auto 14px; }
+  .profile-avatar {
+    width: 92px; height: 92px; border-radius: 50%; background: var(--coral-soft);
+    color: var(--coral); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 30px; overflow: hidden; border: 3px solid var(--card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-avatar-edit {
+    position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--teal-deep); color: #fff; border: 3px solid var(--bg); font-size: 15px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .profile-name-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .profile-name { font-size: 20px; font-weight: 700; }
+  .profile-name-edit-btn { border: none; background: none; color: var(--ink-soft); font-size: 14px; cursor: pointer; }
+  .profile-handle { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+  .profile-edit-btn {
+    margin-top: 14px; display: inline-block; border: 1px solid var(--line); background: var(--card);
+    color: var(--ink); font-size: 13px; font-weight: 600; padding: 8px 22px; border-radius: 8px; cursor: pointer;
+  }
+  .profile-follow-btn {
+    margin-top: 14px; display: inline-block; border: none; background: var(--coral);
+    color: #fff; font-size: 13px; font-weight: 700; padding: 8px 28px; border-radius: 8px; cursor: pointer;
+  }
+  .profile-follow-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .profile-bio { font-size: 13px; color: var(--ink); margin: 8px auto 0; max-width: 280px; line-height: 1.5; }
+  .profile-stats { display: flex; justify-content: center; gap: 34px; padding: 18px 0; }
+  .profile-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: default; }
+  .profile-stat .num { font-size: 17px; font-weight: 700; color: var(--ink); }
+  .profile-stat .lbl { font-size: 12px; color: var(--ink-soft); }
+  .profile-tabs { display: flex; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .profile-tab {
+    flex: 1; border: none; background: none; padding: 12px 0; font-size: 16px; color: var(--ink-soft);
+    cursor: pointer; position: relative;
+  }
+  .profile-tab.active { color: var(--teal-deep); }
+  .profile-tab.active::after {
+    content: ""; position: absolute; left: 30%; right: 30%; bottom: -1px; height: 2px; background: var(--teal-deep);
+  }
+  .profile-empty { text-align: center; padding: 70px 24px; color: var(--ink-soft); }
+  .profile-empty svg { margin-bottom: 14px; opacity: 0.55; }
+  .profile-empty .line1 { font-size: 15px; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+  .profile-empty .line2 { font-size: 13px; margin-bottom: 18px; }
+  .profile-upload-btn {
+    border: none; background: var(--coral); color: #fff; padding: 11px 28px;
+    border-radius: 22px; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .profile-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0 90px;
+  }
+  .profile-grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; }
+  .profile-grid-item img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-grid-item.text-only {
+    display: flex; align-items: center; justify-content: center; padding: 8px;
+    font-size: 11px; color: var(--ink-soft); text-align: center; background: var(--card);
+  }
 </style>
 </head>
 <body>
@@ -227,7 +299,12 @@ let state = {
   composerText: "",
   composerMedia: null,
   toastMsg: "",
-  openComments: {}
+  openComments: {},
+  view: "feed",         // feed | profile
+  profile: null,        // { name, handle, bio, avatar, followers:[], following:[] }
+  profileTab: "posts",  // posts | private | reposts | saved | likes
+  viewingUid: null,     // null = viewing own profile; otherwise the uid of the profile being viewed
+  viewingPosts: []      // public posts belonging to the profile being viewed (used when viewingUid is set)
 };
 
 // Tracks which post the share/owner sheet is currently acting on
@@ -247,6 +324,14 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str || "";
   return div.innerHTML;
+}
+
+function slugifyHandle(base) {
+  return (base || "user")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 20) || "user";
 }
 
 function showToast(msg) {
@@ -271,15 +356,36 @@ auth.onAuthStateChanged((firebaseUser) => {
       email: firebaseUser.email
     };
     state.authReady = true;
-    listenToPosts();
+    ensureUserProfile(state.user).then(() => listenToPosts());
   } else {
     state.user = null;
     state.authReady = true;
     state.posts = [];
+    state.view = "feed";
+    state.profile = null;
     render();
   }
   render();
 });
+
+/* Create a Firestore profile doc for this user if one doesn't exist yet */
+function ensureUserProfile(user) {
+  const ref = db.collection("users").doc(user.uid);
+  return ref.get().then((doc) => {
+    if (!doc.exists) {
+      const handle = slugifyHandle(user.name || (user.email ? user.email.split("@")[0] : "user"));
+      return ref.set({
+        name: user.name,
+        handle: handle,
+        bio: "",
+        avatar: null,
+        followers: [],
+        following: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  }).catch((err) => console.error("ensureUserProfile error:", err));
+}
 
 /* ================= Real-time posts from Firestore ================= */
 let unsubscribePosts = null;
@@ -305,6 +411,8 @@ function render() {
   }
   if (!state.user) {
     renderLogin();
+  } else if (state.view === "profile") {
+    renderProfileScreen();
   } else {
     renderApp();
   }
@@ -412,10 +520,10 @@ function renderApp() {
 
   root.innerHTML = `
     <div class="topbar">
-      <div class="brand-sm">Milon</div>
+      <div class="brand-sm" id="brandHomeBtn">Milon</div>
       <div class="topbar-right">
         <button class="logout-btn" id="logoutBtn">Log out</button>
-        <div class="avatar">${initials(state.user.name)}</div>
+        <div class="avatar" id="topbarAvatarBtn">${initials(state.user.name)}</div>
       </div>
     </div>
 
@@ -490,6 +598,8 @@ function renderApp() {
   `;
 
   document.getElementById("logoutBtn").onclick = handleLogout;
+  document.getElementById("brandHomeBtn").onclick = () => setState({ view: "feed" });
+  document.getElementById("topbarAvatarBtn").onclick = openProfile;
 
   document.getElementById("composerInput").oninput = (e) => {
     state.composerText = e.target.value;
@@ -506,12 +616,20 @@ function renderApp() {
   visiblePosts.forEach(p => {
     const likeBtn = document.getElementById(`like-${p.id}`);
     const commentBtn = document.getElementById(`comment-${p.id}`);
+    const repostBtn = document.getElementById(`repost-${p.id}`);
+    const saveBtn = document.getElementById(`save-${p.id}`);
     const shareBtn = document.getElementById(`share-${p.id}`);
     const ownerBtn = document.getElementById(`owner-${p.id}`);
+    const authorLink = document.getElementById(`authorlink-${p.id}`);
+    const authorAvatar = document.getElementById(`authoravatar-${p.id}`);
     if (likeBtn) likeBtn.onclick = () => toggleLike(p);
     if (commentBtn) commentBtn.onclick = () => setState({ openComments: { ...state.openComments, [p.id]: !state.openComments[p.id] } });
+    if (repostBtn) repostBtn.onclick = () => toggleRepost(p);
+    if (saveBtn) saveBtn.onclick = () => toggleSave(p);
     if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
     if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
+    if (authorLink) authorLink.onclick = () => openProfile(p.authorUid);
+    if (authorAvatar) authorAvatar.onclick = () => openProfile(p.authorUid);
 
     const commentSubmit = document.getElementById(`commentSubmit-${p.id}`);
     if (commentSubmit) commentSubmit.onclick = () => submitComment(p.id);
@@ -521,6 +639,268 @@ function renderApp() {
 
   wireSheetHandlers();
 }
+
+/* ================= Profile screen ================= */
+function openProfile(targetUid) {
+  const uid = targetUid || state.user.uid;
+  const isOwn = uid === state.user.uid;
+  const ref = db.collection("users").doc(uid);
+
+  ref.get().then((doc) => {
+    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [] };
+
+    if (isOwn) {
+      setState({ view: "profile", viewingUid: null, profile: data, profileTab: "posts" });
+      return;
+    }
+
+    // Viewing someone else's profile: fetch only their public posts
+    db.collection("posts").where("authorUid", "==", uid).get().then((snap) => {
+      const posts = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => !p.privacy || p.privacy === "public")
+        .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: posts });
+    }).catch((err) => {
+      console.error(err);
+      setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: [] });
+    });
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't load profile");
+  });
+}
+
+function toggleFollow(targetUid) {
+  const myUid = state.user.uid;
+  const amFollowing = ((state.profile && state.profile.followers) || []).includes(myUid);
+  const targetRef = db.collection("users").doc(targetUid);
+  const myRef = db.collection("users").doc(myUid);
+  const batch = db.batch();
+
+  if (amFollowing) {
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+  } else {
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
+  }
+
+  batch.commit().then(() => {
+    openProfile(targetUid);
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't update follow status");
+  });
+}
+
+function renderProfileScreen() {
+  const profile = state.profile || {};
+  const isOwn = !state.viewingUid || state.viewingUid === state.user.uid;
+  const targetUid = isOwn ? state.user.uid : state.viewingUid;
+
+  // Posts belonging to the profile being viewed.
+  // Own profile: derived from the loaded global feed (last 50 posts) so private posts are included.
+  // Other user's profile: fetched separately and already filtered to public-only (see openProfile).
+  const myPosts = isOwn ? state.posts.filter(p => p.authorUid === targetUid) : state.viewingPosts;
+
+  const publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
+  const privatePosts = isOwn ? myPosts.filter(p => p.privacy && p.privacy !== "public") : [];
+  const repostedPosts = isOwn ? state.posts.filter(p => (p.reposts || []).includes(targetUid)) : [];
+  const savedPosts = isOwn ? state.posts.filter(p => (p.savedBy || []).includes(targetUid)) : [];
+  const likedPosts = isOwn ? state.posts.filter(p => (p.likes || []).includes(targetUid)) : [];
+
+  const totalLikesReceived = publicPosts.concat(privatePosts).reduce((sum, p) => sum + ((p.likes || []).length), 0);
+  const followers = (profile.followers || []).length;
+  const following = (profile.following || []).length;
+  const amFollowing = !isOwn && (profile.followers || []).includes(state.user.uid);
+
+  const tabs = isOwn ? [
+    { key: "posts", icon: gridIconSvg() },
+    { key: "private", icon: lockIconSvg() },
+    { key: "reposts", icon: repostIconSvg() },
+    { key: "saved", icon: bookmarkIconSvg() },
+    { key: "likes", icon: heartIconSvg() }
+  ] : [
+    { key: "posts", icon: gridIconSvg() }
+  ];
+
+  const tabConfig = {
+    posts: { list: publicPosts, empty1: "Share your first post", empty2: "Posts you create will show up here.", cta: isOwn },
+    private: { list: privatePosts, empty1: "No private posts", empty2: "Posts set to Friends or Only me will show up here.", cta: false },
+    reposts: { list: repostedPosts, empty1: "No reposts yet", empty2: "Posts you repost will show up here.", cta: false },
+    saved: { list: savedPosts, empty1: "Nothing saved yet", empty2: "Posts you save will show up here.", cta: false },
+    likes: { list: likedPosts, empty1: "No likes yet", empty2: "Posts you like will show up here.", cta: false }
+  };
+
+  const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
+  const tabBodyHtml = activeTab.list.length
+    ? renderProfileGrid(activeTab.list)
+    : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta);
+
+  root.innerHTML = `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="profileBackBtn">←</button>
+      <div class="profile-title">Profile</div>
+      <div style="width:28px"></div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || "User")}</div>
+        ${isOwn ? `
+        <label class="profile-avatar-edit" title="Change photo">
+          +
+          <input type="file" accept="image/*" id="avatarInput" style="display:none" />
+        </label>` : ""}
+      </div>
+      <div class="profile-name-row">
+        <div class="profile-name" id="profileNameText">${escapeHtml(profile.name || "User")}</div>
+        ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="Edit name">✏️</button>` : ""}
+      </div>
+      <div class="profile-handle">@${escapeHtml(profile.handle || slugifyHandle(profile.name || "user"))}</div>
+      ${profile.bio ? `<div class="profile-bio">${escapeHtml(profile.bio)}</div>` : ""}
+
+      ${isOwn
+        ? `<button class="profile-edit-btn" id="editProfileBtn">Edit profile</button>`
+        : `<button class="profile-follow-btn ${amFollowing ? "following" : ""}" id="followBtn">${amFollowing ? "Following" : "Follow"}</button>`
+      }
+
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="num">${following}</div><div class="lbl">Following</div></div>
+        <div class="profile-stat"><div class="num">${followers}</div><div class="lbl">Followers</div></div>
+        <div class="profile-stat"><div class="num">${totalLikesReceived}</div><div class="lbl">Likes</div></div>
+      </div>
+    </div>
+
+    <div class="profile-tabs">
+      ${tabs.map(t => `<button class="profile-tab ${state.profileTab === t.key ? "active" : ""}" data-tab="${t.key}">${t.icon}</button>`).join("")}
+    </div>
+
+    ${tabBodyHtml}
+
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+  `;
+
+  document.getElementById("profileBackBtn").onclick = () => setState({ view: "feed" });
+
+  if (isOwn) {
+    document.getElementById("editNameBtn").onclick = handleEditName;
+    document.getElementById("editProfileBtn").onclick = handleEditName;
+    document.getElementById("avatarInput").onchange = handleAvatarSelect;
+  } else {
+    document.getElementById("followBtn").onclick = () => toggleFollow(targetUid);
+  }
+
+  document.querySelectorAll(".profile-tab").forEach(btn => {
+    btn.onclick = () => setState({ profileTab: btn.dataset.tab });
+  });
+
+  const uploadBtn = document.getElementById("profileUploadBtn");
+  if (uploadBtn) uploadBtn.onclick = () => setState({ view: "feed" });
+}
+
+function renderProfileGrid(posts) {
+  return `
+    <div class="profile-grid">
+      ${posts.map(p => p.media
+        ? `<div class="profile-grid-item"><img src="${p.media}" /></div>`
+        : `<div class="profile-grid-item text-only">${escapeHtml((p.text || "").slice(0, 60))}</div>`
+      ).join("")}
+    </div>
+  `;
+}
+
+function profileEmptyHtml(line1, line2, showCta) {
+  return `
+    <div class="profile-empty">
+      ${mailboxIconSvg()}
+      <div class="line1">${escapeHtml(line1)}</div>
+      <div class="line2">${escapeHtml(line2)}</div>
+      ${showCta ? `<button class="profile-upload-btn" id="profileUploadBtn">Create a post</button>` : ""}
+    </div>
+  `;
+}
+
+function handleEditName() {
+  const newName = prompt("Your display name:", state.profile.name || state.user.name);
+  if (newName === null || !newName.trim()) return;
+  const newHandle = prompt("Your @handle:", state.profile.handle || slugifyHandle(state.user.name));
+  const handle = slugifyHandle(newHandle || state.profile.handle);
+  const newBio = prompt("Your bio (optional):", state.profile.bio || "");
+  if (newBio === null) return;
+  const bio = newBio.trim().slice(0, 150);
+
+  db.collection("users").doc(state.user.uid).update({ name: newName.trim(), handle, bio })
+    .then(() => {
+      state.profile = { ...state.profile, name: newName.trim(), handle, bio };
+      render();
+      showToast("Profile updated");
+    })
+    .catch((err) => { console.error(err); showToast("Couldn't update profile"); });
+}
+
+function toggleRepost(post) {
+  const uid = state.user.uid;
+  const reposted = (post.reposts || []).includes(uid);
+  db.collection("posts").doc(post.id).update({
+    reposts: reposted
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    showToast(reposted ? "Repost removed" : "Reposted");
+  }).catch((err) => console.error(err));
+}
+
+function toggleSave(post) {
+  const uid = state.user.uid;
+  const saved = (post.savedBy || []).includes(uid);
+  db.collection("posts").doc(post.id).update({
+    savedBy: saved
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    showToast(saved ? "Removed from saved" : "Saved");
+  }).catch((err) => console.error(err));
+}
+
+function handleAvatarSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img.onload = () => {
+      const size = 300;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      const minSide = Math.min(img.width, img.height);
+      const sx = (img.width - minSide) / 2;
+      const sy = (img.height - minSide) / 2;
+      ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+      const compressed = canvas.toDataURL("image/jpeg", 0.75);
+
+      db.collection("users").doc(state.user.uid).update({ avatar: compressed })
+        .then(() => {
+          state.profile = { ...state.profile, avatar: compressed };
+          render();
+        })
+        .catch((err) => { console.error(err); showToast("Couldn't update photo"); });
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Small inline icon helpers for the profile tab bar / empty state */
+function gridIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`; }
+function lockIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`; }
+function repostIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`; }
+function bookmarkIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`; }
+function heartIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>`; }
+function mailboxIconSvg() { return `<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="8" width="12" height="9" rx="2"/><path d="M3 12h12"/><path d="M9 21v-4"/></svg>`; }
 
 /* ================= Share sheet: handlers ================= */
 function wireSheetHandlers() {
@@ -735,7 +1115,11 @@ function privacyLabel(level) {
 function renderPost(p) {
   const likes = p.likes || [];
   const comments = p.comments || [];
+  const reposts = p.reposts || [];
+  const savedBy = p.savedBy || [];
   const liked = state.user && likes.includes(state.user.uid);
+  const reposted = state.user && reposts.includes(state.user.uid);
+  const saved = state.user && savedBy.includes(state.user.uid);
   const showComments = !!state.openComments[p.id];
   const isOwner = state.user && p.authorUid === state.user.uid;
 
@@ -754,8 +1138,8 @@ function renderPost(p) {
   return `
     <div class="post">
       <div class="post-head">
-        <div class="avatar">${initials(p.authorName)}</div>
-        <div class="post-head-info">
+        <div class="avatar author-link" id="authoravatar-${p.id}">${initials(p.authorName)}</div>
+        <div class="post-head-info author-link" id="authorlink-${p.id}">
           <div class="name">${escapeHtml(p.authorName)}</div>
           <div class="time">${timeAgo(p.createdAt)} <span class="privacy-tag">${privacyLabel(p.privacy)}</span></div>
         </div>
@@ -770,6 +1154,8 @@ function renderPost(p) {
       <div class="post-actions">
         <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} Like</button>
         <button class="action-btn" id="comment-${p.id}">💬 Comment</button>
+        <button class="action-btn ${reposted ? "reposted" : ""}" id="repost-${p.id}">↻ Repost</button>
+        <button class="action-btn ${saved ? "saved" : ""}" id="save-${p.id}">${saved ? "🔖" : "📑"} Save</button>
         <button class="action-btn" id="share-${p.id}">↗️ Share</button>
       </div>
       ${commentsHtml}

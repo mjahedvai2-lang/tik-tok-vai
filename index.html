@@ -95,7 +95,7 @@
   }
   .composer textarea:focus { outline: none; }
   .preview-wrap { position: relative; margin-top: 10px; }
-  .preview-wrap img { width: 100%; border-radius: 10px; max-height: 260px; object-fit: cover; }
+  .preview-wrap img, .preview-wrap video { width: 100%; border-radius: 10px; max-height: 260px; object-fit: cover; }
   .remove-media {
     position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.55); color: #fff;
     border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 14px;
@@ -126,7 +126,7 @@
   }
   .privacy-tag { font-size: 11px; color: var(--ink-soft); }
   .post-text { padding: 0 14px 10px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
-  .post-media img { width: 100%; display: block; max-height: 420px; object-fit: cover; }
+  .post-media img, .post-media video { width: 100%; display: block; max-height: 420px; object-fit: cover; }
   .post-stats { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; color: var(--ink-soft); }
   .post-actions { display: flex; border-top: 1px solid var(--line); }
   .action-btn {
@@ -156,13 +156,13 @@
     position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
     background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 20px;
     font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.25s;
-    max-width: 90%; text-align: center; z-index: 20;
+    max-width: 90%; text-align: center; z-index: 60;
   }
   .toast.show { opacity: 1; }
   .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
   .empty-state .big { font-size: 36px; margin-bottom: 10px; }
 
-  /* ---------- BOTTOM SHEETS (share + owner menu) ---------- */
+  /* ---------- BOTTOM SHEETS (share + owner menu + pin) ---------- */
   .sheet-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999;
   }
@@ -226,19 +226,20 @@
   .profile-name { font-size: 20px; font-weight: 700; }
   .profile-name-edit-btn { border: none; background: none; color: var(--ink-soft); font-size: 14px; cursor: pointer; }
   .profile-handle { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
-  .profile-edit-btn {
-    margin-top: 14px; display: inline-block; border: 1px solid var(--line); background: var(--card);
-    color: var(--ink); font-size: 13px; font-weight: 600; padding: 8px 22px; border-radius: 8px; cursor: pointer;
-  }
   .profile-follow-btn {
     margin-top: 14px; display: inline-block; border: none; background: var(--coral);
     color: #fff; font-size: 13px; font-weight: 700; padding: 8px 28px; border-radius: 8px; cursor: pointer;
   }
   .profile-follow-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
   .profile-follow-btn.requested { background: var(--card); color: var(--ink-soft); border: 1px dashed var(--line); }
-  .profile-bio { font-size: 13px; color: var(--ink); margin: 8px auto 0; max-width: 280px; line-height: 1.5; }
+  .profile-bio { font-size: 13px; color: var(--ink); margin: 8px auto 0; max-width: 280px; line-height: 1.5; white-space: pre-wrap; }
+  .profile-links { display: flex; justify-content: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+  .profile-link-chip {
+    font-size: 12px; color: var(--teal-deep); text-decoration: none; border: 1px solid var(--line);
+    padding: 5px 12px; border-radius: 14px; background: var(--card);
+  }
   .profile-stats { display: flex; justify-content: center; gap: 34px; padding: 18px 0; }
-  .profile-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: default; }
+  .profile-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; }
   .profile-stat .num { font-size: 17px; font-weight: 700; color: var(--ink); }
   .profile-stat .lbl { font-size: 12px; color: var(--ink-soft); }
   .profile-tabs { display: flex; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -261,11 +262,20 @@
   .profile-grid {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0 90px;
   }
-  .profile-grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; }
-  .profile-grid-item img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; position: relative; }
+  .profile-grid-item img, .profile-grid-item video { width: 100%; height: 100%; object-fit: cover; }
   .profile-grid-item.text-only {
     display: flex; align-items: center; justify-content: center; padding: 8px;
     font-size: 11px; color: var(--ink-soft); text-align: center; background: var(--card);
+  }
+  .grid-pin-badge {
+    position: absolute; top: 5px; left: 5px; background: rgba(8,80,65,0.85); color: #fff;
+    width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .grid-video-badge {
+    position: absolute; top: 5px; right: 5px; color: #fff; font-size: 15px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.6);
   }
 
   /* ---------- BOTTOM NAV BAR ---------- */
@@ -325,12 +335,13 @@
   .user-list { padding: 6px 14px 90px; }
   .user-row {
     display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line);
+    position: relative;
   }
   .user-row .avatar { width: 44px; height: 44px; font-size: 15px; cursor: pointer; }
   .user-row-info { flex: 1; min-width: 0; cursor: pointer; }
-  .user-row-info .u-name { font-weight: 600; font-size: 14px; }
+  .user-row-info .u-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 5px; }
   .user-row-info .u-handle { font-size: 12px; color: var(--ink-soft); }
-  .user-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .user-row-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
   .request-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .pill-btn {
     border: none; background: var(--teal-deep); color: #fff; font-size: 12px; font-weight: 700;
@@ -339,14 +350,60 @@
   .pill-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
   .pill-btn.requested { background: var(--card); color: var(--ink-soft); border: 1px dashed var(--line); }
   .pill-btn.ghost { background: var(--card); color: var(--teal-deep); border: 1px solid var(--teal-deep); }
+  .pin-icon-btn {
+    border: none; background: none; color: var(--ink-soft); font-size: 16px; cursor: pointer;
+    padding: 4px 6px; flex-shrink: 0;
+  }
+  .pin-icon-btn.pinned { color: var(--coral); }
+  .pin-flag { font-size: 11px; color: var(--coral); }
+
+  /* Friends video feed */
+  .friends-video-feed { padding: 10px 14px 90px; display: flex; flex-direction: column; gap: 14px; }
+  .friend-video-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .friend-video-card .fv-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+  .friend-video-card .fv-name { font-weight: 600; font-size: 13px; }
+  .friend-video-card .fv-time { font-size: 11px; color: var(--ink-soft); }
+  .friend-video-card video, .friend-video-card img { width: 100%; max-height: 480px; object-fit: cover; display: block; background: #000; }
+  .friends-sub-tabs { display: flex; gap: 6px; padding: 10px 14px 0; }
 
   /* ---------- INBOX / THREADS ---------- */
+  .inbox-stories-row { display: flex; gap: 14px; overflow-x: auto; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .inbox-story-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 60px; cursor: pointer; }
+  .inbox-story-avatar-wrap { position: relative; width: 56px; height: 56px; }
+  .inbox-story-avatar {
+    width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: flex; align-items: center;
+    justify-content: center; background: var(--coral-soft); color: var(--coral); font-weight: 700;
+    border: 2.5px solid var(--teal); font-size: 16px;
+  }
+  .inbox-story-avatar.create { border: none; background: var(--line); color: var(--ink-soft); font-size: 22px; }
+  .inbox-story-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .inbox-story-pin-mark {
+    position: absolute; bottom: -2px; right: -2px; background: var(--coral); color: #fff; width: 18px; height: 18px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid var(--bg);
+  }
+  .inbox-story-label { font-size: 11px; color: var(--ink-soft); max-width: 62px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .inbox-section-row {
+    display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .inbox-section-icon {
+    width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; flex-shrink: 0;
+  }
+  .inbox-section-info { flex: 1; min-width: 0; }
+  .inbox-section-info .is-title { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .inbox-section-info .is-sub {
+    font-size: 12px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+  }
+  .inbox-section-chevron { color: var(--ink-soft); font-size: 16px; }
+  .inbox-suggested-heading { padding: 16px 14px 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+
   .thread-row {
     display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); cursor: pointer;
   }
   .thread-row .avatar { width: 46px; height: 46px; font-size: 16px; }
   .thread-info { flex: 1; min-width: 0; }
-  .thread-info .t-name { font-weight: 700; font-size: 14px; }
+  .thread-info .t-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; }
   .thread-info .t-preview {
     font-size: 13px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
   }
@@ -354,6 +411,10 @@
   .thread-unread-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--coral); flex-shrink: 0; margin-left: 6px; }
   .thread-time { font-size: 11px; color: var(--ink-soft); flex-shrink: 0; }
   .thread-list { padding-bottom: 90px; }
+  .thread-row-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+  .back-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .back-row .back-title { font-weight: 700; font-size: 16px; }
 
   /* ---------- CHAT SCREEN ---------- */
   .chat-header {
@@ -402,6 +463,42 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
   }
   .chat-send-btn:disabled { background: var(--line); color: var(--ink-soft); }
+
+  /* ---------- CAMERA / CREATE SCREEN ---------- */
+  .camera-screen { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #000; z-index: 200; display: flex; flex-direction: column; }
+  .camera-viewport { flex: 1; position: relative; overflow: hidden; background: #000; }
+  .camera-viewport video.live { width: 100%; height: 100%; object-fit: cover; }
+  .camera-viewport img.captured, .camera-viewport video.captured { width: 100%; height: 100%; object-fit: cover; }
+  .camera-top-bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px; z-index: 3; }
+  .camera-close-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+  .camera-flip-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .camera-hint { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.4); color: #fff; padding: 8px 16px; border-radius: 16px; font-size: 13px; z-index: 3; }
+  .camera-error-box { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; padding: 30px; font-size: 14px; line-height: 1.6; }
+  .camera-bottom-bar { padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: #000; display: flex; flex-direction: column; gap: 14px; }
+  .camera-mode-row { display: flex; justify-content: center; gap: 20px; }
+  .camera-mode-btn { background: none; border: none; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 2px; letter-spacing: 0.3px; }
+  .camera-mode-btn.active { color: #fff; }
+  .camera-controls-row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; }
+  .camera-gallery-shortcut {
+    width: 46px; height: 46px; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; color: #fff;
+    font-size: 18px; cursor: pointer; flex-shrink: 0;
+  }
+  .camera-gallery-shortcut img { width: 100%; height: 100%; object-fit: cover; }
+  .camera-record-btn {
+    width: 74px; height: 74px; border-radius: 50%; border: 4px solid #fff; background: transparent;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+  }
+  .camera-record-btn-inner { width: 58px; height: 58px; border-radius: 50%; background: var(--coral); transition: all 0.15s; }
+  .camera-record-btn.recording .camera-record-btn-inner { border-radius: 8px; width: 30px; height: 30px; background: #FE2C55; }
+  .camera-record-timer { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,44,85,0.85); color: #fff; padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; z-index: 3; }
+  .camera-next-btn { width: 46px; height: 46px; border-radius: 50%; background: var(--teal); border: none; color: #fff; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .camera-next-placeholder { width: 46px; height: 46px; flex-shrink: 0; }
+
+  .capture-review-bar { padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: #000; display: flex; gap: 10px; }
+  .capture-review-bar button { flex: 1; padding: 13px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .capture-retake-btn { background: rgba(255,255,255,0.15); color: #fff; }
+  .capture-use-btn { background: var(--coral); color: #fff; }
 </style>
 </head>
 <body>
@@ -434,10 +531,11 @@ let state = {
   posts: [],
   composerText: "",
   composerMedia: null,
+  composerMediaType: null, // "image" | "video"
   toastMsg: "",
   openComments: {},
-  view: "feed",         // feed | friends | inbox | profile | chat
-  profile: null,        // { name, handle, bio, avatar, followers:[], following:[], followRequests:[] }
+  view: "feed",         // feed | friends | inbox | profile | chat | camera
+  profile: null,        // { name, handle, bio, avatar, followers:[], following:[], followRequests:[], youtubeLink, facebookLink, pinnedPosts:[] }
   profileTab: "posts",  // posts | private | reposts | saved | likes
   viewingUid: null,     // null = viewing own profile; otherwise the uid of the profile being viewed
   viewingPosts: [],     // public posts belonging to the profile being viewed (used when viewingUid is set)
@@ -447,18 +545,45 @@ let state = {
   allUsers: [],         // cached list of {uid, ...userDoc} for the Friends screen
   allUsersLoaded: false,
   friendsTab: "all",    // all | followers | following | requests
+  friendsSubTab: "people", // people | videos  (videos = friends' video feed)
   friendsSearch: "",
 
   threads: [],          // inbox conversations the current user is part of
+  inboxSection: null,   // null | "followers" | "activity" | "requests" | "archive" | "system"
   chatUid: null,        // the other participant's uid while in a chat
   chatProfile: null,    // the other participant's user doc, for the chat header
   chatMessages: [],
   chatText: "",
-  chatMedia: null       // compressed data-url of an image staged to send in the current chat
+  chatMedia: null,       // compressed data-url of an image staged to send in the current chat
+
+  // ---- Edit profile page state ----
+  editName: "",
+  editHandle: "",
+  editBio: "",
+  editYoutube: "",
+  editFacebook: "",
+
+  // ---- Camera / create screen state ----
+  cameraStream: null,
+  cameraFacing: "user",       // user | environment
+  cameraMode: "15s",          // 10m | 60s | 15s | PHOTO
+  cameraRecording: false,
+  cameraRecordSeconds: 0,
+  cameraCapturedType: null,   // "photo" | "video" | null
+  cameraCapturedUrl: null,    // object URL / data URL for the review screen
+  cameraCapturedBlob: null,
+  cameraError: null,
+  cameraLastGalleryThumb: null,
+
+  activity: [],          // recent activity items across users (likes/comments/replies) fetched for the Activity section
+  activityLoaded: false
 };
 
 // Tracks which post the share/owner sheet is currently acting on
 let activePostId = null;
+let mediaRecorderRef = null;
+let recordedChunksRef = [];
+let recordTimerRef = null;
 
 function setState(patch) {
   state = { ...state, ...patch };
@@ -530,6 +655,13 @@ function compressImageToDataUrl(file, opts, callback) {
   reader.readAsDataURL(file);
 }
 
+/* Read any file (image or video) into a data URL, without resizing — used for gallery-picked videos. */
+function fileToDataUrl(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (ev) => callback(ev.target.result);
+  reader.readAsDataURL(file);
+}
+
 /* ================= Auth listener ================= */
 auth.onAuthStateChanged((firebaseUser) => {
   if (firebaseUser) {
@@ -575,6 +707,11 @@ function ensureUserProfile(user) {
         followers: [],
         following: [],
         followRequests: [],
+        pinnedPosts: [],
+        pinnedFriends: [],
+        archivedThreads: [],
+        youtubeLink: "",
+        facebookLink: "",
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -617,12 +754,18 @@ function render() {
     renderLogin();
   } else if (state.view === "profile") {
     renderProfileScreen();
+  } else if (state.view === "editProfile") {
+    renderEditProfileScreen();
   } else if (state.view === "friends") {
     renderFriendsScreen();
   } else if (state.view === "inbox") {
     renderInboxScreen();
   } else if (state.view === "chat") {
     renderChatScreen();
+  } else if (state.view === "camera") {
+    renderCameraScreen();
+  } else if (state.view === "followList") {
+    renderFollowListScreen();
   } else {
     renderApp();
   }
@@ -744,7 +887,7 @@ function renderApp() {
       </div>
       ${state.composerMedia ? `
         <div class="preview-wrap">
-          <img src="${state.composerMedia}" />
+          ${state.composerMediaType === "video" ? `<video src="${state.composerMedia}" controls></video>` : `<img src="${state.composerMedia}" />`}
           <button class="remove-media" id="removeMediaBtn">✕</button>
         </div>` : ""}
       <div class="composer-actions">
@@ -795,6 +938,7 @@ function renderApp() {
     <div class="bottom-sheet" id="ownerSheet">
       <div class="sheet-handle"></div>
       <button class="menu-list-item" id="editPostBtn">✏️ Edit post</button>
+      <button class="menu-list-item" id="pinPostBtn">📌 Pin to profile</button>
       <div class="menu-list-item" style="display:block; cursor:default;">
         🔒 Who can see this
         <div class="privacy-options" id="privacyOptions">
@@ -811,7 +955,7 @@ function renderApp() {
 
   document.getElementById("logoutBtn").onclick = handleLogout;
   document.getElementById("brandHomeBtn").onclick = () => setState({ view: "feed" });
-  document.getElementById("topbarAvatarBtn").onclick = openProfile;
+  document.getElementById("topbarAvatarBtn").onclick = () => openProfile();
 
   document.getElementById("composerInput").oninput = (e) => {
     state.composerText = e.target.value;
@@ -821,7 +965,7 @@ function renderApp() {
   document.getElementById("imageInput").onchange = handleImageSelect;
 
   const removeBtn = document.getElementById("removeMediaBtn");
-  if (removeBtn) removeBtn.onclick = () => setState({ composerMedia: null });
+  if (removeBtn) removeBtn.onclick = () => setState({ composerMedia: null, composerMediaType: null });
 
   document.getElementById("submitPostBtn").onclick = submitPost;
 
@@ -903,20 +1047,281 @@ function wireBottomNav() {
 
   if (homeBtn) homeBtn.onclick = () => setState({ view: "feed" });
   if (friendsBtn) friendsBtn.onclick = openFriendsScreen;
-  if (addBtn) addBtn.onclick = handleNavAddClick;
+  if (addBtn) addBtn.onclick = openCameraScreen;
   if (inboxBtn) inboxBtn.onclick = openInboxScreen;
   if (profileBtn) profileBtn.onclick = () => openProfile();
 }
 
-function handleNavAddClick() {
-  // Jump to Home and focus the composer so the user can start a new post
-  setState({ view: "feed" });
+/* ================================================================
+   CAMERA / CREATE SCREEN
+   Tapping "+" opens the camera first (like the reference screenshot):
+   record/photo controls, mode row (10m/60s/15s/PHOTO/TEXT), and a
+   small gallery-shortcut thumbnail so the user can still pick an
+   existing video/photo from their gallery instead of recording.
+   ================================================================ */
+function openCameraScreen() {
+  setState({
+    view: "camera",
+    cameraMode: "15s",
+    cameraRecording: false,
+    cameraRecordSeconds: 0,
+    cameraCapturedType: null,
+    cameraCapturedUrl: null,
+    cameraCapturedBlob: null,
+    cameraError: null
+  });
+  startCameraStream();
+}
+
+function stopCameraStream() {
+  if (state.cameraStream) {
+    state.cameraStream.getTracks().forEach(t => t.stop());
+    state.cameraStream = null;
+  }
+  if (recordTimerRef) { clearInterval(recordTimerRef); recordTimerRef = null; }
+}
+
+function startCameraStream(facing) {
+  const facingMode = facing || state.cameraFacing || "user";
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    state.cameraError = "Camera isn't available on this device/browser. Use the gallery button below to pick a photo or video instead.";
+    render();
+    return;
+  }
+  if (state.cameraStream) {
+    state.cameraStream.getTracks().forEach(t => t.stop());
+  }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: true })
+    .then((stream) => {
+      state.cameraStream = stream;
+      state.cameraFacing = facingMode;
+      state.cameraError = null;
+      render();
+      const videoEl = document.getElementById("liveCameraVideo");
+      if (videoEl) { videoEl.srcObject = stream; videoEl.play().catch(() => {}); }
+    })
+    .catch((err) => {
+      console.error(err);
+      state.cameraError = "Couldn't access the camera (permission denied or unavailable). Use the gallery button below to pick a photo or video instead.";
+      render();
+    });
+}
+
+function flipCamera() {
+  const next = state.cameraFacing === "user" ? "environment" : "user";
+  startCameraStream(next);
+}
+
+function closeCameraScreen() {
+  stopCameraStream();
+  setState({ view: "feed", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+}
+
+function renderCameraScreen() {
+  // ---- Review screen: after capturing a photo or video ----
+  if (state.cameraCapturedType) {
+    const mediaHtml = state.cameraCapturedType === "video"
+      ? `<video class="captured" src="${state.cameraCapturedUrl}" controls autoplay loop></video>`
+      : `<img class="captured" src="${state.cameraCapturedUrl}" />`;
+    root.innerHTML = `
+      <div class="camera-screen">
+        <div class="camera-viewport">
+          ${mediaHtml}
+          <div class="camera-top-bar">
+            <button class="camera-close-btn" id="camCloseBtn">✕</button>
+            <div></div>
+          </div>
+        </div>
+        <div class="capture-review-bar">
+          <button class="capture-retake-btn" id="camRetakeBtn">Retake</button>
+          <button class="capture-use-btn" id="camUseBtn">Use this</button>
+        </div>
+      </div>
+    `;
+    document.getElementById("camCloseBtn").onclick = closeCameraScreen;
+    document.getElementById("camRetakeBtn").onclick = () => {
+      setState({ cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+      startCameraStream();
+    };
+    document.getElementById("camUseBtn").onclick = useCapturedMedia;
+    return;
+  }
+
+  // ---- Live camera / recording screen ----
+  const modes = ["10m", "60s", "15s", "PHOTO", "TEXT"];
+  root.innerHTML = `
+    <div class="camera-screen">
+      <div class="camera-viewport">
+        ${state.cameraError
+          ? `<div class="camera-error-box">${escapeHtml(state.cameraError)}</div>`
+          : `<video class="live" id="liveCameraVideo" autoplay playsinline muted></video>`
+        }
+        ${state.cameraRecording ? `<div class="camera-record-timer" id="recTimer">${formatRecTime(state.cameraRecordSeconds)}</div>` : ""}
+        <div class="camera-top-bar">
+          <button class="camera-close-btn" id="camCloseBtn2">✕</button>
+          ${!state.cameraError ? `<button class="camera-flip-btn" id="camFlipBtn">🔄</button>` : `<div></div>`}
+        </div>
+      </div>
+      <div class="camera-bottom-bar">
+        <div class="camera-mode-row">
+          ${modes.map(m => `<button class="camera-mode-btn ${state.cameraMode === m ? "active" : ""}" data-mode="${m}">${m}</button>`).join("")}
+        </div>
+        <div class="camera-controls-row">
+          <div class="camera-gallery-shortcut" id="camGalleryShortcut" title="Choose from gallery">
+            ${state.cameraLastGalleryThumb ? `<img src="${state.cameraLastGalleryThumb}" />` : "🖼️"}
+            <input type="file" accept="image/*,video/*" id="camGalleryInput" style="display:none" />
+          </div>
+          <button class="camera-record-btn ${state.cameraRecording ? "recording" : ""}" id="camRecordBtn">
+            <span class="camera-record-btn-inner"></span>
+          </button>
+          <div class="camera-next-placeholder"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("camCloseBtn2").onclick = closeCameraScreen;
+  const flipBtn = document.getElementById("camFlipBtn");
+  if (flipBtn) flipBtn.onclick = flipCamera;
+
+  document.querySelectorAll(".camera-mode-btn").forEach(btn => {
+    btn.onclick = () => {
+      const mode = btn.dataset.mode;
+      if (mode === "TEXT") {
+        // Text-only post: close camera and jump to the composer on Home
+        closeCameraScreen();
+        requestAnimationFrame(() => {
+          const input = document.getElementById("composerInput");
+          if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
+        });
+        return;
+      }
+      setState({ cameraMode: mode });
+    };
+  });
+
+  document.getElementById("camGalleryShortcut").onclick = () => document.getElementById("camGalleryInput").click();
+  document.getElementById("camGalleryInput").onchange = handleCameraGallerySelect;
+
+  document.getElementById("camRecordBtn").onclick = () => {
+    if (state.cameraMode === "PHOTO") {
+      capturePhotoFromStream();
+    } else {
+      if (state.cameraRecording) stopVideoRecording();
+      else startVideoRecording();
+    }
+  };
+
+  const videoEl = document.getElementById("liveCameraVideo");
+  if (videoEl && state.cameraStream) { videoEl.srcObject = state.cameraStream; videoEl.play().catch(() => {}); }
+}
+
+function formatRecTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
+function capturePhotoFromStream() {
+  const videoEl = document.getElementById("liveCameraVideo");
+  if (!videoEl) return;
+  const canvas = document.createElement("canvas");
+  canvas.width = videoEl.videoWidth || 720;
+  canvas.height = videoEl.videoHeight || 1280;
+  canvas.getContext("2d").drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+  stopCameraStream();
+  setState({ cameraCapturedType: "photo", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null });
+}
+
+function maxRecordMs() {
+  if (state.cameraMode === "10m") return 10 * 60 * 1000;
+  if (state.cameraMode === "60s") return 60 * 1000;
+  return 15 * 1000; // 15s default
+}
+
+function startVideoRecording() {
+  if (!state.cameraStream) return;
+  recordedChunksRef = [];
+  try {
+    mediaRecorderRef = new MediaRecorder(state.cameraStream);
+  } catch (e) {
+    console.error(e);
+    showToast("Recording isn't supported on this browser");
+    return;
+  }
+  mediaRecorderRef.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunksRef.push(e.data); };
+  mediaRecorderRef.onstop = () => {
+    const blob = new Blob(recordedChunksRef, { type: "video/webm" });
+    const url = URL.createObjectURL(blob);
+    stopCameraStream();
+    setState({ cameraCapturedType: "video", cameraCapturedUrl: url, cameraCapturedBlob: blob, cameraRecording: false, cameraRecordSeconds: 0 });
+  };
+  mediaRecorderRef.start();
+  state.cameraRecording = true;
+  state.cameraRecordSeconds = 0;
+  render();
+  const limitMs = maxRecordMs();
+  recordTimerRef = setInterval(() => {
+    state.cameraRecordSeconds += 1;
+    const timerEl = document.getElementById("recTimer");
+    if (timerEl) timerEl.textContent = formatRecTime(state.cameraRecordSeconds);
+    if (state.cameraRecordSeconds * 1000 >= limitMs) stopVideoRecording();
+  }, 1000);
+}
+
+function stopVideoRecording() {
+  if (mediaRecorderRef && mediaRecorderRef.state !== "inactive") mediaRecorderRef.stop();
+  if (recordTimerRef) { clearInterval(recordTimerRef); recordTimerRef = null; }
+}
+
+/* Gallery shortcut inside the camera screen: pick an existing photo/video to post */
+function handleCameraGallerySelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const isVideo = file.type.startsWith("video/");
+  stopCameraStream();
+  if (isVideo) {
+    fileToDataUrl(file, (dataUrl) => {
+      setState({ cameraCapturedType: "video", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null, cameraLastGalleryThumb: null });
+    });
+  } else {
+    compressImageToDataUrl(file, { maxDim: 900, quality: 0.75 }, (dataUrl) => {
+      setState({ cameraCapturedType: "photo", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null, cameraLastGalleryThumb: dataUrl });
+    });
+  }
+}
+
+/* "Use this" on the review screen — send captured media into the Home composer as the post's media */
+function useCapturedMedia() {
+  const type = state.cameraCapturedType;
+  const url = state.cameraCapturedUrl;
+
+  if (type === "photo") {
+    setState({ view: "feed", composerMedia: url, composerMediaType: "image", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+    focusComposerSoon();
+    return;
+  }
+
+  if (type === "video") {
+    if (state.cameraCapturedBlob) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setState({ view: "feed", composerMedia: reader.result, composerMediaType: "video", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+        focusComposerSoon();
+      };
+      reader.readAsDataURL(state.cameraCapturedBlob);
+    } else {
+      setState({ view: "feed", composerMedia: url, composerMediaType: "video", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+      focusComposerSoon();
+    }
+  }
+}
+
+function focusComposerSoon() {
   requestAnimationFrame(() => {
     const input = document.getElementById("composerInput");
-    if (input) {
-      input.focus();
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
   });
 }
 
@@ -936,6 +1341,13 @@ function openFriendsScreen() {
 
 function renderFriendsScreen() {
   const myUid = state.user.uid;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+
+  if (state.friendsSubTab === "videos") {
+    renderFriendsVideoFeed();
+    return;
+  }
+
   const q = state.friendsSearch.trim().toLowerCase();
   const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
 
@@ -955,15 +1367,27 @@ function renderFriendsScreen() {
       (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
     );
   }
+  // Pinned people float to the top (outside the requests tab, where pinning doesn't apply)
+  if (state.friendsTab !== "requests") {
+    list = [...list].sort((a, b) => {
+      const ap = myPinned.includes(a.uid) ? 1 : 0;
+      const bp = myPinned.includes(b.uid) ? 1 : 0;
+      return bp - ap;
+    });
+  }
 
   const isRequestsTab = state.friendsTab === "requests";
   const rowsHtml = list.length
-    ? list.map(u => isRequestsTab ? renderRequestRow(u) : renderUserRow(u, myUid)).join("")
+    ? list.map(u => isRequestsTab ? renderRequestRow(u) : renderUserRow(u, myUid, myPinned)).join("")
     : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">${isRequestsTab ? "No pending requests" : "No one here yet"}</div><div class="line2">${isRequestsTab ? "Follow requests you receive will show up here." : "Try a different search or tab."}</div></div>`;
 
   root.innerHTML = `
     <div class="topbar">
       <div class="brand-sm" id="brandHomeBtn2">Friends</div>
+    </div>
+    <div class="friends-sub-tabs">
+      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeople">People</button>
+      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideos">Videos</button>
     </div>
     <div class="friends-search-wrap">
       <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
@@ -979,8 +1403,10 @@ function renderFriendsScreen() {
   `;
 
   document.getElementById("brandHomeBtn2").onclick = () => setState({ view: "feed" });
+  document.getElementById("friendsSubPeople").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsSubVideos").onclick = () => setState({ friendsSubTab: "videos" });
   document.getElementById("friendsSearchInput").oninput = (e) => setState({ friendsSearch: e.target.value });
-  document.querySelectorAll(".simple-tab").forEach(btn => {
+  document.querySelectorAll(".simple-tab[data-tab]").forEach(btn => {
     btn.onclick = () => setState({ friendsTab: btn.dataset.tab });
   });
 
@@ -1001,29 +1427,100 @@ function renderFriendsScreen() {
       const rowInfo = document.getElementById(`userinfo-${u.uid}`);
       const followBtn = document.getElementById(`followbtn-${u.uid}`);
       const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
       if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
       if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
       if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
       if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
     });
   }
 
   wireBottomNav();
 }
 
-function renderUserRow(u, myUid) {
+/* Friends' video feed: posts with media from people I follow, newest first, pinned-by-author videos first per author */
+function renderFriendsVideoFeed() {
+  const myUid = state.user.uid;
+  const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+  const videos = state.posts.filter(p =>
+    followingUids.has(p.authorUid) &&
+    p.media &&
+    (!p.privacy || p.privacy === "public")
+  );
+
+  const bodyHtml = videos.length
+    ? `<div class="friends-video-feed">${videos.map(renderFriendVideoCard).join("")}</div>`
+    : `<div class="empty-nav-tab"><div class="big">🎬</div><div class="line1">No friend videos yet</div><div class="line2">Follow people and their posts will show up here.</div></div>`;
+
+  root.innerHTML = `
+    <div class="topbar">
+      <div class="brand-sm" id="brandHomeBtn2v">Friends</div>
+    </div>
+    <div class="friends-sub-tabs">
+      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeopleV">People</button>
+      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideosV">Videos</button>
+    </div>
+    ${bodyHtml}
+    ${renderBottomNav("friends")}
+  `;
+  document.getElementById("brandHomeBtn2v").onclick = () => setState({ view: "feed" });
+  document.getElementById("friendsSubPeopleV").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsSubVideosV").onclick = () => setState({ friendsSubTab: "videos" });
+
+  videos.forEach(p => {
+    const el = document.getElementById(`fvhead-${p.id}`);
+    if (el) el.onclick = () => openProfile(p.authorUid);
+  });
+  wireBottomNav();
+}
+
+function renderFriendVideoCard(p) {
+  const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
+  return `
+    <div class="friend-video-card">
+      <div class="fv-head" id="fvhead-${p.id}" style="cursor:pointer">
+        <div class="avatar">${initials(p.authorName)}</div>
+        <div>
+          <div class="fv-name">${escapeHtml(p.authorName)}</div>
+          <div class="fv-time">${timeAgo(p.createdAt)}</div>
+        </div>
+      </div>
+      ${isVideo ? `<video src="${p.media}" controls></video>` : `<img src="${p.media}" />`}
+      ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ""}
+    </div>
+  `;
+}
+
+function togglePinFriend(uid) {
+  const myUid = state.user.uid;
+  const myRef = db.collection("users").doc(myUid);
+  const pinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  const isPinned = pinned.includes(uid);
+  myRef.update({
+    pinnedFriends: isPinned
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    showToast(isPinned ? "Unpinned" : "Pinned to top");
+  }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
+}
+
+function renderUserRow(u, myUid, myPinned) {
   const amFollowing = (u.followers || []).includes(myUid);
   const requested = !amFollowing && (u.followRequests || []).includes(myUid);
   const label = amFollowing ? "Following" : (requested ? "Requested" : "Follow");
   const cls = amFollowing ? "following" : (requested ? "requested" : "");
+  const isPinned = (myPinned || []).includes(u.uid);
   return `
     <div class="user-row">
       <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
       <div class="user-row-info" id="userinfo-${u.uid}">
-        <div class="u-name">${escapeHtml(u.name || "User")}</div>
+        <div class="u-name">${escapeHtml(u.name || "User")} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
         <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
       </div>
       <div class="user-row-actions">
+        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinfriendbtn-${u.uid}" title="Pin">📌</button>
         <button class="pill-btn ghost" id="msgbtn-${u.uid}">Message</button>
         <button class="pill-btn ${cls}" id="followbtn-${u.uid}">${label}</button>
       </div>
@@ -1084,6 +1581,7 @@ function toggleFollowFromList(targetUid) {
       return { ...u, followers: Array.from(followers), followRequests: Array.from(followRequests) };
     });
     setState({ allUsers: updated });
+    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't update follow status");
@@ -1153,47 +1651,313 @@ function listenToThreads() {
 function openInboxScreen() {
   // The threads listener runs continuously from login (so nav badges stay live);
   // opening the Inbox tab just switches the view.
-  setState({ view: "inbox" });
+  setState({ view: "inbox", inboxSection: null });
+  if (!state.activityLoaded) loadActivity();
+}
+
+/* Fetches likes/comments/reposts made by others on my own posts, newest first — powers the Activity section */
+function loadActivity() {
+  const myUid = state.user.uid;
+  db.collection("posts").where("authorUid", "==", myUid).limit(50).get().then((snap) => {
+    const items = [];
+    snap.docs.forEach(d => {
+      const p = d.data();
+      (p.comments || []).forEach(c => items.push({ type: "comment", text: `${c.name} commented: "${(c.text || "").slice(0, 60)}"`, postId: d.id }));
+      (p.likes || []).filter(uid => uid !== myUid).forEach(uid => items.push({ type: "like", text: `Someone liked your post`, postId: d.id }));
+    });
+    setState({ activity: items.slice(0, 40), activityLoaded: true });
+  }).catch((err) => console.error(err));
+}
+
+/* Records a lightweight activity/notification entry for a target user (used for follow requests, etc.) */
+function logActivity(targetUid, type, text) {
+  db.collection("users").doc(targetUid).collection("notifications").add({
+    type, text, fromUid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false
+  }).catch((err) => console.error(err));
 }
 
 function renderInboxScreen() {
+  if (state.inboxSection) return renderInboxSubScreen();
+
   const myUid = state.user.uid;
-  const rowsHtml = state.threads.length
-    ? state.threads.map(t => renderThreadRow(t, myUid)).join("")
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+  const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+
+  const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
+  const activeThreads = state.threads.filter(t => !archivedIds.includes(t.id));
+  const archivedThreadsList = state.threads.filter(t => archivedIds.includes(t.id));
+
+  // Stories row: Create + pinned/followed people (pinned first)
+  let storyPeople = state.allUsers.filter(u => (u.followers || []).includes(myUid) || (u.following || []).includes(myUid));
+  storyPeople = storyPeople.sort((a, b) => (myPinned.includes(b.uid) ? 1 : 0) - (myPinned.includes(a.uid) ? 1 : 0)).slice(0, 12);
+
+  const storiesHtml = `
+    <div class="inbox-stories-row">
+      <div class="inbox-story-item" id="storyCreateBtn">
+        <div class="inbox-story-avatar-wrap"><div class="inbox-story-avatar create">+</div></div>
+        <div class="inbox-story-label">Create</div>
+      </div>
+      ${storyPeople.map(u => `
+        <div class="inbox-story-item" data-uid="${u.uid}">
+          <div class="inbox-story-avatar-wrap">
+            <div class="inbox-story-avatar">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            ${myPinned.includes(u.uid) ? `<div class="inbox-story-pin-mark">📌</div>` : ""}
+          </div>
+          <div class="inbox-story-label">${escapeHtml((u.name || "User").split(" ")[0])}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const lastFollower = followersList[followersList.length - 1];
+  const lastActivity = state.activity[0];
+  const rowsHtml = `
+    <div class="inbox-section-row" id="secFollowers">
+      <div class="inbox-section-icon" style="background:#2f8cf0">👥</div>
+      <div class="inbox-section-info">
+        <div class="is-title">New followers</div>
+        <div class="is-sub">${lastFollower ? `${escapeHtml(lastFollower.name || "Someone")} started following you` : "No new followers yet"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secActivity">
+      <div class="inbox-section-icon" style="background:#e84393">❤️</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Activity</div>
+        <div class="is-sub">${lastActivity ? escapeHtml(lastActivity.text) : "No activity yet"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secRequests">
+      <div class="inbox-section-icon" style="background:#5352ed">💬</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Message requests</div>
+        <div class="is-sub">${myRequests.length ? `You have ${myRequests.length} request${myRequests.length > 1 ? "s" : ""}` : "No requests"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secArchive">
+      <div class="inbox-section-icon" style="background:#2f8cf0">🗄️</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Archive</div>
+        <div class="is-sub">${archivedThreadsList.length ? `${archivedThreadsList.length} archived chat${archivedThreadsList.length > 1 ? "s" : ""}` : "No archived chats"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secSystem">
+      <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
+      <div class="inbox-section-info">
+        <div class="is-title">System notifications</div>
+        <div class="is-sub">Creator updates and app news</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+  `;
+
+  const suggested = state.allUsers.filter(u => !(u.followers || []).includes(myUid)).slice(0, 6);
+  const suggestedHtml = suggested.length ? `
+    <div class="inbox-suggested-heading">Suggested accounts</div>
+    ${suggested.map(u => `
+      <div class="user-row">
+        <div class="avatar" id="sugavatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+        <div class="user-row-info" id="suginfo-${u.uid}">
+          <div class="u-name">${escapeHtml(u.name || "User")}</div>
+          <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
+        </div>
+        <div class="user-row-actions">
+          <button class="pill-btn" id="sugfollow-${u.uid}">Follow</button>
+          <button class="pin-icon-btn" id="sugremove-${u.uid}" title="Remove">✕</button>
+        </div>
+      </div>
+    `).join("")}
+  ` : "";
+
+  const threadsHtml = activeThreads.length
+    ? activeThreads.map(t => renderThreadRow(t, myUid, myPinned)).join("")
     : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No messages yet</div><div class="line2">Message someone from the Friends tab to start a chat.</div></div>`;
 
   root.innerHTML = `
     <div class="topbar">
       <div class="brand-sm" id="brandHomeBtn3">Inbox</div>
     </div>
-    <div class="thread-list">${rowsHtml}</div>
+    ${storiesHtml}
+    ${rowsHtml}
+    <div class="thread-list">${threadsHtml}</div>
+    ${suggestedHtml}
+    <div style="height:16px"></div>
     ${renderBottomNav("inbox")}
   `;
   document.getElementById("brandHomeBtn3").onclick = () => setState({ view: "feed" });
+  document.getElementById("storyCreateBtn").onclick = openCameraScreen;
+  document.querySelectorAll(".inbox-story-item[data-uid]").forEach(el => {
+    el.onclick = () => openChat(el.dataset.uid);
+  });
 
-  state.threads.forEach(t => {
+  document.getElementById("secFollowers").onclick = () => setState({ inboxSection: "followers" });
+  document.getElementById("secActivity").onclick = () => setState({ inboxSection: "activity" });
+  document.getElementById("secRequests").onclick = () => setState({ inboxSection: "requests" });
+  document.getElementById("secArchive").onclick = () => setState({ inboxSection: "archive" });
+  document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
+
+  suggested.forEach(u => {
+    const av = document.getElementById(`sugavatar-${u.uid}`);
+    const info = document.getElementById(`suginfo-${u.uid}`);
+    const followBtn = document.getElementById(`sugfollow-${u.uid}`);
+    const removeBtn = document.getElementById(`sugremove-${u.uid}`);
+    if (av) av.onclick = () => openProfile(u.uid);
+    if (info) info.onclick = () => openProfile(u.uid);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+    if (removeBtn) removeBtn.onclick = () => setState({ allUsers: state.allUsers.filter(x => x.uid !== u.uid) });
+  });
+
+  activeThreads.forEach(t => {
     const row = document.getElementById(`thread-${t.id}`);
-    if (row) {
-      const otherUid = (t.participants || []).find(p => p !== myUid);
-      row.onclick = () => openChat(otherUid);
-    }
+    const otherUid = (t.participants || []).find(p => p !== myUid);
+    if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
+    const pinBtn = document.getElementById(`pinthread-${t.id}`);
+    if (pinBtn) pinBtn.onclick = () => togglePinFriend(otherUid);
+    const archBtn = document.getElementById(`archthread-${t.id}`);
+    if (archBtn) archBtn.onclick = () => archiveThread(t.id, true);
   });
 
   wireBottomNav();
 }
 
-function renderThreadRow(t, myUid) {
+/* Sub-screens for each Inbox section (New followers / Activity / Requests / Archive / System) */
+function renderInboxSubScreen() {
+  const myUid = state.user.uid;
+  const section = state.inboxSection;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  let title = "";
+  let bodyHtml = "";
+
+  if (section === "followers") {
+    title = "New followers";
+    const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
+    bodyHtml = followersList.length
+      ? `<div class="user-list">${followersList.map(u => renderUserRow(u, myUid, myPinned)).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
+  } else if (section === "activity") {
+    title = "Activity";
+    bodyHtml = state.activity.length
+      ? `<div class="thread-list">${state.activity.map(a => `
+          <div class="inbox-section-row">
+            <div class="inbox-section-icon" style="background:#e84393">${a.type === "like" ? "❤️" : "💬"}</div>
+            <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
+          </div>
+        `).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
+  } else if (section === "requests") {
+    title = "Message requests";
+    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+    const list = state.allUsers.filter(u => myRequests.includes(u.uid));
+    bodyHtml = list.length
+      ? `<div class="user-list">${list.map(renderRequestRow).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No pending requests</div><div class="line2">Follow requests you receive show up here.</div></div>`;
+  } else if (section === "archive") {
+    title = "Archive";
+    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+    const list = state.threads.filter(t => archivedIds.includes(t.id));
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(t => renderThreadRow(t, myUid, myPinned, true)).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">No archived chats</div><div class="line2">Chats you archive show up here.</div></div>`;
+  } else if (section === "system") {
+    title = "System notifications";
+    bodyHtml = `
+      <div class="thread-list">
+        <div class="inbox-section-row">
+          <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
+          <div class="inbox-section-info">
+            <div class="is-title">Welcome to Milon</div>
+            <div class="is-sub">Thanks for joining — explore Friends and Inbox to connect with people.</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="inboxSubBackBtn">←</button>
+      <div class="back-title">${title}</div>
+    </div>
+    ${bodyHtml}
+    ${renderBottomNav("inbox")}
+  `;
+  document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
+
+  if (section === "followers") {
+    state.allUsers.filter(u => (u.following || []).includes(myUid)).forEach(u => {
+      const av = document.getElementById(`useravatar-${u.uid}`);
+      const info = document.getElementById(`userinfo-${u.uid}`);
+      const followBtn = document.getElementById(`followbtn-${u.uid}`);
+      const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
+      if (av) av.onclick = () => openProfile(u.uid);
+      if (info) info.onclick = () => openProfile(u.uid);
+      if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+      if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+    });
+  } else if (section === "requests") {
+    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+    state.allUsers.filter(u => myRequests.includes(u.uid)).forEach(u => {
+      const av = document.getElementById(`useravatar-${u.uid}`);
+      const info = document.getElementById(`userinfo-${u.uid}`);
+      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
+      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
+      if (av) av.onclick = () => openProfile(u.uid);
+      if (info) info.onclick = () => openProfile(u.uid);
+      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
+      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
+    });
+  } else if (section === "archive") {
+    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+    state.threads.filter(t => archivedIds.includes(t.id)).forEach(t => {
+      const otherUid = (t.participants || []).find(p => p !== myUid);
+      const row = document.getElementById(`thread-${t.id}`);
+      if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
+      const unarchBtn = document.getElementById(`unarchthread-${t.id}`);
+      if (unarchBtn) unarchBtn.onclick = () => archiveThread(t.id, false);
+    });
+  }
+
+  wireBottomNav();
+}
+
+/* Archive / unarchive a thread by storing its id in my own user doc */
+function archiveThread(threadId, archive) {
+  const myUid = state.user.uid;
+  db.collection("users").doc(myUid).update({
+    archivedThreads: archive
+      ? firebase.firestore.FieldValue.arrayUnion(threadId)
+      : firebase.firestore.FieldValue.arrayRemove(threadId)
+  }).then(() => {
+    showToast(archive ? "Chat archived" : "Chat unarchived");
+  }).catch((err) => { console.error(err); showToast("Couldn't update archive"); });
+}
+
+function renderThreadRow(t, myUid, myPinned, inArchive) {
   const otherUid = (t.participants || []).find(p => p !== myUid);
   const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
   const unread = (t.unread && t.unread[myUid]) || 0;
+  const isPinned = (myPinned || []).includes(otherUid);
   return `
     <div class="thread-row ${unread > 0 ? "unread" : ""}" id="thread-${t.id}">
       <div class="avatar">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}</div>
       <div class="thread-info">
-        <div class="t-name">${escapeHtml(otherInfo.name)}</div>
+        <div class="t-name">${escapeHtml(otherInfo.name)} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
         <div class="t-preview">${escapeHtml(t.lastMessage || "")}</div>
       </div>
       ${unread > 0 ? `<div class="thread-unread-dot"></div>` : ""}
+      <div class="thread-row-actions">
+        ${inArchive
+          ? `<button class="pin-icon-btn" id="unarchthread-${t.id}" title="Unarchive">↩️</button>`
+          : `<button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
+             <button class="pin-icon-btn" id="archthread-${t.id}" title="Archive">🗄️</button>`
+        }
+      </div>
       <div class="thread-time">${timeAgo(t.lastMessageAt)}</div>
     </div>
   `;
@@ -1356,7 +2120,7 @@ function openProfile(targetUid) {
   const ref = db.collection("users").doc(uid);
 
   ref.get().then((doc) => {
-    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [] };
+    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], pinnedPosts: [] };
 
     if (isOwn) {
       setState({ view: "profile", viewingUid: null, profile: data, profileTab: "posts" });
@@ -1402,6 +2166,7 @@ function toggleFollow(targetUid) {
   }
 
   action.then(() => {
+    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
     openProfile(targetUid);
   }).catch((err) => {
     console.error(err);
@@ -1413,13 +2178,16 @@ function renderProfileScreen() {
   const profile = state.profile || {};
   const isOwn = !state.viewingUid || state.viewingUid === state.user.uid;
   const targetUid = isOwn ? state.user.uid : state.viewingUid;
+  const pinnedPosts = profile.pinnedPosts || [];
 
   // Posts belonging to the profile being viewed.
   // Own profile: derived from the loaded global feed (last 50 posts) so private posts are included.
   // Other user's profile: fetched separately and already filtered to public-only (see openProfile).
   const myPosts = isOwn ? state.posts.filter(p => p.authorUid === targetUid) : state.viewingPosts;
 
-  const publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
+  let publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
+  // Pinned posts float to the top of the grid
+  publicPosts = [...publicPosts].sort((a, b) => (pinnedPosts.includes(b.id) ? 1 : 0) - (pinnedPosts.includes(a.id) ? 1 : 0));
   const privatePosts = isOwn ? myPosts.filter(p => p.privacy && p.privacy !== "public") : [];
   const repostedPosts = isOwn ? state.posts.filter(p => (p.reposts || []).includes(targetUid)) : [];
   const savedPosts = isOwn ? state.posts.filter(p => (p.savedBy || []).includes(targetUid)) : [];
@@ -1451,8 +2219,15 @@ function renderProfileScreen() {
 
   const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
   const tabBodyHtml = activeTab.list.length
-    ? renderProfileGrid(activeTab.list)
+    ? renderProfileGrid(activeTab.list, pinnedPosts)
     : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta);
+
+  const linksHtml = (profile.youtubeLink || profile.facebookLink) ? `
+    <div class="profile-links">
+      ${profile.youtubeLink ? `<a class="profile-link-chip" href="${escapeHtml(profile.youtubeLink)}" target="_blank" rel="noopener">▶ YouTube</a>` : ""}
+      ${profile.facebookLink ? `<a class="profile-link-chip" href="${escapeHtml(profile.facebookLink)}" target="_blank" rel="noopener">f Facebook</a>` : ""}
+    </div>
+  ` : "";
 
   root.innerHTML = `
     <div class="profile-topbar">
@@ -1472,19 +2247,20 @@ function renderProfileScreen() {
       </div>
       <div class="profile-name-row">
         <div class="profile-name" id="profileNameText">${escapeHtml(profile.name || "User")}</div>
-        ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="Edit name">✏️</button>` : ""}
+        ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="Edit profile">✏️</button>` : ""}
       </div>
       <div class="profile-handle">@${escapeHtml(profile.handle || slugifyHandle(profile.name || "user"))}</div>
       ${profile.bio ? `<div class="profile-bio">${escapeHtml(profile.bio)}</div>` : ""}
+      ${linksHtml}
 
-      ${isOwn
-        ? `<button class="profile-edit-btn" id="editProfileBtn">Edit profile</button>`
-        : `<button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>`
+      ${!isOwn
+        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>`
+        : ""
       }
 
       <div class="profile-stats">
-        <div class="profile-stat"><div class="num">${following}</div><div class="lbl">Following</div></div>
-        <div class="profile-stat"><div class="num">${followers}</div><div class="lbl">Followers</div></div>
+        <button class="profile-stat" id="followingStat"><div class="num">${following}</div><div class="lbl">Following</div></button>
+        <button class="profile-stat" id="followersStat"><div class="num">${followers}</div><div class="lbl">Followers</div></button>
         <div class="profile-stat"><div class="num">${totalLikesReceived}</div><div class="lbl">Likes</div></div>
       </div>
     </div>
@@ -1501,10 +2277,11 @@ function renderProfileScreen() {
   `;
 
   document.getElementById("profileBackBtn").onclick = () => setState({ view: "feed" });
+  document.getElementById("followingStat").onclick = () => openFollowList(targetUid, "following");
+  document.getElementById("followersStat").onclick = () => openFollowList(targetUid, "followers");
 
   if (isOwn) {
-    document.getElementById("editNameBtn").onclick = handleEditName;
-    document.getElementById("editProfileBtn").onclick = handleEditName;
+    document.getElementById("editNameBtn").onclick = openEditProfileScreen;
     document.getElementById("avatarInput").onchange = handleAvatarSelect;
     wireBottomNav();
   } else {
@@ -1516,18 +2293,49 @@ function renderProfileScreen() {
   });
 
   const uploadBtn = document.getElementById("profileUploadBtn");
-  if (uploadBtn) uploadBtn.onclick = () => setState({ view: "feed" });
+  if (uploadBtn) uploadBtn.onclick = openCameraScreen;
+
+  activeTab.list.forEach(p => {
+    const pinEl = document.getElementById(`gridpin-${p.id}`);
+    if (pinEl) pinEl.onclick = (e) => { e.stopPropagation(); togglePinPost(p.id); };
+  });
 }
 
-function renderProfileGrid(posts) {
+function renderProfileGrid(posts, pinnedPosts) {
   return `
     <div class="profile-grid">
-      ${posts.map(p => p.media
-        ? `<div class="profile-grid-item"><img src="${p.media}" /></div>`
-        : `<div class="profile-grid-item text-only">${escapeHtml((p.text || "").slice(0, 60))}</div>`
-      ).join("")}
+      ${posts.map(p => {
+        const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
+        const isPinned = (pinnedPosts || []).includes(p.id);
+        const mediaHtml = p.media
+          ? (isVideo ? `<video src="${p.media}" muted></video>` : `<img src="${p.media}" />`)
+          : "";
+        return `
+          <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridpin-${p.id}" title="Tap pin icon to pin/unpin" style="cursor:pointer">
+            ${mediaHtml || escapeHtml((p.text || "").slice(0, 60))}
+            ${isPinned ? `<div class="grid-pin-badge">📌</div>` : ""}
+            ${isVideo ? `<div class="grid-video-badge">▶</div>` : ""}
+          </div>
+        `;
+      }).join("")}
     </div>
   `;
+}
+
+function togglePinPost(postId) {
+  const myUid = state.user.uid;
+  const pinnedPosts = (state.profile && state.profile.pinnedPosts) || [];
+  const isPinned = pinnedPosts.includes(postId);
+  db.collection("users").doc(myUid).update({
+    pinnedPosts: isPinned
+      ? firebase.firestore.FieldValue.arrayRemove(postId)
+      : firebase.firestore.FieldValue.arrayUnion(postId)
+  }).then(() => {
+    const updated = isPinned ? pinnedPosts.filter(id => id !== postId) : [...pinnedPosts, postId];
+    state.profile = { ...state.profile, pinnedPosts: updated };
+    render();
+    showToast(isPinned ? "Unpinned" : "Pinned to top");
+  }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
 }
 
 function profileEmptyHtml(line1, line2, showCta) {
@@ -1541,22 +2349,154 @@ function profileEmptyHtml(line1, line2, showCta) {
   `;
 }
 
-function handleEditName() {
-  const newName = prompt("Your display name:", state.profile.name || state.user.name);
-  if (newName === null || !newName.trim()) return;
-  const newHandle = prompt("Your @handle:", state.profile.handle || slugifyHandle(state.user.name));
-  const handle = slugifyHandle(newHandle || state.profile.handle);
-  const newBio = prompt("Your bio (optional):", state.profile.bio || "");
-  if (newBio === null) return;
-  const bio = newBio.trim().slice(0, 150);
+/* ---------------- Following / Followers list screen ---------------- */
+function openFollowList(targetUid, kind) {
+  setState({ view: "followList", followListUid: targetUid, followListKind: kind });
+  if (!state.allUsersLoaded) {
+    db.collection("users").limit(200).get().then((snap) => {
+      const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== state.user.uid);
+      setState({ allUsers: users, allUsersLoaded: true });
+    }).catch((err) => console.error(err));
+  }
+}
 
-  db.collection("users").doc(state.user.uid).update({ name: newName.trim(), handle, bio })
+function renderFollowListScreen() {
+  const targetUid = state.followListUid;
+  const kind = state.followListKind;
+  const isOwn = targetUid === state.user.uid;
+  const profile = isOwn ? state.profile : (state.allUsers.find(u => u.uid === targetUid) || {});
+  const ids = kind === "following" ? (profile.following || []) : (profile.followers || []);
+  const list = state.allUsers.filter(u => ids.includes(u.uid));
+  const myUid = state.user.uid;
+
+  const rowsHtml = list.length
+    ? list.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("")
+    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`;
+
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="followListBackBtn">←</button>
+      <div class="back-title">${kind === "following" ? "Following" : "Followers"}</div>
+    </div>
+    <div class="user-list">${rowsHtml}</div>
+  `;
+  document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
+
+  list.forEach(u => {
+    const av = document.getElementById(`useravatar-${u.uid}`);
+    const info = document.getElementById(`userinfo-${u.uid}`);
+    const followBtn = document.getElementById(`followbtn-${u.uid}`);
+    const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+    const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
+    if (av) av.onclick = () => openProfile(u.uid);
+    if (info) info.onclick = () => openProfile(u.uid);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+    if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+    if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+  });
+}
+
+/* ---------------- Edit Profile screen (TikTok-style) ---------------- */
+function openEditProfileScreen() {
+  const p = state.profile || {};
+  setState({
+    view: "editProfile",
+    editName: p.name || "",
+    editHandle: p.handle || "",
+    editBio: p.bio || "",
+    editYoutube: p.youtubeLink || "",
+    editFacebook: p.facebookLink || ""
+  });
+}
+
+function renderEditProfileScreen() {
+  const profile = state.profile || {};
+  const appOrigin = window.location.origin + window.location.pathname;
+
+  root.innerHTML = `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="editBackBtn">←</button>
+      <div class="profile-title">Edit profile</div>
+      <div style="width:28px"></div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || "User")}</div>
+        <label class="profile-avatar-edit" title="Change photo">
+          📷
+          <input type="file" accept="image/*" id="editAvatarInput" style="display:none" />
+        </label>
+      </div>
+      <label class="link-btn" id="changePhotoLabel" style="color:var(--teal-deep); font-weight:600; cursor:pointer;">Change photo</label>
+    </div>
+
+    <div style="padding: 0 14px;">
+      <div class="field">
+        <label>Name</label>
+        <input id="editNameInput" type="text" value="${escapeHtml(state.editName)}" placeholder="Your name" maxlength="40" />
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input id="editHandleInput" type="text" value="${escapeHtml(state.editHandle)}" placeholder="username" maxlength="24" />
+        <div style="font-size:12px; color:var(--ink-soft); margin-top:6px; word-break:break-all;">${escapeHtml(appOrigin)}?u=${escapeHtml(state.editHandle || "")}</div>
+      </div>
+
+      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">Basic info</div>
+      <div class="field">
+        <label>Bio</label>
+        <textarea id="editBioInput" rows="3" maxlength="150" placeholder="Write a short description about who you are or what your account is about" style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.editBio)}</textarea>
+      </div>
+
+      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">Links</div>
+      <div class="field">
+        <label>YouTube link</label>
+        <input id="editYoutubeInput" type="url" value="${escapeHtml(state.editYoutube)}" placeholder="https://youtube.com/@yourchannel" />
+      </div>
+      <div class="field">
+        <label>Facebook link</label>
+        <input id="editFacebookInput" type="url" value="${escapeHtml(state.editFacebook)}" placeholder="https://facebook.com/yourprofile" />
+      </div>
+
+      <button class="btn-primary" id="saveProfileBtn" style="margin-top:10px; margin-bottom:30px;">Save</button>
+    </div>
+  `;
+
+  document.getElementById("editBackBtn").onclick = () => setState({ view: "profile" });
+  document.getElementById("editAvatarInput").onchange = handleAvatarSelect;
+  document.getElementById("changePhotoLabel").onclick = () => document.getElementById("editAvatarInput").click();
+
+  document.getElementById("editNameInput").oninput = (e) => { state.editName = e.target.value; };
+  document.getElementById("editHandleInput").oninput = (e) => { state.editHandle = e.target.value; };
+  document.getElementById("editBioInput").oninput = (e) => { state.editBio = e.target.value; };
+  document.getElementById("editYoutubeInput").oninput = (e) => { state.editYoutube = e.target.value; };
+  document.getElementById("editFacebookInput").oninput = (e) => { state.editFacebook = e.target.value; };
+
+  document.getElementById("saveProfileBtn").onclick = saveEditedProfile;
+}
+
+function saveEditedProfile() {
+  const name = state.editName.trim();
+  if (!name) { showToast("Name can't be empty"); return; }
+  const handle = slugifyHandle(state.editHandle.trim() || name);
+  const bio = state.editBio.trim().slice(0, 150);
+  const youtubeLink = state.editYoutube.trim();
+  const facebookLink = state.editFacebook.trim();
+
+  const btn = document.getElementById("saveProfileBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }
+
+  db.collection("users").doc(state.user.uid).update({ name, handle, bio, youtubeLink, facebookLink })
     .then(() => {
-      state.profile = { ...state.profile, name: newName.trim(), handle, bio };
-      render();
+      state.profile = { ...state.profile, name, handle, bio, youtubeLink, facebookLink };
+      setState({ view: "profile" });
       showToast("Profile updated");
     })
-    .catch((err) => { console.error(err); showToast("Couldn't update profile"); });
+    .catch((err) => {
+      console.error(err);
+      showToast("Couldn't update profile");
+      if (btn) { btn.disabled = false; btn.textContent = "Save"; }
+    });
 }
 
 function toggleRepost(post) {
@@ -1618,6 +2558,7 @@ function wireSheetHandlers() {
   document.getElementById("shareMore").onclick = doNativeShare;
 
   document.getElementById("editPostBtn").onclick = doEditPost;
+  document.getElementById("pinPostBtn").onclick = doPinPostFromSheet;
   document.getElementById("deletePostBtn").onclick = doDeletePost;
   document.querySelectorAll(".privacy-option").forEach(btn => {
     btn.onclick = () => setPrivacy(btn.dataset.level);
@@ -1688,7 +2629,7 @@ function doNativeShare() {
   closeSheets();
 }
 
-/* ================= Own post: Edit / Delete / Privacy ================= */
+/* ================= Own post: Edit / Delete / Privacy / Pin ================= */
 function doEditPost() {
   const post = state.posts.find(p => p.id === activePostId);
   if (!post) return;
@@ -1698,6 +2639,11 @@ function doEditPost() {
       .then(() => showToast("Post updated"))
       .catch((err) => { console.error(err); showToast("Couldn't update the post"); });
   }
+  closeSheets();
+}
+
+function doPinPostFromSheet() {
+  if (activePostId) togglePinPost(activePostId);
   closeSheets();
 }
 
@@ -1718,12 +2664,12 @@ function setPrivacy(level) {
   closeSheets();
 }
 
-/* Take a photo, compress it, and convert it to base64 */
+/* Take a photo, compress it, and convert it to base64 (Home composer's own image picker) */
 function handleImageSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
   compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (compressed) => {
-    setState({ composerMedia: compressed });
+    setState({ composerMedia: compressed, composerMediaType: "image" });
   });
 }
 
@@ -1739,12 +2685,13 @@ function submitPost() {
     authorName: state.user.name,
     text: state.composerText.trim(),
     media: state.composerMedia,
+    mediaType: state.composerMediaType || (state.composerMedia ? "image" : null),
     privacy: "public",
     likes: [],
     comments: [],
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    setState({ composerText: "", composerMedia: null });
+    setState({ composerText: "", composerMedia: null, composerMediaType: null });
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't create the post");
@@ -1806,8 +2753,9 @@ function renderPost(p) {
   const saved = state.user && savedBy.includes(state.user.uid);
   const showComments = !!state.openComments[p.id];
   const isOwner = state.user && p.authorUid === state.user.uid;
+  const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
 
-  const mediaHtml = p.media ? `<div class="post-media"><img src="${p.media}" /></div>` : "";
+  const mediaHtml = p.media ? `<div class="post-media">${isVideo ? `<video src="${p.media}" controls></video>` : `<img src="${p.media}" />`}</div>` : "";
 
   const commentsHtml = showComments ? `
     <div class="comments-box">

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>মিলন — সোশ্যাল অ্যাপ</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F6F3EC;
+    --card: #FFFFFF;
+    --ink: #262420;
+    --ink-soft: #6B6860;
+    --line: #E4E0D5;
+    --teal: #0F6E56;
+    --teal-deep: #085041;
+    --coral: #D85A30;
+    --coral-soft: #FAECE7;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", "Noto Sans Bengali", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; }
+
+  /* ---------- LOGIN SCREEN ---------- */
+  .login-screen {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding: 32px 28px;
+  }
+  .brand { font-size: 34px; font-weight: 700; color: var(--teal-deep); letter-spacing: -0.5px; margin-bottom: 6px; }
+  .tagline { color: var(--ink-soft); font-size: 15px; margin-bottom: 36px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-size: 15px; background: var(--card); color: var(--ink);
+  }
+  .field input:focus { outline: none; border-color: var(--teal); }
+  .btn-primary {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    background: var(--teal-deep); color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 6px;
+  }
+  .btn-primary:disabled { background: var(--line); color: var(--ink-soft); }
+  .link-btn {
+    width: 100%; background: none; border: none; color: var(--teal-deep);
+    font-size: 13px; margin-top: 14px; cursor: pointer; text-align: center;
+  }
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--ink-soft); font-size: 13px; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .btn-social {
+    width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); font-size: 14px; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+  }
+  .error-msg { color: var(--coral); font-size: 13px; margin-top: 10px; text-align: center; min-height: 16px; }
+  .loading-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-size: 15px;
+  }
+
+  /* ---------- MAIN APP ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand-sm { font-size: 20px; font-weight: 700; color: var(--teal-deep); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .logout-btn { border: none; background: none; color: var(--ink-soft); font-size: 12px; cursor: pointer; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--coral-soft);
+    color: var(--coral); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+
+  .composer { background: var(--card); margin: 14px; border-radius: 14px; border: 1px solid var(--line); padding: 14px; }
+  .composer-top { display: flex; gap: 10px; }
+  .composer textarea {
+    flex: 1; border: none; resize: none; font-size: 15px; font-family: inherit;
+    min-height: 44px; background: transparent; color: var(--ink);
+  }
+  .composer textarea:focus { outline: none; }
+  .preview-wrap { position: relative; margin-top: 10px; }
+  .preview-wrap img { width: 100%; border-radius: 10px; max-height: 260px; object-fit: cover; }
+  .remove-media {
+    position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.55); color: #fff;
+    border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 14px;
+  }
+  .composer-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .icon-btn {
+    border: none; background: var(--coral-soft); color: var(--coral); width: 36px; height: 36px;
+    border-radius: 9px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .post-btn {
+    border: none; background: var(--teal-deep); color: #fff; padding: 9px 20px;
+    border-radius: 9px; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .post-btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+
+  .feed { padding: 0 14px 90px; }
+  .post {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    margin-bottom: 14px; overflow: hidden;
+  }
+  .post-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .post-head .name { font-weight: 600; font-size: 14px; }
+  .post-head .time { font-size: 12px; color: var(--ink-soft); }
+  .post-text { padding: 0 14px 10px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+  .post-media img { width: 100%; display: block; max-height: 420px; object-fit: cover; }
+  .post-stats { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; color: var(--ink-soft); }
+  .post-actions { display: flex; border-top: 1px solid var(--line); }
+  .action-btn {
+    flex: 1; border: none; background: none; padding: 11px 0; font-size: 13px; font-weight: 600;
+    color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .action-btn.liked { color: var(--coral); }
+
+  .comments-box { border-top: 1px solid var(--line); padding: 10px 14px; }
+  .comment-line { font-size: 13px; margin-bottom: 6px; line-height: 1.5; }
+  .comment-line b { font-weight: 600; }
+  .comment-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  .comment-input-row input {
+    flex: 1; border: 1px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 13px;
+    background: var(--bg);
+  }
+  .comment-input-row button {
+    border: none; background: var(--teal-deep); color: #fff; border-radius: 20px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    max-width: 90%; text-align: center; z-index: 20;
+  }
+  .toast.show { opacity: 1; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
+  .empty-state .big { font-size: 36px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div id="root" class="app"></div>
+
+<script>
+/* ================= Firebase কনফিগারেশন ================= */
+/* এখানে তোমার Firebase Console থেকে পাওয়া firebaseConfig বসিয়ে দাও */
+const firebaseConfig = {
+  apiKey: "AIzaSyDTRdBE8OniAAbmN7iQgo9ejqGqehAer5U",
+  authDomain: "tik-tok-vai.firebaseapp.com",
+  projectId: "tik-tok-vai",
+  storageBucket: "tik-tok-vai.firebasestorage.app",
+  messagingSenderId: "182459233826",
+  appId: "1:182459233826:web:9cfb0c7d24d51307b37c7b",
+  measurementId: "G-0GXPRM00VH"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ================= অ্যাপের অবস্থা ================= */
+const root = document.getElementById("root");
+
+let state = {
+  authReady: false,
+  user: null,
+  mode: "login",       // login | signup
+  authError: "",
+  posts: [],
+  composerText: "",
+  composerMedia: null,
+  toastMsg: "",
+  openComments: {}
+};
+
+function setState(patch) {
+  state = { ...state, ...patch };
+  render();
+}
+
+function initials(name) {
+  if (!name) return "?";
+  return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+
+function showToast(msg) {
+  state.toastMsg = msg;
+  render();
+  requestAnimationFrame(() => {
+    const t = document.getElementById("toast");
+    if (t) t.classList.add("show");
+  });
+  setTimeout(() => {
+    const t = document.getElementById("toast");
+    if (t) t.classList.remove("show");
+  }, 2200);
+}
+
+/* ================= Auth লিসেনার ================= */
+auth.onAuthStateChanged((firebaseUser) => {
+  if (firebaseUser) {
+    state.user = {
+      uid: firebaseUser.uid,
+      name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split("@")[0] : "ইউজার"),
+      email: firebaseUser.email
+    };
+    state.authReady = true;
+    listenToPosts();
+  } else {
+    state.user = null;
+    state.authReady = true;
+    state.posts = [];
+    render();
+  }
+  render();
+});
+
+/* ================= Firestore থেকে রিয়েল-টাইম পোস্ট শোনা ================= */
+let unsubscribePosts = null;
+function listenToPosts() {
+  if (unsubscribePosts) unsubscribePosts();
+  unsubscribePosts = db.collection("posts")
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .onSnapshot((snapshot) => {
+      state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      render();
+    }, (err) => {
+      console.error(err);
+      showToast("পোস্ট লোড করতে সমস্যা হচ্ছে");
+    });
+}
+
+/* ================= রেন্ডার ================= */
+function render() {
+  if (!state.authReady) {
+    root.innerHTML = `<div class="loading-screen">লোড হচ্ছে...</div>`;
+    return;
+  }
+  if (!state.user) {
+    renderLogin();
+  } else {
+    renderApp();
+  }
+}
+
+function renderLogin() {
+  const isSignup = state.mode === "signup";
+  root.innerHTML = `
+    <div class="login-screen">
+      <div class="brand">মিলন</div>
+      <div class="tagline">বন্ধু আর পরিবারের সাথে জুড়ে থাকো</div>
+
+      ${isSignup ? `
+      <div class="field">
+        <label>নাম</label>
+        <input id="nameInput" type="text" placeholder="তোমার নাম" />
+      </div>` : ""}
+
+      <div class="field">
+        <label>ইমেইল</label>
+        <input id="emailInput" type="email" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>পাসওয়ার্ড</label>
+        <input id="passInput" type="password" placeholder="কমপক্ষে ৬ ডিজিট" />
+      </div>
+
+      <button class="btn-primary" id="submitAuthBtn">${isSignup ? "অ্যাকাউন্ট তৈরি করো" : "লগইন করো"}</button>
+      <div class="error-msg" id="authErrorMsg">${escapeHtml(state.authError)}</div>
+
+      <button class="link-btn" id="toggleModeBtn">${isSignup ? "অ্যাকাউন্ট আছে? লগইন করো" : "নতুন? অ্যাকাউন্ট তৈরি করো"}</button>
+
+      <div class="divider">অথবা</div>
+      <button class="btn-social" id="googleBtn"><span style="width:18px;height:18px;border-radius:50%;background:#EA4335;display:inline-block;"></span> Google দিয়ে চালিয়ে যাও</button>
+    </div>
+  `;
+
+  document.getElementById("submitAuthBtn").onclick = handleAuthSubmit;
+  document.getElementById("toggleModeBtn").onclick = () => setState({ mode: isSignup ? "login" : "signup", authError: "" });
+  document.getElementById("googleBtn").onclick = handleGoogleLogin;
+}
+
+function handleAuthSubmit() {
+  const email = document.getElementById("emailInput").value.trim();
+  const pass = document.getElementById("passInput").value;
+  const isSignup = state.mode === "signup";
+  const name = isSignup ? document.getElementById("nameInput").value.trim() : null;
+
+  if (!email || !pass || (isSignup && !name)) {
+    setState({ authError: "সব ঘর পূরণ করো" });
+    return;
+  }
+  if (pass.length < 6) {
+    setState({ authError: "পাসওয়ার্ড কমপক্ষে ৬ ডিজিট হতে হবে" });
+    return;
+  }
+
+  const btn = document.getElementById("submitAuthBtn");
+  btn.disabled = true;
+  btn.textContent = "একটু অপেক্ষা করো...";
+
+  const action = isSignup
+    ? auth.createUserWithEmailAndPassword(email, pass).then((cred) => cred.user.updateProfile({ displayName: name }))
+    : auth.signInWithEmailAndPassword(email, pass);
+
+  action
+    .then(() => setState({ authError: "" }))
+    .catch((err) => setState({ authError: translateAuthError(err.code) }));
+}
+
+function handleGoogleLogin() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch((err) => {
+    setState({ authError: translateAuthError(err.code) });
+  });
+}
+
+function translateAuthError(code) {
+  const map = {
+    "auth/email-already-in-use": "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে",
+    "auth/invalid-email": "সঠিক ইমেইল দাও",
+    "auth/user-not-found": "এই ইমেইলে কোনো অ্যাকাউন্ট নেই",
+    "auth/wrong-password": "পাসওয়ার্ড ভুল হয়েছে",
+    "auth/invalid-credential": "ইমেইল বা পাসওয়ার্ড ভুল",
+    "auth/popup-closed-by-user": "লগইন বাতিল হয়েছে"
+  };
+  return map[code] || "কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করো";
+}
+
+function handleLogout() {
+  auth.signOut();
+}
+
+function renderApp() {
+  const feedHtml = state.posts.length
+    ? state.posts.map(renderPost).join("")
+    : `<div class="empty-state"><div class="big">📭</div>এখনো কোনো পোস্ট নেই।<br>উপরে থেকে প্রথম পোস্টটি করো।</div>`;
+
+  root.innerHTML = `
+    <div class="topbar">
+      <div class="brand-sm">মিলন</div>
+      <div class="topbar-right">
+        <button class="logout-btn" id="logoutBtn">লগআউট</button>
+        <div class="avatar">${initials(state.user.name)}</div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="composer-top">
+        <div class="avatar">${initials(state.user.name)}</div>
+        <textarea id="composerInput" placeholder="তুমি কী নিয়ে ভাবছো, ${escapeHtml(state.user.name.split(" ")[0])}?">${escapeHtml(state.composerText)}</textarea>
+      </div>
+      ${state.composerMedia ? `
+        <div class="preview-wrap">
+          <img src="${state.composerMedia}" />
+          <button class="remove-media" id="removeMediaBtn">✕</button>
+        </div>` : ""}
+      <div class="composer-actions">
+        <label class="icon-btn" title="ছবি যোগ করো">
+          🖼️
+          <input type="file" accept="image/*" id="imageInput" style="display:none" />
+        </label>
+        <button class="post-btn" id="submitPostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>পোস্ট করো</button>
+      </div>
+    </div>
+
+    <div class="feed">${feedHtml}</div>
+
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+  `;
+
+  document.getElementById("logoutBtn").onclick = handleLogout;
+
+  document.getElementById("composerInput").oninput = (e) => {
+    state.composerText = e.target.value;
+    document.getElementById("submitPostBtn").disabled = !state.composerText.trim() && !state.composerMedia;
+  };
+
+  document.getElementById("imageInput").onchange = handleImageSelect;
+
+  const removeBtn = document.getElementById("removeMediaBtn");
+  if (removeBtn) removeBtn.onclick = () => setState({ composerMedia: null });
+
+  document.getElementById("submitPostBtn").onclick = submitPost;
+
+  state.posts.forEach(p => {
+    const likeBtn = document.getElementById(`like-${p.id}`);
+    const commentBtn = document.getElementById(`comment-${p.id}`);
+    const shareBtn = document.getElementById(`share-${p.id}`);
+    if (likeBtn) likeBtn.onclick = () => toggleLike(p);
+    if (commentBtn) commentBtn.onclick = () => setState({ openComments: { ...state.openComments, [p.id]: !state.openComments[p.id] } });
+    if (shareBtn) shareBtn.onclick = () => sharePost();
+
+    const commentSubmit = document.getElementById(`commentSubmit-${p.id}`);
+    if (commentSubmit) commentSubmit.onclick = () => submitComment(p.id);
+    const commentInput = document.getElementById(`commentInput-${p.id}`);
+    if (commentInput) commentInput.onkeydown = (e) => { if (e.key === "Enter") submitComment(p.id); };
+  });
+}
+
+/* ছবি নেওয়া ও ছোট করে (compress) base64-এ রূপান্তর করা, যাতে Firestore-এ সেভ করা যায় */
+function handleImageSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img.onload = () => {
+      const maxDim = 900;
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
+      setState({ composerMedia: compressed });
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitPost() {
+  if (!state.composerText.trim() && !state.composerMedia) return;
+
+  const postBtn = document.getElementById("submitPostBtn");
+  postBtn.disabled = true;
+  postBtn.textContent = "পোস্ট হচ্ছে...";
+
+  db.collection("posts").add({
+    authorUid: state.user.uid,
+    authorName: state.user.name,
+    text: state.composerText.trim(),
+    media: state.composerMedia,
+    likes: [],
+    comments: [],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    setState({ composerText: "", composerMedia: null });
+  }).catch((err) => {
+    console.error(err);
+    showToast("পোস্ট করতে সমস্যা হয়েছে");
+    render();
+  });
+}
+
+function toggleLike(post) {
+  const uid = state.user.uid;
+  const liked = (post.likes || []).includes(uid);
+  const ref = db.collection("posts").doc(post.id);
+  ref.update({
+    likes: liked
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).catch((err) => console.error(err));
+}
+
+function sharePost() {
+  showToast("লিংক কপি হয়ে গেছে (ডেমো)");
+}
+
+function submitComment(postId) {
+  const input = document.getElementById(`commentInput-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+
+  const ref = db.collection("posts").doc(postId);
+  ref.update({
+    comments: firebase.firestore.FieldValue.arrayUnion({
+      name: state.user.name,
+      text: text
+    })
+  }).catch((err) => console.error(err));
+
+  input.value = "";
+}
+
+function timeAgo(ts) {
+  if (!ts || !ts.toDate) return "এইমাত্র";
+  const diffMs = Date.now() - ts.toDate().getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "এইমাত্র";
+  if (mins < 60) return `${mins} মিনিট আগে`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} ঘণ্টা আগে`;
+  return `${Math.floor(hrs / 24)} দিন আগে`;
+}
+
+function renderPost(p) {
+  const likes = p.likes || [];
+  const comments = p.comments || [];
+  const liked = state.user && likes.includes(state.user.uid);
+  const showComments = !!state.openComments[p.id];
+
+  const mediaHtml = p.media ? `<div class="post-media"><img src="${p.media}" /></div>` : "";
+
+  const commentsHtml = showComments ? `
+    <div class="comments-box">
+      ${comments.map(c => `<div class="comment-line"><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</div>`).join("")}
+      <div class="comment-input-row">
+        <input id="commentInput-${p.id}" type="text" placeholder="মন্তব্য লেখো..." />
+        <button id="commentSubmit-${p.id}">পাঠাও</button>
+      </div>
+    </div>
+  ` : "";
+
+  return `
+    <div class="post">
+      <div class="post-head">
+        <div class="avatar">${initials(p.authorName)}</div>
+        <div>
+          <div class="name">${escapeHtml(p.authorName)}</div>
+          <div class="time">${timeAgo(p.createdAt)}</div>
+        </div>
+      </div>
+      ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ""}
+      ${mediaHtml}
+      <div class="post-stats">
+        <span>${likes.length} জন লাইক করেছে</span>
+        <span>${comments.length} টি মন্তব্য</span>
+      </div>
+      <div class="post-actions">
+        <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} লাইক</button>
+        <button class="action-btn" id="comment-${p.id}">💬 মন্তব্য</button>
+        <button class="action-btn" id="share-${p.id}">↗️ শেয়ার</button>
+      </div>
+      ${commentsHtml}
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>

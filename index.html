@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>মিলন — সোশ্যাল অ্যাপ</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F6E56">
+<link rel="apple-touch-icon" href="icons/milon-icon-180.png">
+ 
+ 
+ 
+ <title>মিলন — সোশ্যাল অ্যাপ</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -545,13 +551,32 @@ function renderPost(p) {
         <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} লাইক</button>
         <button class="action-btn" id="comment-${p.id}">💬 মন্তব্য</button>
         <button class="action-btn" id="share-${p.id}">↗️ শেয়ার</button>
+     
+     
+      
+      
       </div>
+
+      
       ${commentsHtml}
     </div>
   `;
 }
 
 render();
+</script><script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js");
+    });
+  }
 </script>
+
+
+
+
+
+
+ 
 </body>
 </html>

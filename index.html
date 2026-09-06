@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0F6E56">
 <link rel="apple-touch-icon" href="icons/milon-icon-180.png">
- 
- 
- 
- <title>মিলন — সোশ্যাল অ্যাপ</title>
+
+ <title>Milon — Social App</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -29,7 +27,7 @@
     --coral-soft: #FAECE7;
   }
   body {
-    font-family: -apple-system, "Segoe UI", "Noto Sans Bengali", sans-serif;
+    font-family: -apple-system, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
@@ -119,7 +117,13 @@
   }
   .post-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
   .post-head .name { font-weight: 600; font-size: 14px; }
-  .post-head .time { font-size: 12px; color: var(--ink-soft); }
+  .post-head .time { font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+  .post-head-info { flex: 1; }
+  .owner-menu-btn {
+    border: none; background: none; color: var(--ink-soft); font-size: 20px;
+    padding: 4px 10px; cursor: pointer; line-height: 1;
+  }
+  .privacy-tag { font-size: 11px; color: var(--ink-soft); }
   .post-text { padding: 0 14px 10px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
   .post-media img { width: 100%; display: block; max-height: 420px; object-fit: cover; }
   .post-stats { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; color: var(--ink-soft); }
@@ -152,14 +156,51 @@
   .toast.show { opacity: 1; }
   .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
   .empty-state .big { font-size: 36px; margin-bottom: 10px; }
+
+  /* ---------- BOTTOM SHEETS (share + owner menu) ---------- */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999;
+  }
+  .sheet-overlay.open { display: block; }
+  .bottom-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 480px;
+    background: var(--card); border-radius: 18px 18px 0 0; padding: 16px;
+    transform: translateY(100%); transition: transform 0.25s ease-out;
+    z-index: 1000; max-height: 75vh; overflow-y: auto;
+  }
+  .bottom-sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 14px; }
+  .sheet-title { font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; padding: 0 4px; }
+  .sheet-row { display: flex; gap: 18px; overflow-x: auto; padding: 4px 4px 16px; }
+  .sheet-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 62px; background: none; border: none; font-size: 12px; color: var(--ink); cursor: pointer;
+  }
+  .sheet-icon {
+    width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; color: #fff; font-size: 20px;
+  }
+  .menu-list-item {
+    display: flex; align-items: center; gap: 14px; padding: 14px 4px;
+    border-bottom: 1px solid var(--line); background: none; border-left: none;
+    border-right: none; border-top: none; width: 100%; text-align: left;
+    font-size: 15px; color: var(--ink); cursor: pointer;
+  }
+  .menu-list-item:last-child { border-bottom: none; }
+  .menu-list-item.danger { color: var(--coral); }
+  .privacy-options { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .privacy-option {
+    border: 1px solid var(--line); background: var(--bg); border-radius: 20px;
+    padding: 7px 14px; font-size: 13px; color: var(--ink); cursor: pointer;
+  }
+  .privacy-option.selected { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
 </style>
 </head>
 <body>
 <div id="root" class="app"></div>
 
 <script>
-/* ================= Firebase কনফিগারেশন ================= */
-/* এখানে তোমার Firebase Console থেকে পাওয়া firebaseConfig বসিয়ে দাও */
+/* ================= Firebase config ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyDTRdBE8OniAAbmN7iQgo9ejqGqehAer5U",
   authDomain: "tik-tok-vai.firebaseapp.com",
@@ -174,7 +215,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ================= অ্যাপের অবস্থা ================= */
+/* ================= App state ================= */
 const root = document.getElementById("root");
 
 let state = {
@@ -188,6 +229,9 @@ let state = {
   toastMsg: "",
   openComments: {}
 };
+
+// Tracks which post the share/owner sheet is currently acting on
+let activePostId = null;
 
 function setState(patch) {
   state = { ...state, ...patch };
@@ -218,12 +262,12 @@ function showToast(msg) {
   }, 2200);
 }
 
-/* ================= Auth লিসেনার ================= */
+/* ================= Auth listener ================= */
 auth.onAuthStateChanged((firebaseUser) => {
   if (firebaseUser) {
     state.user = {
       uid: firebaseUser.uid,
-      name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split("@")[0] : "ইউজার"),
+      name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split("@")[0] : "User"),
       email: firebaseUser.email
     };
     state.authReady = true;
@@ -237,7 +281,7 @@ auth.onAuthStateChanged((firebaseUser) => {
   render();
 });
 
-/* ================= Firestore থেকে রিয়েল-টাইম পোস্ট শোনা ================= */
+/* ================= Real-time posts from Firestore ================= */
 let unsubscribePosts = null;
 function listenToPosts() {
   if (unsubscribePosts) unsubscribePosts();
@@ -249,14 +293,14 @@ function listenToPosts() {
       render();
     }, (err) => {
       console.error(err);
-      showToast("পোস্ট লোড করতে সমস্যা হচ্ছে");
+      showToast("Couldn't load posts");
     });
 }
 
-/* ================= রেন্ডার ================= */
+/* ================= Render ================= */
 function render() {
   if (!state.authReady) {
-    root.innerHTML = `<div class="loading-screen">লোড হচ্ছে...</div>`;
+    root.innerHTML = `<div class="loading-screen">Loading...</div>`;
     return;
   }
   if (!state.user) {
@@ -270,31 +314,31 @@ function renderLogin() {
   const isSignup = state.mode === "signup";
   root.innerHTML = `
     <div class="login-screen">
-      <div class="brand">মিলন</div>
-      <div class="tagline">বন্ধু আর পরিবারের সাথে জুড়ে থাকো</div>
+      <div class="brand">Milon</div>
+      <div class="tagline">Stay connected with friends and family</div>
 
       ${isSignup ? `
       <div class="field">
-        <label>নাম</label>
-        <input id="nameInput" type="text" placeholder="তোমার নাম" />
+        <label>Name</label>
+        <input id="nameInput" type="text" placeholder="Your name" />
       </div>` : ""}
 
       <div class="field">
-        <label>ইমেইল</label>
+        <label>Email</label>
         <input id="emailInput" type="email" placeholder="you@example.com" />
       </div>
       <div class="field">
-        <label>পাসওয়ার্ড</label>
-        <input id="passInput" type="password" placeholder="কমপক্ষে ৬ ডিজিট" />
+        <label>Password</label>
+        <input id="passInput" type="password" placeholder="At least 6 characters" />
       </div>
 
-      <button class="btn-primary" id="submitAuthBtn">${isSignup ? "অ্যাকাউন্ট তৈরি করো" : "লগইন করো"}</button>
+      <button class="btn-primary" id="submitAuthBtn">${isSignup ? "Create account" : "Log in"}</button>
       <div class="error-msg" id="authErrorMsg">${escapeHtml(state.authError)}</div>
 
-      <button class="link-btn" id="toggleModeBtn">${isSignup ? "অ্যাকাউন্ট আছে? লগইন করো" : "নতুন? অ্যাকাউন্ট তৈরি করো"}</button>
+      <button class="link-btn" id="toggleModeBtn">${isSignup ? "Already have an account? Log in" : "New here? Create an account"}</button>
 
-      <div class="divider">অথবা</div>
-      <button class="btn-social" id="googleBtn"><span style="width:18px;height:18px;border-radius:50%;background:#EA4335;display:inline-block;"></span> Google দিয়ে চালিয়ে যাও</button>
+      <div class="divider">or</div>
+      <button class="btn-social" id="googleBtn"><span style="width:18px;height:18px;border-radius:50%;background:#EA4335;display:inline-block;"></span> Continue with Google</button>
     </div>
   `;
 
@@ -310,17 +354,17 @@ function handleAuthSubmit() {
   const name = isSignup ? document.getElementById("nameInput").value.trim() : null;
 
   if (!email || !pass || (isSignup && !name)) {
-    setState({ authError: "সব ঘর পূরণ করো" });
+    setState({ authError: "Please fill in all fields" });
     return;
   }
   if (pass.length < 6) {
-    setState({ authError: "পাসওয়ার্ড কমপক্ষে ৬ ডিজিট হতে হবে" });
+    setState({ authError: "Password must be at least 6 characters" });
     return;
   }
 
   const btn = document.getElementById("submitAuthBtn");
   btn.disabled = true;
-  btn.textContent = "একটু অপেক্ষা করো...";
+  btn.textContent = "Please wait...";
 
   const action = isSignup
     ? auth.createUserWithEmailAndPassword(email, pass).then((cred) => cred.user.updateProfile({ displayName: name }))
@@ -340,14 +384,14 @@ function handleGoogleLogin() {
 
 function translateAuthError(code) {
   const map = {
-    "auth/email-already-in-use": "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে",
-    "auth/invalid-email": "সঠিক ইমেইল দাও",
-    "auth/user-not-found": "এই ইমেইলে কোনো অ্যাকাউন্ট নেই",
-    "auth/wrong-password": "পাসওয়ার্ড ভুল হয়েছে",
-    "auth/invalid-credential": "ইমেইল বা পাসওয়ার্ড ভুল",
-    "auth/popup-closed-by-user": "লগইন বাতিল হয়েছে"
+    "auth/email-already-in-use": "An account with this email already exists",
+    "auth/invalid-email": "Please enter a valid email",
+    "auth/user-not-found": "No account found with this email",
+    "auth/wrong-password": "Incorrect password",
+    "auth/invalid-credential": "Incorrect email or password",
+    "auth/popup-closed-by-user": "Login cancelled"
   };
-  return map[code] || "কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করো";
+  return map[code] || "Something went wrong, please try again";
 }
 
 function handleLogout() {
@@ -355,15 +399,22 @@ function handleLogout() {
 }
 
 function renderApp() {
-  const feedHtml = state.posts.length
-    ? state.posts.map(renderPost).join("")
-    : `<div class="empty-state"><div class="big">📭</div>এখনো কোনো পোস্ট নেই।<br>উপরে থেকে প্রথম পোস্টটি করো।</div>`;
+  // Privacy filter: public is visible to everyone; private/friends are visible only to the author
+  // (there is no friends-list system yet, so "friends" currently behaves like "private")
+  const visiblePosts = state.posts.filter(p => {
+    if (!p.privacy || p.privacy === "public") return true;
+    return p.authorUid === state.user.uid;
+  });
+
+  const feedHtml = visiblePosts.length
+    ? visiblePosts.map(renderPost).join("")
+    : `<div class="empty-state"><div class="big">📭</div>No posts yet.<br>Create the first one above.</div>`;
 
   root.innerHTML = `
     <div class="topbar">
-      <div class="brand-sm">মিলন</div>
+      <div class="brand-sm">Milon</div>
       <div class="topbar-right">
-        <button class="logout-btn" id="logoutBtn">লগআউট</button>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
         <div class="avatar">${initials(state.user.name)}</div>
       </div>
     </div>
@@ -371,7 +422,7 @@ function renderApp() {
     <div class="composer">
       <div class="composer-top">
         <div class="avatar">${initials(state.user.name)}</div>
-        <textarea id="composerInput" placeholder="তুমি কী নিয়ে ভাবছো, ${escapeHtml(state.user.name.split(" ")[0])}?">${escapeHtml(state.composerText)}</textarea>
+        <textarea id="composerInput" placeholder="What's on your mind, ${escapeHtml(state.user.name.split(" ")[0])}?">${escapeHtml(state.composerText)}</textarea>
       </div>
       ${state.composerMedia ? `
         <div class="preview-wrap">
@@ -379,17 +430,63 @@ function renderApp() {
           <button class="remove-media" id="removeMediaBtn">✕</button>
         </div>` : ""}
       <div class="composer-actions">
-        <label class="icon-btn" title="ছবি যোগ করো">
+        <label class="icon-btn" title="Add photo">
           🖼️
           <input type="file" accept="image/*" id="imageInput" style="display:none" />
         </label>
-        <button class="post-btn" id="submitPostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>পোস্ট করো</button>
+        <button class="post-btn" id="submitPostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>Post</button>
       </div>
     </div>
 
     <div class="feed">${feedHtml}</div>
 
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+
+    <!-- ================= Share sheet ================= -->
+    <div class="sheet-overlay" id="shareOverlay"></div>
+    <div class="bottom-sheet" id="shareSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Share</div>
+      <div class="sheet-row">
+        <button class="sheet-item" id="copyLinkBtn">
+          <span class="sheet-icon" style="background:#3b82f6">🔗</span> Copy link
+        </button>
+        <button class="sheet-item" id="shareWhatsapp">
+          <span class="sheet-icon" style="background:#25D366">📱</span> WhatsApp
+        </button>
+        <button class="sheet-item" id="shareMessenger">
+          <span class="sheet-icon" style="background:#0084FF">✉️</span> Messenger
+        </button>
+        <button class="sheet-item" id="shareFacebook">
+          <span class="sheet-icon" style="background:#1877F2">f</span> Facebook
+        </button>
+        <button class="sheet-item" id="shareTelegram">
+          <span class="sheet-icon" style="background:#0088cc">➤</span> Telegram
+        </button>
+        <button class="sheet-item" id="shareSms">
+          <span class="sheet-icon" style="background:#6b7280">💬</span> SMS
+        </button>
+        <button class="sheet-item" id="shareMore">
+          <span class="sheet-icon" style="background:#111">⋯</span> More
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= Owner post menu ================= -->
+    <div class="sheet-overlay" id="ownerOverlay"></div>
+    <div class="bottom-sheet" id="ownerSheet">
+      <div class="sheet-handle"></div>
+      <button class="menu-list-item" id="editPostBtn">✏️ Edit post</button>
+      <div class="menu-list-item" style="display:block; cursor:default;">
+        🔒 Who can see this
+        <div class="privacy-options" id="privacyOptions">
+          <button class="privacy-option" data-level="public">Public</button>
+          <button class="privacy-option" data-level="friends">Friends</button>
+          <button class="privacy-option" data-level="private">Only me</button>
+        </div>
+      </div>
+      <button class="menu-list-item danger" id="deletePostBtn">🗑️ Delete</button>
+    </div>
   `;
 
   document.getElementById("logoutBtn").onclick = handleLogout;
@@ -406,22 +503,140 @@ function renderApp() {
 
   document.getElementById("submitPostBtn").onclick = submitPost;
 
-  state.posts.forEach(p => {
+  visiblePosts.forEach(p => {
     const likeBtn = document.getElementById(`like-${p.id}`);
     const commentBtn = document.getElementById(`comment-${p.id}`);
     const shareBtn = document.getElementById(`share-${p.id}`);
+    const ownerBtn = document.getElementById(`owner-${p.id}`);
     if (likeBtn) likeBtn.onclick = () => toggleLike(p);
     if (commentBtn) commentBtn.onclick = () => setState({ openComments: { ...state.openComments, [p.id]: !state.openComments[p.id] } });
-    if (shareBtn) shareBtn.onclick = () => sharePost();
+    if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
+    if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
 
     const commentSubmit = document.getElementById(`commentSubmit-${p.id}`);
     if (commentSubmit) commentSubmit.onclick = () => submitComment(p.id);
     const commentInput = document.getElementById(`commentInput-${p.id}`);
     if (commentInput) commentInput.onkeydown = (e) => { if (e.key === "Enter") submitComment(p.id); };
   });
+
+  wireSheetHandlers();
 }
 
-/* ছবি নেওয়া ও ছোট করে (compress) base64-এ রূপান্তর করা, যাতে Firestore-এ সেভ করা যায় */
+/* ================= Share sheet: handlers ================= */
+function wireSheetHandlers() {
+  document.getElementById("shareOverlay").onclick = closeSheets;
+  document.getElementById("ownerOverlay").onclick = closeSheets;
+
+  document.getElementById("copyLinkBtn").onclick = doCopyLink;
+  document.getElementById("shareWhatsapp").onclick = () => doShareTo("whatsapp");
+  document.getElementById("shareMessenger").onclick = () => doShareTo("messenger");
+  document.getElementById("shareFacebook").onclick = () => doShareTo("facebook");
+  document.getElementById("shareTelegram").onclick = () => doShareTo("telegram");
+  document.getElementById("shareSms").onclick = () => doShareTo("sms");
+  document.getElementById("shareMore").onclick = doNativeShare;
+
+  document.getElementById("editPostBtn").onclick = doEditPost;
+  document.getElementById("deletePostBtn").onclick = doDeletePost;
+  document.querySelectorAll(".privacy-option").forEach(btn => {
+    btn.onclick = () => setPrivacy(btn.dataset.level);
+  });
+}
+
+function openShareSheet(postId) {
+  activePostId = postId;
+  document.getElementById("shareOverlay").classList.add("open");
+  document.getElementById("shareSheet").classList.add("open");
+}
+
+function openOwnerMenu(postId) {
+  activePostId = postId;
+  const post = state.posts.find(p => p.id === postId);
+  document.getElementById("ownerOverlay").classList.add("open");
+  document.getElementById("ownerSheet").classList.add("open");
+  const currentLevel = (post && post.privacy) || "public";
+  document.querySelectorAll(".privacy-option").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.level === currentLevel);
+  });
+}
+
+function closeSheets() {
+  document.querySelectorAll(".sheet-overlay, .bottom-sheet").forEach(el => el.classList.remove("open"));
+  activePostId = null;
+}
+
+function getPostLink(postId) {
+  return `${window.location.origin}${window.location.pathname}?post=${postId}`;
+}
+
+function doCopyLink() {
+  const link = getPostLink(activePostId);
+  navigator.clipboard.writeText(link).then(() => {
+    showToast("Link copied!");
+    closeSheets();
+  }).catch(() => {
+    showToast("Couldn't copy the link");
+  });
+}
+
+function doShareTo(platform) {
+  const link = encodeURIComponent(getPostLink(activePostId));
+  const text = encodeURIComponent("Check out this post on Milon!");
+  const urls = {
+    whatsapp: `https://wa.me/?text=${text}%20${link}`,
+    messenger: `fb-messenger://share/?link=${link}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${link}`,
+    telegram: `https://t.me/share/url?url=${link}&text=${text}`,
+    sms: `sms:?body=${text}%20${link}`,
+  };
+  window.open(urls[platform], "_blank");
+  closeSheets();
+}
+
+function doNativeShare() {
+  if (navigator.share) {
+    navigator.share({
+      title: "Milon",
+      text: "Check out this post on Milon!",
+      url: getPostLink(activePostId),
+    }).catch(() => {});
+  } else {
+    doCopyLink();
+    return;
+  }
+  closeSheets();
+}
+
+/* ================= Own post: Edit / Delete / Privacy ================= */
+function doEditPost() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post) return;
+  const newText = prompt("Edit post:", post.text || "");
+  if (newText !== null && newText.trim() !== "") {
+    db.collection("posts").doc(post.id).update({ text: newText.trim() })
+      .then(() => showToast("Post updated"))
+      .catch((err) => { console.error(err); showToast("Couldn't update the post"); });
+  }
+  closeSheets();
+}
+
+function doDeletePost() {
+  if (!activePostId) return;
+  if (!confirm("Delete this post? This can't be undone.")) return;
+  db.collection("posts").doc(activePostId).delete()
+    .then(() => showToast("Post deleted"))
+    .catch((err) => { console.error(err); showToast("Couldn't delete the post"); });
+  closeSheets();
+}
+
+function setPrivacy(level) {
+  if (!activePostId) return;
+  db.collection("posts").doc(activePostId).update({ privacy: level })
+    .then(() => showToast("Privacy updated"))
+    .catch((err) => { console.error(err); showToast("Couldn't update privacy"); });
+  closeSheets();
+}
+
+/* Take a photo, compress it, and convert it to base64 */
 function handleImageSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -453,13 +668,14 @@ function submitPost() {
 
   const postBtn = document.getElementById("submitPostBtn");
   postBtn.disabled = true;
-  postBtn.textContent = "পোস্ট হচ্ছে...";
+  postBtn.textContent = "Posting...";
 
   db.collection("posts").add({
     authorUid: state.user.uid,
     authorName: state.user.name,
     text: state.composerText.trim(),
     media: state.composerMedia,
+    privacy: "public",
     likes: [],
     comments: [],
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -467,7 +683,7 @@ function submitPost() {
     setState({ composerText: "", composerMedia: null });
   }).catch((err) => {
     console.error(err);
-    showToast("পোস্ট করতে সমস্যা হয়েছে");
+    showToast("Couldn't create the post");
     render();
   });
 }
@@ -481,10 +697,6 @@ function toggleLike(post) {
       ? firebase.firestore.FieldValue.arrayRemove(uid)
       : firebase.firestore.FieldValue.arrayUnion(uid)
   }).catch((err) => console.error(err));
-}
-
-function sharePost() {
-  showToast("লিংক কপি হয়ে গেছে (ডেমো)");
 }
 
 function submitComment(postId) {
@@ -504,14 +716,20 @@ function submitComment(postId) {
 }
 
 function timeAgo(ts) {
-  if (!ts || !ts.toDate) return "এইমাত্র";
+  if (!ts || !ts.toDate) return "just now";
   const diffMs = Date.now() - ts.toDate().getTime();
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "এইমাত্র";
-  if (mins < 60) return `${mins} মিনিট আগে`;
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} ঘণ্টা আগে`;
-  return `${Math.floor(hrs / 24)} দিন আগে`;
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function privacyLabel(level) {
+  if (level === "private") return "· Only me";
+  if (level === "friends") return "· Friends";
+  return "";
 }
 
 function renderPost(p) {
@@ -519,6 +737,7 @@ function renderPost(p) {
   const comments = p.comments || [];
   const liked = state.user && likes.includes(state.user.uid);
   const showComments = !!state.openComments[p.id];
+  const isOwner = state.user && p.authorUid === state.user.uid;
 
   const mediaHtml = p.media ? `<div class="post-media"><img src="${p.media}" /></div>` : "";
 
@@ -526,8 +745,8 @@ function renderPost(p) {
     <div class="comments-box">
       ${comments.map(c => `<div class="comment-line"><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</div>`).join("")}
       <div class="comment-input-row">
-        <input id="commentInput-${p.id}" type="text" placeholder="মন্তব্য লেখো..." />
-        <button id="commentSubmit-${p.id}">পাঠাও</button>
+        <input id="commentInput-${p.id}" type="text" placeholder="Write a comment..." />
+        <button id="commentSubmit-${p.id}">Send</button>
       </div>
     </div>
   ` : "";
@@ -536,28 +755,23 @@ function renderPost(p) {
     <div class="post">
       <div class="post-head">
         <div class="avatar">${initials(p.authorName)}</div>
-        <div>
+        <div class="post-head-info">
           <div class="name">${escapeHtml(p.authorName)}</div>
-          <div class="time">${timeAgo(p.createdAt)}</div>
+          <div class="time">${timeAgo(p.createdAt)} <span class="privacy-tag">${privacyLabel(p.privacy)}</span></div>
         </div>
+        ${isOwner ? `<button class="owner-menu-btn" id="owner-${p.id}">⋮</button>` : ""}
       </div>
       ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ""}
       ${mediaHtml}
       <div class="post-stats">
-        <span>${likes.length} জন লাইক করেছে</span>
-        <span>${comments.length} টি মন্তব্য</span>
+        <span>${likes.length} likes</span>
+        <span>${comments.length} comments</span>
       </div>
       <div class="post-actions">
-        <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} লাইক</button>
-        <button class="action-btn" id="comment-${p.id}">💬 মন্তব্য</button>
-        <button class="action-btn" id="share-${p.id}">↗️ শেয়ার</button>
-     
-     
-      
-      
+        <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} Like</button>
+        <button class="action-btn" id="comment-${p.id}">💬 Comment</button>
+        <button class="action-btn" id="share-${p.id}">↗️ Share</button>
       </div>
-
-      
       ${commentsHtml}
     </div>
   `;
@@ -571,12 +785,5 @@ render();
     });
   }
 </script>
-
-
-
-
-
-
- 
 </body>
 </html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F6E56">
+<link rel="apple-touch-icon" href="icons/milon-icon-180.png">
+<title>Milon — Social App</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+  /* --- EXACTLY YOUR ORIGINAL CSS --- */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F6F3EC;
+    --card: #FFFFFF;
+    --ink: #262420;
+    --ink-soft: #6B6860;
+    --line: #E4E0D5;
+    --teal: #0F6E56;
+    --teal-deep: #085041;
+    --coral: #D85A30;
+    --coral-soft: #FAECE7;
+    --online: #2ecc71;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; }
+
+  /* Topbar */
+  .topbar { position: sticky; top: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .brand-sm { font-size: 20px; font-weight: 700; color: var(--teal-deep); cursor: pointer; }
+
+  /* Online Dot (Point #8) */
+  .status-indicator { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; display: inline-block; position: absolute; bottom: 0; right: 0; background: #95a5a6; }
+  .status-indicator.online { background: var(--online); }
+
+  /* Feed & Posts (Your Style) */
+  .feed { padding: 0 14px 90px; }
+  .post { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--coral-soft); color: var(--coral); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .post-media img, .post-media video { width: 100%; display: block; max-height: 420px; object-fit: cover; }
+
+  /* Profile Grid Fix (Point #12) */
+  .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0 90px; }
+  .grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; position: relative; cursor: pointer; }
+  .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+  .pin-badge { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 4px; border-radius: 4px; font-size: 10px; }
+
+  /* Camera Side Tools (Point #9) */
+  .cam-tools { position: absolute; right: 15px; top: 60px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
+  .cam-tool-btn { background: rgba(0,0,0,0.4); border: none; color: #fff; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  /* Bottom Sheets (Point #3) */
+  .sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+  .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: #fff; border-radius: 18px 18px 0 0; padding: 16px; transform: translateY(100%); transition: transform 0.2s; z-index: 1000; }
+  .bottom-sheet.open { transform: translateY(0); }
+  .sheet-item { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-bottom: 1px solid var(--line); width: 100%; background: none; border: none; font-size: 15px; text-align: left; cursor: pointer; }
+
+  /* Bottom Nav (Your Style) */
+  .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; background: var(--card); border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding: 10px 0; z-index: 50; }
+  .nav-item { border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink-soft); font-size: 11px; cursor: pointer; }
+  .nav-item.active { color: var(--ink); font-weight: bold; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="root" class="app"></div>
+
+<script>
+/* ================= Firebase Config ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDTRdBE8OniAAbmN7iQgo9ejqGqehAer5U",
+  authDomain: "tik-tok-vai.firebaseapp.com",
+  projectId: "tik-tok-vai",
+  storageBucket: "tik-tok-vai.firebasestorage.app",
+  messagingSenderId: "182459233826",
+  appId: "1:182459233826:web:9cfb0c7d24d51307b37c7b"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ================= App State ================= */
+let state = {
+  user: null,
+  view: "feed",
+  posts: [],
+  allUsers: [],
+  searchQuery: "",
+  profileUid: null,
+  onlineUsers: {}
+};
+
+/* ================= Real-Time Engine ================= */
+auth.onAuthStateChanged(user => {
+  if (user) {
+    state.user = user;
+    updateStatus("online");
+    initRealTimeListeners();
+    render();
+  } else {
+    renderLogin();
+  }
+});
+
+function updateStatus(status) {
+  if (!state.user) return;
+  db.collection("users").doc(state.user.uid).set({
+    status: status,
+    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+function initRealTimeListeners() {
+  // Real-time Posts
+  db.collection("posts").orderBy("createdAt", "desc").onSnapshot(snap => {
+    state.posts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (state.view === "feed") render();
+  });
+
+  // Real-time Users (Point #8, #10)
+  db.collection("users").onSnapshot(snap => {
+    state.allUsers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (state.view === "friends") renderFriendsListOnly();
+  });
+}
+
+/* ================= Navigation & Rendering ================= */
+function render() {
+  const root = document.getElementById("root");
+  if (state.view === "feed") renderFeed(root);
+  else if (state.view === "friends") renderFriends(root);
+  else if (state.view === "profile") renderProfile(root, state.profileUid || state.user.uid);
+  else if (state.view === "camera") renderCamera(root);
+}
+
+// Point #1: Friends View (No People/Videos toggle)
+function renderFriends(container) {
+  container.innerHTML = `
+    <div class="topbar"><div class="brand-sm">Friends</div></div>
+    <div style="padding:12px 14px;">
+      <input type="text" id="friend-search" placeholder="Search friends..." 
+      style="width:100%; padding:11px 14px; border-radius:20px; border:1px solid var(--line);"
+      oninput="handleFriendSearch(this.value)" value="${state.searchQuery}">
+    </div>
+    <div id="friends-list-container"></div>
+    ${renderNavbar("friends")}
+  `;
+  renderFriendsListOnly();
+}
+
+// Point #4: Keyboard Fix
+function handleFriendSearch(query) {
+  state.searchQuery = query.toLowerCase();
+  renderFriendsListOnly();
+}
+
+function renderFriendsListOnly() {
+  const list = document.getElementById("friends-list-container");
+  if (!list) return;
+  const filtered = state.allUsers.filter(u => u.id !== state.user.uid && u.name?.toLowerCase().includes(state.searchQuery));
+  
+  list.innerHTML = filtered.map(u => `
+    <div onclick="openProfile('${u.id}')" style="display:flex; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid var(--line);">
+      <div style="position:relative;">
+        <div class="avatar">${u.avatar ? `<img src="${u.avatar}">` : u.name[0]}</div>
+        <div class="status-indicator ${u.status === 'online' ? 'online' : ''}"></div>
+      </div>
+      <div>
+        <div style="font-weight:bold;">${u.name}</div>
+        <div style="font-size:12px; color:var(--ink-soft);">${u.status || 'offline'}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+// Point #2 & #10: Real-time Profile navigation
+function openProfile(uid) {
+  state.view = "profile";
+  state.profileUid = uid;
+  render();
+}
+
+function renderProfile(container, uid) {
+  const user = state.allUsers.find(u => u.id === uid) || {};
+  container.innerHTML = `
+    <div class="topbar"><div class="brand-sm">Profile</div></div>
+    <div style="padding:20px; text-align:center;">
+      <div style="width:90px; height:90px; border-radius:50%; background:#ccc; margin:0 auto; overflow:hidden;">
+        ${user.avatar ? `<img src="${user.avatar}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+      </div>
+      <h2 style="margin-top:10px;">${user.name || 'User'}</h2>
+      <div style="display:flex; justify-content:center; gap:30px; margin:15px 0;">
+        <div onclick="showFollowers('${uid}')"><b id="followers-count">0</b><p style="font-size:12px;">Followers</p></div>
+        <div onclick="showFollowing('${uid}')"><b id="following-count">0</b><p style="font-size:12px;">Following</p></div>
+      </div>
+      ${uid !== state.user.uid ? `<button onclick="toggleFollow('${uid}')" id="follow-btn" style="background:var(--teal); color:#fff; border:none; padding:8px 30px; border-radius:8px; font-weight:bold;">Follow</button>` : ''}
+    </div>
+    <div class="profile-grid" id="grid-content"></div>
+    ${renderNavbar("profile")}
+  `;
+
+  // Real-time Follow Counts (Point #5 & #10)
+  db.collection("users").doc(uid).collection("followers").onSnapshot(snap => document.getElementById("followers-count").innerText = snap.size);
+  db.collection("users").doc(uid).collection("following").onSnapshot(snap => document.getElementById("following-count").innerText = snap.size);
+  
+  // Point #12: Profile Grid Fix
+  const userPosts = state.posts.filter(p => p.authorUid === uid);
+  document.getElementById("grid-content").innerHTML = userPosts.map(p => `
+    <div class="grid-item" onclick="viewPostDetails('${p.id}')">
+      <img src="${p.media}">
+      ${p.pinned ? `<div class="pin-badge">📌</div>` : ''}
+    </div>
+  `).join("");
+}
+
+// Point #3: Dual Share Sheet Logic
+function openShareSheet(postId, authorUid) {
+  const isMine = authorUid === state.user.uid;
+  const overlay = document.createElement("div");
+  overlay.className = "sheet-overlay";
+  overlay.style.display = "block";
+  overlay.onclick = () => { overlay.remove(); sheet.remove(); };
+
+  const sheet = document.createElement("div");
+  sheet.className = "bottom-sheet open";
+  
+  let options = isMine ? `
+    <button class="sheet-item">📊 Analytics</button>
+    <button class="sheet-item">⬇️ Download</button>
+    <button class="sheet-item" onclick="togglePin('${postId}')">📌 Pin Post</button>
+    <button class="sheet-item">👥 Create Group</button>
+    <button class="sheet-item">✏️ Edit Post</button>
+    <button class="sheet-item">🔒 Privacy Settings</button>
+    <button class="sheet-item" style="color:red">🗑️ Delete</button>
+  ` : `
+    <button class="sheet-item">✈️ Send to</button>
+    <button class="sheet-item">🔄 Repost</button>
+    <button class="sheet-item">🔗 Copy Link</button>
+    <button class="sheet-item">📱 WhatsApp</button>
+    <button class="sheet-item">f Facebook</button>
+    <button class="sheet-item" style="color:red">🚩 Report</button>
+  `;
+
+  sheet.innerHTML = `<div style="width:40px; height:4px; background:#eee; margin:0 auto 15px; border-radius:2px;"></div>${options}`;
+  document.body.appendChild(overlay);
+  document.body.appendChild(sheet);
+}
+
+// Point #9: Camera Tools UI
+function renderCamera(container) {
+  container.innerHTML = `
+    <div style="height:100vh; background:#000; position:relative;">
+      <video id="preview" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+      <div class="cam-tools">
+        <button class="cam-tool-btn">🎵</button>
+        <button class="cam-tool-btn">⚡</button>
+        <button class="cam-tool-btn">⏲️</button>
+        <button class="cam-tool-btn">✨</button>
+        <button class="cam-tool-btn">1x</button>
+      </div>
+      <div style="position:absolute; bottom:40px; width:100%; display:flex; justify-content:center; align-items:center; gap:40px;">
+        <button onclick="changeView('feed')" style="color:#fff; background:none; border:none; font-size:24px;">✕</button>
+        <div style="width:70px; height:70px; border-radius:50%; border:5px solid #fff;"></div>
+        <div style="width:40px; height:40px; background:#333; border-radius:8px;"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderFeed(container) {
+  container.innerHTML = `
+    <div class="topbar"><div class="brand-sm">Milon</div></div>
+    <div class="feed">
+      ${state.posts.map(p => `
+        <div class="post">
+          <div class="post-head" onclick="openProfile('${p.authorUid}')">
+            <div class="avatar">${p.authorName[0]}</div>
+            <div style="font-weight:bold; margin-left:10px;">${p.authorName}</div>
+          </div>
+          <div class="post-media"><img src="${p.media}"></div>
+          <div style="padding:10px; display:flex; justify-content:space-between;">
+             <div onclick="toggleLike('${p.id}')">❤️ ${p.likes?.length || 0}</div>
+             <div onclick="openShareSheet('${p.id}', '${p.authorUid}')">↗️ Share</div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+    ${renderNavbar("feed")}
+  `;
+}
+
+function renderNavbar(active) {
+  return `
+    <div class="bottom-nav">
+      <div class="nav-item ${active==='feed'?'active':''}" onclick="changeView('feed')">Home</div>
+      <div class="nav-item ${active==='friends'?'active':''}" onclick="changeView('friends')">Friends</div>
+      <div onclick="changeView('camera')" style="background:var(--teal); color:#fff; padding:5px 15px; border-radius:10px;">+</div>
+      <div class="nav-item">Inbox</div>
+      <div class="nav-item ${active==='profile'?'active':''}" onclick="changeView('profile')">Profile</div>
+    </div>
+  `;
+}
+
+function changeView(v) { state.view = v; state.profileUid = null; render(); }
+function toggleFollow(uid) { 
+  const ref = db.collection('users').doc(uid).collection('followers').doc(state.user.uid);
+  ref.get().then(doc => {
+    if(doc.exists) {
+      ref.delete();
+      db.collection('users').doc(state.user.uid).collection('following').doc(uid).delete();
+    } else {
+      ref.set({t:Date.now()});
+      db.collection('users').doc(state.user.uid).collection('following').doc(uid).set({t:Date.now()});
+    }
+  });
+}
+
+window.onbeforeunload = () => updateStatus("offline");
+</script>
+</body>
+</html>

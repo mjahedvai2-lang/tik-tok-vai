@@ -1159,7 +1159,6 @@ function renderOwnerSheet() {
 
 /* ================= Bottom nav bar ================= */
 function renderBottomNav(activeKey) {
-  const reqCount = (state.myUserDoc && state.myUserDoc.followRequests) ? state.myUserDoc.followRequests.length : 0;
   const myUid = state.user ? state.user.uid : null;
   const unreadTotal = myUid
     ? state.threads.reduce((sum, t) => sum + ((t.unread && t.unread[myUid]) || 0), 0)
@@ -1174,7 +1173,6 @@ function renderBottomNav(activeKey) {
       <button class="nav-item ${activeKey === "friends" ? "active" : ""}" id="navFriendsBtn">
         <span class="nav-icon-wrap">
           ${friendsIconSvg(activeKey === "friends")}
-          ${reqCount > 0 ? `<span class="nav-badge">${reqCount > 9 ? "9+" : reqCount}</span>` : ""}
         </span>
         <span>Friends</span>
       </button>
@@ -1557,65 +1555,46 @@ function getFriendsListData() {
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
   const q = state.friendsSearch.trim().toLowerCase();
-  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
 
   let list = state.allUsers;
   if (state.friendsTab === "following") {
     list = state.allUsers.filter(u => (u.followers || []).includes(myUid));
   } else if (state.friendsTab === "followers") {
     list = state.allUsers.filter(u => (u.following || []).includes(myUid));
-  } else if (state.friendsTab === "requests") {
-    list = state.allUsers.filter(u => myRequests.includes(u.uid));
   }
   if (q) {
     list = list.filter(u =>
       (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
     );
   }
-  if (state.friendsTab !== "requests") {
-    list = [...list].sort((a, b) => {
-      const ap = myPinned.includes(a.uid) ? 1 : 0;
-      const bp = myPinned.includes(b.uid) ? 1 : 0;
-      return bp - ap;
-    });
-  }
+  list = [...list].sort((a, b) => {
+    const ap = myPinned.includes(a.uid) ? 1 : 0;
+    const bp = myPinned.includes(b.uid) ? 1 : 0;
+    return bp - ap;
+  });
 
-  const isRequestsTab = state.friendsTab === "requests";
   const rowsHtml = list.length
-    ? list.map(u => isRequestsTab ? renderRequestRow(u) : renderUserRow(u, myUid, myPinned)).join("")
-    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">${isRequestsTab ? "No pending requests" : "No one here yet"}</div><div class="line2">${isRequestsTab ? "Follow requests you receive will show up here." : "Try a different search or tab."}</div></div>`;
+    ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
+    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No one here yet</div><div class="line2">Try a different search or tab.</div></div>`;
 
-  return { myUid, myPinned, list, isRequestsTab, rowsHtml };
+  return { myUid, myPinned, list, rowsHtml };
 }
 
 /* Wires up click handlers for every row currently in the .user-list container.
    Shared by the full render and the search-only refresh. */
-function wireFriendsListRows(list, isRequestsTab) {
-  if (isRequestsTab) {
-    list.forEach(u => {
-      const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
-      const rowInfo = document.getElementById(`userinfo-${u.uid}`);
-      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
-      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
-      if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
-      if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
-      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
-      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
-    });
-  } else {
-    list.forEach(u => {
-      const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
-      const rowInfo = document.getElementById(`userinfo-${u.uid}`);
-      const followBtn = document.getElementById(`followbtn-${u.uid}`);
-      const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
-      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
-      if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
-      if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
-      if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
-      if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
-      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
-    });
-  }
+function wireFriendsListRows(list) {
+  list.forEach(u => {
+    const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
+    const rowInfo = document.getElementById(`userinfo-${u.uid}`);
+    const followBtn = document.getElementById(`followbtn-${u.uid}`);
+    const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+    const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
+    if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
+    if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+    if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+    if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+  });
 }
 
 /* Called on every keystroke in the Friends search box. This deliberately avoids
@@ -1627,9 +1606,9 @@ function wireFriendsListRows(list, isRequestsTab) {
 function refreshFriendsListOnly() {
   const userListEl = document.querySelector(".user-list");
   if (!userListEl) return; // not on the Friends "people" screen right now
-  const { list, isRequestsTab, rowsHtml } = getFriendsListData();
+  const { list, rowsHtml } = getFriendsListData();
   userListEl.innerHTML = rowsHtml;
-  wireFriendsListRows(list, isRequestsTab);
+  wireFriendsListRows(list);
 }
 
 function renderFriendsScreen() {
@@ -1640,8 +1619,7 @@ function renderFriendsScreen() {
     return;
   }
 
-  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-  const { list, isRequestsTab, rowsHtml } = getFriendsListData();
+  const { list, rowsHtml } = getFriendsListData();
 
   root.innerHTML = `
     <div class="topbar">
@@ -1658,7 +1636,6 @@ function renderFriendsScreen() {
       <button class="simple-tab ${state.friendsTab === "all" ? "active" : ""}" data-tab="all">All</button>
       <button class="simple-tab ${state.friendsTab === "followers" ? "active" : ""}" data-tab="followers">Followers</button>
       <button class="simple-tab ${state.friendsTab === "following" ? "active" : ""}" data-tab="following">Following</button>
-      <button class="simple-tab ${state.friendsTab === "requests" ? "active" : ""}" data-tab="requests">Requests${myRequests.length ? ` (${myRequests.length})` : ""}</button>
     </div>
     <div class="user-list">${rowsHtml}</div>
     ${renderBottomNav("friends")}
@@ -1681,7 +1658,7 @@ function renderFriendsScreen() {
     btn.onclick = () => setState({ friendsTab: btn.dataset.tab });
   });
 
-  wireFriendsListRows(list, isRequestsTab);
+  wireFriendsListRows(list);
   wireBottomNav();
 }
 
@@ -1742,9 +1719,8 @@ function togglePinFriend(uid) {
 
 function renderUserRow(u, myUid, myPinned) {
   const amFollowing = (u.followers || []).includes(myUid);
-  const requested = !amFollowing && (u.followRequests || []).includes(myUid);
-  const label = amFollowing ? "Following" : (requested ? "Requested" : "Follow");
-  const cls = amFollowing ? "following" : (requested ? "requested" : "");
+  const label = amFollowing ? "Following" : "Follow";
+  const cls = amFollowing ? "following" : "";
   const isPinned = (myPinned || []).includes(u.uid);
   return `
     <div class="user-row">
@@ -1762,102 +1738,35 @@ function renderUserRow(u, myUid, myPinned) {
   `;
 }
 
-function renderRequestRow(u) {
-  return `
-    <div class="user-row">
-      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
-      <div class="user-row-info" id="userinfo-${u.uid}">
-        <div class="u-name">${escapeHtml(u.name || "User")}</div>
-        <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))} wants to follow you</div>
-      </div>
-      <div class="request-row-actions">
-        <button class="pill-btn" id="acceptbtn-${u.uid}">Accept</button>
-        <button class="pill-btn ghost" id="declinebtn-${u.uid}">Decline</button>
-      </div>
-    </div>
-  `;
-}
-
-/* Sends / cancels a follow request, or unfollows, depending on current relationship state */
+/* Directly follows or unfollows a user — no request/approval step */
 function toggleFollowFromList(targetUid) {
   const myUid = state.user.uid;
   const target = state.allUsers.find(u => u.uid === targetUid);
   if (!target) return;
   const amFollowing = (target.followers || []).includes(myUid);
-  const requested = !amFollowing && (target.followRequests || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
 
-  let action;
+  const batch = db.batch();
   if (amFollowing) {
-    const batch = db.batch();
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
-    action = batch.commit();
-  } else if (requested) {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
   } else {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
   }
 
-  action.then(() => {
+  batch.commit().then(() => {
     const updated = state.allUsers.map(u => {
       if (u.uid !== targetUid) return u;
       const followers = new Set(u.followers || []);
-      const followRequests = new Set(u.followRequests || []);
-      if (amFollowing) {
-        followers.delete(myUid);
-      } else if (requested) {
-        followRequests.delete(myUid);
-      } else {
-        followRequests.add(myUid);
-      }
-      return { ...u, followers: Array.from(followers), followRequests: Array.from(followRequests) };
+      if (amFollowing) followers.delete(myUid); else followers.add(myUid);
+      return { ...u, followers: Array.from(followers) };
     });
     setState({ allUsers: updated });
-    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't update follow status");
-  });
-}
-
-function acceptFollowRequest(requesterUid) {
-  const myUid = state.user.uid;
-  const myRef = db.collection("users").doc(myUid);
-  const requesterRef = db.collection("users").doc(requesterUid);
-  const batch = db.batch();
-  batch.update(myRef, {
-    followers: firebase.firestore.FieldValue.arrayUnion(requesterUid),
-    followRequests: firebase.firestore.FieldValue.arrayRemove(requesterUid)
-  });
-  batch.update(requesterRef, {
-    following: firebase.firestore.FieldValue.arrayUnion(myUid)
-  });
-  batch.commit().then(() => {
-    const updated = state.allUsers.map(u => {
-      if (u.uid !== requesterUid) return u;
-      const following = new Set(u.following || []);
-      following.add(myUid);
-      return { ...u, following: Array.from(following) };
-    });
-    setState({ allUsers: updated });
-    showToast("Follow request accepted");
-  }).catch((err) => {
-    console.error(err);
-    showToast("Couldn't accept request");
-  });
-}
-
-function declineFollowRequest(requesterUid) {
-  const myUid = state.user.uid;
-  db.collection("users").doc(myUid).update({
-    followRequests: firebase.firestore.FieldValue.arrayRemove(requesterUid)
-  }).then(() => {
-    showToast("Request declined");
-  }).catch((err) => {
-    console.error(err);
-    showToast("Couldn't decline request");
   });
 }
 
@@ -1936,7 +1845,6 @@ function renderInboxScreen() {
 
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
-  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
   const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
 
   const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
@@ -1981,14 +1889,6 @@ function renderInboxScreen() {
       <div class="inbox-section-info">
         <div class="is-title">Activity</div>
         <div class="is-sub">${lastActivity ? escapeHtml(lastActivity.text) : "No activity yet"}</div>
-      </div>
-      <div class="inbox-section-chevron">›</div>
-    </div>
-    <div class="inbox-section-row" id="secRequests">
-      <div class="inbox-section-icon" style="background:#5352ed">💬</div>
-      <div class="inbox-section-info">
-        <div class="is-title">Message requests</div>
-        <div class="is-sub">${myRequests.length ? `You have ${myRequests.length} request${myRequests.length > 1 ? "s" : ""}` : "No requests"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -2051,7 +1951,6 @@ function renderInboxScreen() {
 
   document.getElementById("secFollowers").onclick = () => setState({ inboxSection: "followers" });
   document.getElementById("secActivity").onclick = () => setState({ inboxSection: "activity" });
-  document.getElementById("secRequests").onclick = () => setState({ inboxSection: "requests" });
   document.getElementById("secArchive").onclick = () => setState({ inboxSection: "archive" });
   document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
 
@@ -2103,13 +2002,6 @@ function renderInboxSubScreen() {
           </div>
         `).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
-  } else if (section === "requests") {
-    title = "Message requests";
-    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-    const list = state.allUsers.filter(u => myRequests.includes(u.uid));
-    bodyHtml = list.length
-      ? `<div class="user-list">${list.map(renderRequestRow).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No pending requests</div><div class="line2">Follow requests you receive show up here.</div></div>`;
   } else if (section === "archive") {
     title = "Archive";
     const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
@@ -2154,18 +2046,6 @@ function renderInboxSubScreen() {
       if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
       if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
       if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
-    });
-  } else if (section === "requests") {
-    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-    state.allUsers.filter(u => myRequests.includes(u.uid)).forEach(u => {
-      const av = document.getElementById(`useravatar-${u.uid}`);
-      const info = document.getElementById(`userinfo-${u.uid}`);
-      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
-      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
-      if (av) av.onclick = () => openProfile(u.uid);
-      if (info) info.onclick = () => openProfile(u.uid);
-      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
-      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
     });
   } else if (section === "archive") {
     const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
@@ -2532,29 +2412,24 @@ function openProfile(targetUid) {
   });
 }
 
-/* Sends / cancels a follow request, or unfollows, from the profile screen's follow button */
+/* Directly follows or unfollows, from the profile screen's follow button */
 function toggleFollow(targetUid) {
   const myUid = state.user.uid;
   const profile = state.profile || {};
   const amFollowing = (profile.followers || []).includes(myUid);
-  const requested = !amFollowing && (profile.followRequests || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
 
-  let action;
+  const batch = db.batch();
   if (amFollowing) {
-    const batch = db.batch();
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
-    action = batch.commit();
-  } else if (requested) {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
   } else {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
   }
 
-  action.then(() => {
-    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+  batch.commit().then(() => {
     openProfile(targetUid);
   }).catch((err) => {
     console.error(err);
@@ -2585,7 +2460,6 @@ function renderProfileScreen() {
   const followers = (profile.followers || []).length;
   const following = (profile.following || []).length;
   const amFollowing = !isOwn && (profile.followers || []).includes(state.user.uid);
-  const requestedByMe = !isOwn && !amFollowing && (profile.followRequests || []).includes(state.user.uid);
 
   const tabs = isOwn ? [
     { key: "posts", icon: gridIconSvg() },
@@ -2642,7 +2516,7 @@ function renderProfileScreen() {
       ${linksHtml}
 
       ${!isOwn
-        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>`
+        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""}" id="followBtn">${amFollowing ? "Following" : "Follow"}</button>`
         : ""
       }
 

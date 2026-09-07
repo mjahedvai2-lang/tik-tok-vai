@@ -14,7 +14,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg: #F6F3EC;
     --card: #FFFFFF;
@@ -334,3 +334,3289 @@
   .simple-tabs { display: flex; gap: 6px; padding: 12px 14px 4px; flex-wrap: wrap; }
   .simple-tab {
     border: 1px solid
+   <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F6E56">
+<link rel="apple-touch-icon" href="icons/milon-icon-180.png">
+
+ <title>Milon — Social App</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F6F3EC;
+    --card: #FFFFFF;
+    --ink: #262420;
+    --ink-soft: #6B6860;
+    --line: #E4E0D5;
+    --teal: #0F6E56;
+    --teal-deep: #085041;
+    --coral: #D85A30;
+    --coral-soft: #FAECE7;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; }
+
+  /* ---------- LOGIN SCREEN ---------- */
+  .login-screen {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding: 32px 28px;
+  }
+  .brand { font-size: 34px; font-weight: 700; color: var(--teal-deep); letter-spacing: -0.5px; margin-bottom: 6px; }
+  .tagline { color: var(--ink-soft); font-size: 15px; margin-bottom: 36px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-size: 15px; background: var(--card); color: var(--ink);
+  }
+  .field input:focus { outline: none; border-color: var(--teal); }
+  .btn-primary {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    background: var(--teal-deep); color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 6px;
+  }
+  .btn-primary:disabled { background: var(--line); color: var(--ink-soft); }
+  .link-btn {
+    width: 100%; background: none; border: none; color: var(--teal-deep);
+    font-size: 13px; margin-top: 14px; cursor: pointer; text-align: center;
+  }
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--ink-soft); font-size: 13px; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .btn-social {
+    width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); font-size: 14px; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+  }
+  .error-msg { color: var(--coral); font-size: 13px; margin-top: 10px; text-align: center; min-height: 16px; }
+  .loading-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-size: 15px;
+  }
+
+  /* ---------- MAIN APP ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand-sm { font-size: 20px; font-weight: 700; color: var(--teal-deep); cursor: pointer; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .logout-btn { border: none; background: none; color: var(--ink-soft); font-size: 12px; cursor: pointer; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--coral-soft);
+    color: var(--coral); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0; overflow: hidden; cursor: pointer;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .composer { background: var(--card); margin: 14px; border-radius: 14px; border: 1px solid var(--line); padding: 14px; }
+  .composer-top { display: flex; gap: 10px; }
+  .composer textarea {
+    flex: 1; border: none; resize: none; font-size: 15px; font-family: inherit;
+    min-height: 44px; background: transparent; color: var(--ink);
+  }
+  .composer textarea:focus { outline: none; }
+  .preview-wrap { position: relative; margin-top: 10px; }
+  .preview-wrap img, .preview-wrap video { width: 100%; border-radius: 10px; max-height: 260px; object-fit: cover; }
+  .remove-media {
+    position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.55); color: #fff;
+    border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 14px;
+  }
+  .composer-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .icon-btn {
+    border: none; background: var(--coral-soft); color: var(--coral); width: 36px; height: 36px;
+    border-radius: 9px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .post-btn {
+    border: none; background: var(--teal-deep); color: #fff; padding: 9px 20px;
+    border-radius: 9px; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .post-btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+
+  .feed { padding: 0 14px 90px; }
+  .post {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    margin-bottom: 14px; overflow: hidden;
+  }
+  .post-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .post-head .name { font-weight: 600; font-size: 14px; }
+  .post-head .time { font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+  .post-head-info { flex: 1; }
+  .owner-menu-btn {
+    border: none; background: none; color: var(--ink-soft); font-size: 20px;
+    padding: 4px 10px; cursor: pointer; line-height: 1;
+  }
+  .privacy-tag { font-size: 11px; color: var(--ink-soft); }
+  .post-text { padding: 0 14px 10px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+  .post-media img, .post-media video { width: 100%; display: block; max-height: 420px; object-fit: cover; }
+  .post-stats { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; color: var(--ink-soft); }
+  .post-actions { display: flex; border-top: 1px solid var(--line); }
+  .action-btn {
+    flex: 1; border: none; background: none; padding: 10px 0; font-size: 11px; font-weight: 600;
+    color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .action-btn.liked { color: var(--coral); }
+  .action-btn.reposted { color: var(--teal-deep); }
+  .action-btn.saved { color: var(--teal-deep); }
+  .post-head-info.author-link { cursor: pointer; }
+  .avatar.author-link { cursor: pointer; }
+
+  .comments-box { border-top: 1px solid var(--line); padding: 10px 14px; }
+  .comment-line { font-size: 13px; margin-bottom: 6px; line-height: 1.5; }
+  .comment-line b { font-weight: 600; }
+  .comment-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  .comment-input-row input {
+    flex: 1; border: 1px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 13px;
+    background: var(--bg);
+  }
+  .comment-input-row button {
+    border: none; background: var(--teal-deep); color: #fff; border-radius: 20px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+
+  .toast {
+    position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    max-width: 90%; text-align: center; z-index: 60;
+  }
+  .toast.show { opacity: 1; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
+  .empty-state .big { font-size: 36px; margin-bottom: 10px; }
+
+  /* ---------- BOTTOM SHEETS (share + owner menu + pin) ---------- */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999;
+  }
+  .sheet-overlay.open { display: block; }
+  .bottom-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 480px;
+    background: var(--card); border-radius: 18px 18px 0 0; padding: 16px;
+    transform: translateY(100%); transition: transform 0.25s ease-out;
+    z-index: 1000; max-height: 75vh; overflow-y: auto;
+  }
+  .bottom-sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 14px; }
+  .sheet-title { font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; padding: 0 4px; }
+  .sheet-row { display: flex; gap: 18px; overflow-x: auto; padding: 4px 4px 16px; }
+  .sheet-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 62px; background: none; border: none; font-size: 12px; color: var(--ink); cursor: pointer;
+  }
+  .sheet-icon {
+    width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; color: #fff; font-size: 20px;
+  }
+  .menu-list-item {
+    display: flex; align-items: center; gap: 14px; padding: 14px 4px;
+    border-bottom: 1px solid var(--line); background: none; border-left: none;
+    border-right: none; border-top: none; width: 100%; text-align: left;
+    font-size: 15px; color: var(--ink); cursor: pointer;
+  }
+  .menu-list-item:last-child { border-bottom: none; }
+  .menu-list-item.danger { color: var(--coral); }
+  .privacy-options { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .privacy-option {
+    border: 1px solid var(--line); background: var(--bg); border-radius: 20px;
+    padding: 7px 14px; font-size: 13px; color: var(--ink); cursor: pointer;
+  }
+  .privacy-option.selected { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+
+  /* ---------- PROFILE SCREEN ---------- */
+  .profile-topbar {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .profile-back-btn { border: none; background: none; font-size: 20px; color: var(--ink); cursor: pointer; padding: 4px 6px; }
+  .profile-title { font-size: 16px; font-weight: 700; }
+  .profile-hero { padding: 28px 20px 18px; text-align: center; }
+  .profile-avatar-wrap { position: relative; width: 92px; height: 92px; margin: 0 auto 14px; }
+  .profile-avatar {
+    width: 92px; height: 92px; border-radius: 50%; background: var(--coral-soft);
+    color: var(--coral); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 30px; overflow: hidden; border: 3px solid var(--card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-avatar-edit {
+    position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--teal-deep); color: #fff; border: 3px solid var(--bg); font-size: 15px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .profile-name-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .profile-name { font-size: 20px; font-weight: 700; }
+  .profile-name-edit-btn { border: none; background: none; color: var(--ink-soft); font-size: 14px; cursor: pointer; }
+  .profile-handle { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+  .profile-follow-btn {
+    margin-top: 14px; display: inline-block; border: none; background: var(--coral);
+    color: #fff; font-size: 13px; font-weight: 700; padding: 8px 28px; border-radius: 8px; cursor: pointer;
+  }
+  .profile-follow-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .profile-follow-btn.requested { background: var(--card); color: var(--ink-soft); border: 1px dashed var(--line); }
+  .profile-bio { font-size: 13px; color: var(--ink); margin: 8px auto 0; max-width: 280px; line-height: 1.5; white-space: pre-wrap; }
+  .profile-links { display: flex; justify-content: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+  .profile-link-chip {
+    font-size: 12px; color: var(--teal-deep); text-decoration: none; border: 1px solid var(--line);
+    padding: 5px 12px; border-radius: 14px; background: var(--card);
+  }
+  .profile-stats { display: flex; justify-content: center; gap: 34px; padding: 18px 0; }
+  .profile-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; }
+  .profile-stat .num { font-size: 17px; font-weight: 700; color: var(--ink); }
+  .profile-stat .lbl { font-size: 12px; color: var(--ink-soft); }
+  .profile-tabs { display: flex; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .profile-tab {
+    flex: 1; border: none; background: none; padding: 12px 0; font-size: 16px; color: var(--ink-soft);
+    cursor: pointer; position: relative;
+  }
+  .profile-tab.active { color: var(--teal-deep); }
+  .profile-tab.active::after {
+    content: ""; position: absolute; left: 30%; right: 30%; bottom: -1px; height: 2px; background: var(--teal-deep);
+  }
+  .profile-empty { text-align: center; padding: 70px 24px; color: var(--ink-soft); }
+  .profile-empty svg { margin-bottom: 14px; opacity: 0.55; }
+  .profile-empty .line1 { font-size: 15px; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+  .profile-empty .line2 { font-size: 13px; margin-bottom: 18px; }
+  .profile-upload-btn {
+    border: none; background: var(--coral); color: #fff; padding: 11px 28px;
+    border-radius: 22px; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .profile-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0 90px;
+  }
+  .profile-grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; position: relative; }
+  .profile-grid-item img, .profile-grid-item video { width: 100%; height: 100%; object-fit: cover; }
+  .profile-grid-item.text-only {
+    display: flex; align-items: center; justify-content: center; padding: 8px;
+    font-size: 11px; color: var(--ink-soft); text-align: center; background: var(--card);
+  }
+  .grid-pin-badge {
+    position: absolute; top: 5px; left: 5px; background: rgba(8,80,65,0.85); color: #fff;
+    width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .grid-video-badge {
+    position: absolute; top: 5px; right: 5px; color: #fff; font-size: 15px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.6);
+  }
+
+  /* ---------- BOTTOM NAV BAR ---------- */
+  .bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 480px;
+    background: var(--card); border-top: 1px solid var(--line);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 8px 18px calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 50;
+  }
+  .nav-item {
+    border: none; background: none; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; color: var(--ink-soft); font-size: 11px;
+    cursor: pointer; flex: 1; padding: 2px 0;
+  }
+  .nav-item svg { display: block; }
+  .nav-item.active { color: var(--ink); font-weight: 700; }
+  .nav-item.active svg { stroke: var(--ink); }
+  .nav-add {
+    flex: 1; display: flex; justify-content: center; margin-top: -14px;
+  }
+  .nav-add-btn {
+    width: 46px; height: 34px; border-radius: 10px; border: none; cursor: pointer;
+    background: linear-gradient(90deg, #25F4EE, #FE2C55);
+    padding: 3px; display: flex; align-items: center; justify-content: center;
+  }
+  .nav-add-btn-inner {
+    width: 100%; height: 100%; border-radius: 7px; background: #111;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-add-btn-inner svg { display: block; }
+  .empty-nav-tab { text-align: center; padding: 90px 24px 90px; color: var(--ink-soft); }
+  .empty-nav-tab .big { font-size: 40px; margin-bottom: 14px; }
+  .empty-nav-tab .line1 { font-size: 15px; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+  .empty-nav-tab .line2 { font-size: 13px; }
+
+  .nav-icon-wrap { position: relative; display: inline-flex; }
+  .nav-badge {
+    position: absolute; top: -4px; right: -8px; min-width: 15px; height: 15px; padding: 0 3px;
+    border-radius: 8px; background: var(--coral); color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+
+  /* ---------- FRIENDS SCREEN ---------- */
+  .friends-search-wrap { padding: 12px 14px 0; }
+  .friends-search-wrap input {
+    width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 20px;
+    font-size: 14px; background: var(--card); color: var(--ink);
+  }
+  .friends-search-wrap input:focus { outline: none; border-color: var(--teal); }
+  .simple-tabs { display: flex; gap: 6px; padding: 12px 14px 4px; flex-wrap: wrap; }
+  .simple-tab {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 18px; cursor: pointer;
+  }
+  .simple-tab.active { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+  .user-list { padding: 6px 14px 90px; }
+  .user-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .user-row .avatar { width: 44px; height: 44px; font-size: 15px; cursor: pointer; }
+  .user-row-info { flex: 1; min-width: 0; cursor: pointer; }
+  .user-row-info .u-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+  .user-row-info .u-handle { font-size: 12px; color: var(--ink-soft); }
+  .user-row-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+  .request-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .pill-btn {
+    border: none; background: var(--teal-deep); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 7px 14px; border-radius: 16px; cursor: pointer; white-space: nowrap;
+  }
+  .pill-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .pill-btn.requested { background: var(--card); color: var(--ink-soft); border: 1px dashed var(--line); }
+  .pill-btn.ghost { background: var(--card); color: var(--teal-deep); border: 1px solid var(--teal-deep); }
+  .pin-icon-btn {
+    border: none; background: none; color: var(--ink-soft); font-size: 16px; cursor: pointer;
+    padding: 4px 6px; flex-shrink: 0;
+  }
+  .pin-icon-btn.pinned { color: var(--coral); }
+  .pin-flag { font-size: 11px; color: var(--coral); }
+
+  /* Friends video feed */
+  .friends-video-feed { padding: 10px 14px 90px; display: flex; flex-direction: column; gap: 14px; }
+  .friend-video-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .friend-video-card .fv-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+  .friend-video-card .fv-name { font-weight: 600; font-size: 13px; }
+  .friend-video-card .fv-time { font-size: 11px; color: var(--ink-soft); }
+  .friend-video-card video, .friend-video-card img { width: 100%; max-height: 480px; object-fit: cover; display: block; background: #000; }
+  .friends-sub-tabs { display: flex; gap: 6px; padding: 10px 14px 0; }
+
+  /* ---------- INBOX / THREADS ---------- */
+  .inbox-stories-row { display: flex; gap: 14px; overflow-x: auto; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .inbox-story-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 60px; cursor: pointer; }
+  .inbox-story-avatar-wrap { position: relative; width: 56px; height: 56px; }
+  .inbox-story-avatar {
+    width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: flex; align-items: center;
+    justify-content: center; background: var(--coral-soft); color: var(--coral); font-weight: 700;
+    border: 2.5px solid var(--teal); font-size: 16px;
+  }
+  .inbox-story-avatar.create { border: none; background: var(--line); color: var(--ink-soft); font-size: 22px; }
+  .inbox-story-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .inbox-story-pin-mark {
+    position: absolute; bottom: -2px; right: -2px; background: var(--coral); color: #fff; width: 18px; height: 18px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid var(--bg);
+  }
+  .inbox-story-label { font-size: 11px; color: var(--ink-soft); max-width: 62px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .inbox-section-row {
+    display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .inbox-section-icon {
+    width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; flex-shrink: 0;
+  }
+  .inbox-section-info { flex: 1; min-width: 0; }
+  .inbox-section-info .is-title { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .inbox-section-info .is-sub {
+    font-size: 12px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+  }
+  .inbox-section-chevron { color: var(--ink-soft); font-size: 16px; }
+  .inbox-suggested-heading { padding: 16px 14px 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+
+  .thread-row {
+    display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .thread-row .avatar { width: 46px; height: 46px; font-size: 16px; }
+  .thread-info { flex: 1; min-width: 0; }
+  .thread-info .t-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+  .thread-info .t-preview {
+    font-size: 13px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+  }
+  .thread-row.unread .t-name, .thread-row.unread .t-preview { font-weight: 700; color: var(--ink); }
+  .thread-unread-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--coral); flex-shrink: 0; margin-left: 6px; }
+  .thread-time { font-size: 11px; color: var(--ink-soft); flex-shrink: 0; }
+  .thread-list { padding-bottom: 90px; }
+  .thread-row-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+  .back-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .back-row .back-title { font-weight: 700; font-size: 16px; }
+
+  /* ---------- CHAT SCREEN ---------- */
+  .chat-header {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  .chat-header .avatar { width: 34px; height: 34px; font-size: 13px; }
+  .chat-header .c-name { font-weight: 700; font-size: 15px; }
+  .chat-messages { padding: 14px; padding-bottom: 110px; display: flex; flex-direction: column; gap: 8px; min-height: 60vh; }
+  .chat-bubble {
+    max-width: 75%; padding: 9px 13px; border-radius: 16px; font-size: 14px; line-height: 1.45;
+  }
+  .chat-bubble.mine {
+    align-self: flex-end; background: var(--teal-deep); color: #fff; border-bottom-right-radius: 4px;
+  }
+  .chat-bubble.theirs {
+    align-self: flex-start; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-bottom-left-radius: 4px;
+  }
+  .chat-bubble img { max-width: 200px; max-height: 260px; border-radius: 10px; display: block; object-fit: cover; }
+  .chat-bubble .bubble-text-with-image { margin-top: 6px; }
+  .chat-input-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 480px;
+    background: var(--card); border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .chat-input-row { display: flex; align-items: center; gap: 8px; }
+  .chat-media-preview { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+  .chat-media-preview img { width: 54px; height: 54px; object-fit: cover; border-radius: 8px; }
+  .chat-media-remove {
+    border: none; background: var(--coral-soft); color: var(--coral); border-radius: 50%;
+    width: 22px; height: 22px; cursor: pointer; font-size: 12px; flex-shrink: 0;
+  }
+  .chat-image-btn {
+    border: none; background: var(--coral-soft); color: var(--coral); width: 38px; height: 38px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    flex-shrink: 0; font-size: 16px;
+  }
+  .chat-input-bar input {
+    flex: 1; border: 1px solid var(--line); border-radius: 20px; padding: 10px 15px; font-size: 14px; background: var(--bg);
+  }
+  .chat-input-bar input:focus { outline: none; border-color: var(--teal); }
+  .chat-send-btn {
+    border: none; background: var(--teal-deep); color: #fff; width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+  }
+  .chat-send-btn:disabled { background: var(--line); color: var(--ink-soft); }
+
+  /* ---------- CAMERA / CREATE SCREEN ---------- */
+  .camera-screen { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #000; z-index: 200; display: flex; flex-direction: column; }
+  .camera-viewport { flex: 1; position: relative; overflow: hidden; background: #000; }
+  .camera-viewport video.live { width: 100%; height: 100%; object-fit: cover; }
+  .camera-viewport img.captured, .camera-viewport video.captured { width: 100%; height: 100%; object-fit: cover; }
+  .camera-top-bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px; z-index: 3; }
+  .camera-close-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+  .camera-flip-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .camera-hint { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.4); color: #fff; padding: 8px 16px; border-radius: 16px; font-size: 13px; z-index: 3; }
+  .camera-error-box { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; padding: 30px; font-size: 14px; line-height: 1.6; }
+  .camera-bottom-bar { padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: #000; display: flex; flex-direction: column; gap: 14px; }
+  .camera-mode-row { display: flex; justify-content: center; gap: 20px; }
+  .camera-mode-btn { background: none; border: none; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 2px; letter-spacing: 0.3px; }
+  .camera-mode-btn.active { color: #fff; }
+  .camera-controls-row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; }
+  .camera-gallery-shortcut {
+    width: 46px; height: 46px; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; color: #fff;
+    font-size: 18px; cursor: pointer; flex-shrink: 0;
+  }
+  .camera-gallery-shortcut img { width: 100%; height: 100%; object-fit: cover; }
+  .camera-record-btn {
+    width: 74px; height: 74px; border-radius: 50%; border: 4px solid #fff; background: transparent;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+  }
+  .camera-record-btn-inner { width: 58px; height: 58px; border-radius: 50%; background: var(--coral); transition: all 0.15s; }
+  .camera-record-btn.recording .camera-record-btn-inner { border-radius: 8px; width: 30px; height: 30px; background: #FE2C55; }
+  .camera-record-timer { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,44,85,0.85); color: #fff; padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; z-index: 3; }
+  .camera-next-btn { width: 46px; height: 46px; border-radius: 50%; background: var(--teal); border: none; color: #fff; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .camera-next-placeholder { width: 46px; height: 46px; flex-shrink: 0; }
+
+  .capture-review-bar { padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: #000; display: flex; gap: 10px; }
+  .capture-review-bar button { flex: 1; padding: 13px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .capture-retake-btn { background: rgba(255,255,255,0.15); color: #fff; }
+  .capture-use-btn { background: var(--coral); color: #fff; }
+  .live.mirrored { transform: scaleX(-1); }
+
+  /* ---------- POST COMPOSE SCREEN (caption after camera/gallery capture) ---------- */
+  .compose-screen { padding-bottom: 100px; }
+  .compose-media-preview { width: 100%; max-height: 380px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .compose-media-preview img, .compose-media-preview video { width: 100%; max-height: 380px; object-fit: contain; }
+  .compose-body { padding: 14px; }
+  .compose-body textarea {
+    width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    font-size: 15px; font-family: inherit; background: var(--card); color: var(--ink); resize: vertical;
+  }
+  .compose-media-actions { display: flex; gap: 10px; margin: 12px 0; }
+  .compose-media-actions label, .compose-media-actions button {
+    flex: 1; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 10px;
+    border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer;
+  }
+  .compose-privacy-row { display: flex; gap: 8px; margin: 10px 0 18px; flex-wrap: wrap; }
+
+  /* ---------- FULL-SCREEN VIDEO FEED (Home / Friends) ---------- */
+  .feed-topbar {
+    position: sticky; top: 0; z-index: 6; background: rgba(0,0,0,0.0);
+    display: flex; align-items: center; justify-content: center; gap: 22px;
+    padding: 14px 16px 10px; color: #fff;
+  }
+  .feed-topbar.on-light { color: var(--ink); }
+  .feed-tab-btn { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 15px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+  .feed-topbar.on-light .feed-tab-btn { color: var(--ink-soft); }
+  .feed-tab-btn.active { color: #fff; }
+  .feed-topbar.on-light .feed-tab-btn.active { color: var(--ink); }
+  .feed-search-btn { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; position: absolute; right: 16px; }
+  .feed-topbar.on-light .feed-search-btn { color: var(--ink); }
+  .fs-scroll { height: calc(100vh - 0px); overflow-y: scroll; scroll-snap-type: y mandatory; }
+  .fs-slide {
+    position: relative; height: calc(100vh - 60px); scroll-snap-align: start; background: #000;
+    display: flex; align-items: flex-end; overflow: hidden;
+  }
+  .fs-slide img, .fs-slide video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .fs-slide .fs-textonly {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 30px;
+    background: linear-gradient(135deg, var(--teal-deep), var(--coral)); color: #fff; font-size: 20px;
+    font-weight: 600; text-align: center; line-height: 1.5;
+  }
+  .fs-overlay-bottom { position: relative; z-index: 2; width: 100%; padding: 16px 70px 22px 14px; color: #fff;
+    background: linear-gradient(to top, rgba(0,0,0,0.55), transparent); }
+  .fs-author { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .fs-caption { font-size: 13px; line-height: 1.5; margin-bottom: 4px; white-space: pre-wrap; }
+  .fs-reposted-tag { font-size: 12px; background: rgba(255,255,255,0.18); display: inline-block; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; }
+  .fs-side-rail {
+    position: absolute; right: 10px; bottom: 90px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 18px; color: #fff;
+  }
+  .fs-side-avatar-wrap { position: relative; margin-bottom: 4px; }
+  .fs-side-avatar { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: var(--coral-soft); color: var(--coral); font-weight: 700; cursor: pointer; }
+  .fs-side-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .fs-side-follow-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: var(--coral); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; cursor: pointer; }
+  .fs-action { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-size: 22px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .fs-action span { font-size: 11px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .fs-action.liked { color: #FE2C55; }
+  .fs-action.saved, .fs-action.reposted { color: #25F4EE; }
+  .fs-empty-full { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--ink-soft); text-align: center; padding: 30px; }
+
+  /* Comments sheet for full-screen feed */
+  .fs-comments-sheet .comment-line { display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---------- EXPANDED SHARE SHEET ---------- */
+  .share-sendto-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 4px 16px; }
+  .share-sendto-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 58px; background: none; border: none; cursor: pointer; }
+  .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 6px 2px 10px; }
+  .share-grid-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: none; font-size: 11px; color: var(--ink); cursor: pointer; }
+
+  /* ---------- CHAT: reactions row + expanded input bar ---------- */
+  .chat-reaction-row { display: flex; gap: 8px; padding: 2px 2px 4px; overflow-x: auto; }
+  .chat-reaction-btn { border: none; background: var(--bg); border-radius: 20px; padding: 7px 12px; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .chat-bubble.reaction-only { font-size: 26px; padding: 4px 6px; background: none !important; border: none !important; }
+  .chat-bubble audio { width: 200px; }
+  .chat-sticker-panel { display: flex; gap: 10px; flex-wrap: wrap; padding: 10px 4px; background: var(--bg); border-radius: 10px; margin-bottom: 6px; }
+  .chat-sticker-panel button { border: none; background: none; font-size: 26px; cursor: pointer; }
+  .chat-mic-btn.recording { background: var(--coral) !important; color: #fff !important; }
+</style>
+</head>
+<body>
+<div id="root" class="app"></div>
+
+<script>
+/* ================= Firebase config ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDTRdBE8OniAAbmN7iQgo9ejqGqehAer5U",
+  authDomain: "tik-tok-vai.firebaseapp.com",
+  projectId: "tik-tok-vai",
+  storageBucket: "tik-tok-vai.firebasestorage.app",
+  messagingSenderId: "182459233826",
+  appId: "1:182459233826:web:9cfb0c7d24d51307b37c7b",
+  measurementId: "G-0GXPRM00VH"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ================= App state ================= */
+const root = document.getElementById("root");
+
+let state = {
+  authReady: false,
+  user: null,
+  mode: "login",       // login | signup
+  authError: "",
+  posts: [],
+  composerText: "",
+  composerMedia: null,
+  composerMediaType: null, // "image" | "video"
+  toastMsg: "",
+  openComments: {},
+  view: "feed",         // feed | friends | inbox | profile | chat | camera
+  profile: null,        // { name, handle, bio, avatar, followers:[], following:[], followRequests:[], youtubeLink, facebookLink, pinnedPosts:[] }
+  profileTab: "posts",  // posts | private | reposts | saved | likes
+  viewingUid: null,     // null = viewing own profile; otherwise the uid of the profile being viewed
+  viewingPosts: [],     // public posts belonging to the profile being viewed (used when viewingUid is set)
+
+  myUserDoc: null,       // real-time copy of my own users/{uid} doc (for follow-request & badge info)
+
+  allUsers: [],         // cached list of {uid, ...userDoc} for the Friends screen
+  allUsersLoaded: false,
+  friendsTab: "all",    // all | followers | following | requests
+  friendsSubTab: "people", // people | videos  (videos = friends' video feed)
+  friendsSearch: "",
+
+  threads: [],          // inbox conversations the current user is part of
+  inboxSection: null,   // null | "followers" | "activity" | "requests" | "archive" | "system"
+  chatUid: null,        // the other participant's uid while in a chat
+  chatProfile: null,    // the other participant's user doc, for the chat header
+  chatMessages: [],
+  chatText: "",
+  chatMedia: null,       // compressed data-url of an image/video staged to send in the current chat
+  chatMediaType: null,   // "image" | "video" for chatMedia
+
+  // ---- Edit profile page state ----
+  editName: "",
+  editHandle: "",
+  editBio: "",
+  editYoutube: "",
+  editFacebook: "",
+
+  // ---- Camera / create screen state ----
+  cameraStream: null,
+  cameraFacing: "user",       // user | environment
+  cameraMode: "15s",          // 10m | 60s | 15s | PHOTO
+  cameraRecording: false,
+  cameraRecordSeconds: 0,
+  cameraCapturedType: null,   // "photo" | "video" | null
+  cameraCapturedUrl: null,    // object URL / data URL for the review screen
+  cameraCapturedBlob: null,
+  cameraError: null,
+  cameraLastGalleryThumb: null,
+
+  activity: [],          // recent activity items across users (likes/comments/replies) fetched for the Activity section
+  activityLoaded: false,
+
+  // ---- Full-screen video feed state (Home / Friends) ----
+  homeFeedTab: "forYou",   // forYou | following  (Home)
+  openFsComments: null,    // postId whose comments sheet is open in the full-screen feed
+
+  // ---- Post compose screen (caption step after camera capture / gallery pick) ----
+  composePrivacy: "public",
+
+  // ---- Chat extras ----
+  chatStickerPanelOpen: false,
+  chatRecordingVoice: false,
+  chatVoiceSeconds: 0
+};
+
+// Tracks which post the share/owner sheet is currently acting on
+let activePostId = null;
+let mediaRecorderRef = null;
+let recordedChunksRef = [];
+let recordTimerRef = null;
+
+function setState(patch) {
+  state = { ...state, ...patch };
+  render();
+}
+
+function initials(name) {
+  if (!name) return "?";
+  return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+
+function slugifyHandle(base) {
+  return (base || "user")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 20) || "user";
+}
+
+function showToast(msg) {
+  state.toastMsg = msg;
+  render();
+  requestAnimationFrame(() => {
+    const t = document.getElementById("toast");
+    if (t) t.classList.add("show");
+  });
+  setTimeout(() => {
+    const t = document.getElementById("toast");
+    if (t) t.classList.remove("show");
+  }, 2200);
+}
+
+/* Shared helper: read an image file, optionally crop it to a centered square, resize, and
+   compress it down to a JPEG data URL. Used by the composer, avatar upload, and chat image send. */
+function compressImageToDataUrl(file, opts, callback) {
+  const { maxDim = 900, quality = 0.7, square = false } = opts || {};
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img.onload = () => {
+      let sx = 0, sy = 0, sw = img.width, sh = img.height, width, height;
+      if (square) {
+        const minSide = Math.min(img.width, img.height);
+        sx = (img.width - minSide) / 2;
+        sy = (img.height - minSide) / 2;
+        sw = minSide; sh = minSide;
+        width = maxDim; height = maxDim;
+      } else {
+        width = img.width; height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+          else { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
+      callback(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Read any file (image or video) into a data URL, without resizing — used for gallery-picked videos. */
+function fileToDataUrl(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (ev) => callback(ev.target.result);
+  reader.readAsDataURL(file);
+}
+
+/* ================= Auth listener ================= */
+auth.onAuthStateChanged((firebaseUser) => {
+  if (firebaseUser) {
+    state.user = {
+      uid: firebaseUser.uid,
+      name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split("@")[0] : "User"),
+      email: firebaseUser.email
+    };
+    state.authReady = true;
+    state.view = "feed";
+    ensureUserProfile(state.user).then(() => {
+      listenToPosts();
+      listenToOwnUser(state.user.uid);
+      listenToThreads();
+      listenToActivity();
+      if (window.Notification && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+    });
+  } else {
+    if (unsubscribeOwnUser) unsubscribeOwnUser();
+    if (unsubscribeThreads) unsubscribeThreads();
+    if (unsubscribeChat) unsubscribeChat();
+    if (unsubscribeActivity) unsubscribeActivity();
+    state.user = null;
+    state.authReady = true;
+    state.posts = [];
+    state.view = "feed";
+    state.profile = null;
+    state.myUserDoc = null;
+    state.threads = [];
+    render();
+  }
+  render();
+});
+
+/* Create a Firestore profile doc for this user if one doesn't exist yet */
+function ensureUserProfile(user) {
+  const ref = db.collection("users").doc(user.uid);
+  return ref.get().then((doc) => {
+    if (!doc.exists) {
+      const handle = slugifyHandle(user.name || (user.email ? user.email.split("@")[0] : "user"));
+      return ref.set({
+        name: user.name,
+        handle: handle,
+        bio: "",
+        avatar: null,
+        followers: [],
+        following: [],
+        followRequests: [],
+        pinnedPosts: [],
+        pinnedFriends: [],
+        archivedThreads: [],
+        youtubeLink: "",
+        facebookLink: "",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  }).catch((err) => console.error("ensureUserProfile error:", err));
+}
+
+/* Real-time copy of my own user doc — used for the Requests tab and nav badges */
+let unsubscribeOwnUser = null;
+function listenToOwnUser(uid) {
+  if (unsubscribeOwnUser) unsubscribeOwnUser();
+  unsubscribeOwnUser = db.collection("users").doc(uid).onSnapshot((doc) => {
+    state.myUserDoc = doc.exists ? { uid, ...doc.data() } : null;
+    render();
+  }, (err) => console.error("listenToOwnUser error:", err));
+}
+let unsubscribeAllUsers = null;
+function listenToAllUsers() {
+  if (unsubscribeAllUsers) unsubscribeAllUsers();
+  const myUid = state.user.uid;
+  unsubscribeAllUsers = db.collection("users").limit(200).onSnapshot((snap) => {
+    const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== myUid);
+    state.allUsers = users;
+    state.allUsersLoaded = true;
+    render();
+  }, (err) => console.error("listenToAllUsers error:", err));
+}
+/* ================= Real-time posts from Firestore ================= */
+let unsubscribePosts = null;
+function listenToPosts() {
+  if (unsubscribePosts) unsubscribePosts();
+  unsubscribePosts = db.collection("posts")
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .onSnapshot((snapshot) => {
+      state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      render();
+    }, (err) => {
+      console.error(err);
+      showToast("Couldn't load posts");
+    });
+}
+
+/* ================= Render ================= */
+function render() {
+  if (!state.authReady) {
+    root.innerHTML = `<div class="loading-screen">Loading...</div>`;
+    return;
+  }
+  if (!state.user) {
+    renderLogin();
+  } else if (state.view === "profile") {
+    renderProfileScreen();
+  } else if (state.view === "editProfile") {
+    renderEditProfileScreen();
+  } else if (state.view === "friends") {
+    renderFriendsScreen();
+  } else if (state.view === "inbox") {
+    renderInboxScreen();
+  } else if (state.view === "chat") {
+    renderChatScreen();
+  } else if (state.view === "camera") {
+    renderCameraScreen();
+  } else if (state.view === "followList") {
+    renderFollowListScreen();
+  } else if (state.view === "postCompose") {
+    renderPostComposeScreen();
+  } else {
+    renderApp();
+  }
+}
+
+function renderLogin() {
+  const isSignup = state.mode === "signup";
+  root.innerHTML = `
+    <div class="login-screen">
+      <div class="brand">Milon</div>
+      <div class="tagline">Stay connected with friends and family</div>
+
+      ${isSignup ? `
+      <div class="field">
+        <label>Name</label>
+        <input id="nameInput" type="text" placeholder="Your name" />
+      </div>` : ""}
+
+      <div class="field">
+        <label>Email</label>
+        <input id="emailInput" type="email" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="passInput" type="password" placeholder="At least 6 characters" />
+      </div>
+
+      <button class="btn-primary" id="submitAuthBtn">${isSignup ? "Create account" : "Log in"}</button>
+      <div class="error-msg" id="authErrorMsg">${escapeHtml(state.authError)}</div>
+
+      <button class="link-btn" id="toggleModeBtn">${isSignup ? "Already have an account? Log in" : "New here? Create an account"}</button>
+
+      <div class="divider">or</div>
+      <button class="btn-social" id="googleBtn"><span style="width:18px;height:18px;border-radius:50%;background:#EA4335;display:inline-block;"></span> Continue with Google</button>
+    </div>
+  `;
+
+  document.getElementById("submitAuthBtn").onclick = handleAuthSubmit;
+  document.getElementById("toggleModeBtn").onclick = () => setState({ mode: isSignup ? "login" : "signup", authError: "" });
+  document.getElementById("googleBtn").onclick = handleGoogleLogin;
+}
+
+function handleAuthSubmit() {
+  const email = document.getElementById("emailInput").value.trim();
+  const pass = document.getElementById("passInput").value;
+  const isSignup = state.mode === "signup";
+  const name = isSignup ? document.getElementById("nameInput").value.trim() : null;
+
+  if (!email || !pass || (isSignup && !name)) {
+    setState({ authError: "Please fill in all fields" });
+    return;
+  }
+  if (pass.length < 6) {
+    setState({ authError: "Password must be at least 6 characters" });
+    return;
+  }
+
+  const btn = document.getElementById("submitAuthBtn");
+  btn.disabled = true;
+  btn.textContent = "Please wait...";
+
+  const action = isSignup
+    ? auth.createUserWithEmailAndPassword(email, pass).then((cred) => cred.user.updateProfile({ displayName: name }))
+    : auth.signInWithEmailAndPassword(email, pass);
+
+  action
+    .then(() => setState({ authError: "" }))
+    .catch((err) => setState({ authError: translateAuthError(err.code) }));
+}
+
+function handleGoogleLogin() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch((err) => {
+    setState({ authError: translateAuthError(err.code) });
+  });
+}
+
+function translateAuthError(code) {
+  const map = {
+    "auth/email-already-in-use": "An account with this email already exists",
+    "auth/invalid-email": "Please enter a valid email",
+    "auth/user-not-found": "No account found with this email",
+    "auth/wrong-password": "Incorrect password",
+    "auth/invalid-credential": "Incorrect email or password",
+    "auth/popup-closed-by-user": "Login cancelled"
+  };
+  return map[code] || "Something went wrong, please try again";
+}
+
+function handleLogout() {
+  auth.signOut();
+}
+
+/* ================= HOME: full-screen swipeable video feed (TikTok-style) ================= */
+function renderApp() {
+  const myUid = state.user.uid;
+  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
+
+  let visiblePosts = state.posts.filter(p => {
+    if (!hiddenSafe(p)) return false;
+    if (!p.privacy || p.privacy === "public") return true;
+    return p.authorUid === myUid;
+  });
+
+  if (state.homeFeedTab === "following") {
+    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+    visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
+  }
+
+  root.innerHTML = `
+    <div class="feed-topbar">
+      <button class="feed-tab-btn ${state.homeFeedTab === "following" ? "active" : ""}" id="tabFollowingBtn">Following</button>
+      <button class="feed-tab-btn ${state.homeFeedTab === "forYou" ? "active" : ""}" id="tabForYouBtn">For You</button>
+      <button class="feed-search-btn" id="feedSearchBtn">🔍</button>
+    </div>
+    ${visiblePosts.length ? `<div class="fs-scroll" id="fsScroll">${visiblePosts.map(renderFsSlide).join("")}</div>` : `
+      <div class="fs-empty-full">
+        <div style="font-size:40px;margin-bottom:10px;">📭</div>
+        <div style="font-weight:700;margin-bottom:6px;">No posts yet</div>
+        <div style="font-size:13px;">${state.homeFeedTab === "following" ? "Follow people to see their posts here." : "Be the first to post something!"}</div>
+      </div>
+    `}
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet(visiblePosts)}
+    ${renderBottomNav("feed")}
+  `;
+
+  document.getElementById("tabFollowingBtn").onclick = () => setState({ homeFeedTab: "following" });
+  document.getElementById("tabForYouBtn").onclick = () => setState({ homeFeedTab: "forYou" });
+  document.getElementById("feedSearchBtn").onclick = openFriendsScreen; // reuse Friends' people search for now
+
+  wireFsSlideHandlers(visiblePosts);
+  wireSheetHandlers();
+  wireFsCommentsHandlers(visiblePosts);
+  wireBottomNav();
+}
+
+function renderFsSlide(p) {
+  const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
+  const likes = p.likes || [];
+  const comments = p.comments || [];
+  const savedBy = p.savedBy || [];
+  const reposts = p.reposts || [];
+  const liked = state.user && likes.includes(state.user.uid);
+  const saved = state.user && savedBy.includes(state.user.uid);
+  const reposted = state.user && reposts.includes(state.user.uid);
+  const isOwner = state.user && p.authorUid === state.user.uid;
+  const authorU = (state.allUsers || []).find(u => u.uid === p.authorUid);
+  const amFollowingAuthor = authorU && (authorU.followers || []).includes(state.user.uid);
+
+  const mediaHtml = p.media
+    ? (isVideo ? `<video src="${p.media}" playsinline loop muted autoplay></video>` : `<img src="${p.media}" />`)
+    : `<div class="fs-textonly">${escapeHtml(p.text || "")}</div>`;
+
+  return `
+    <div class="fs-slide" id="fsslide-${p.id}">
+      ${mediaHtml}
+      <div class="fs-side-rail">
+        <div class="fs-side-avatar-wrap">
+          <div class="fs-side-avatar" id="fsavatar-${p.id}">${initials(p.authorName)}</div>
+          ${!isOwner ? `<button class="fs-side-follow-badge" id="fsfollow-${p.id}">${amFollowingAuthor ? "✓" : "+"}</button>` : ""}
+        </div>
+        <button class="fs-action ${liked ? "liked" : ""}" id="fslike-${p.id}">${liked ? "❤️" : "🤍"}<span>${likes.length}</span></button>
+        <button class="fs-action" id="fscomment-${p.id}">💬<span>${comments.length}</span></button>
+        <button class="fs-action ${saved ? "saved" : ""}" id="fssave-${p.id}">🔖<span>${savedBy.length}</span></button>
+        <button class="fs-action" id="fsshare-${p.id}">↗️<span>Share</span></button>
+        ${isOwner ? `<button class="fs-action" id="fsowner-${p.id}">⋮</button>` : ""}
+      </div>
+      <div class="fs-overlay-bottom">
+        ${reposted ? `<div class="fs-reposted-tag">↻ You reposted this</div>` : ""}
+        <div class="fs-author">@${escapeHtml(p.authorName)}</div>
+        ${p.media && p.text ? `<div class="fs-caption">${escapeHtml(p.text)}</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function wireFsSlideHandlers(posts) {
+  posts.forEach(p => {
+    const av = document.getElementById(`fsavatar-${p.id}`);
+    if (av) av.onclick = () => openProfile(p.authorUid);
+    const followBtn = document.getElementById(`fsfollow-${p.id}`);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(p.authorUid);
+    const likeBtn = document.getElementById(`fslike-${p.id}`);
+    if (likeBtn) likeBtn.onclick = () => toggleLike(p);
+    const commentBtn = document.getElementById(`fscomment-${p.id}`);
+    if (commentBtn) commentBtn.onclick = () => setState({ openFsComments: p.id });
+    const saveBtn = document.getElementById(`fssave-${p.id}`);
+    if (saveBtn) saveBtn.onclick = () => toggleSave(p);
+    const shareBtn = document.getElementById(`fsshare-${p.id}`);
+    if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
+    const ownerBtn = document.getElementById(`fsowner-${p.id}`);
+    if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
+  });
+}
+
+function renderFsCommentsSheet(posts) {
+  const post = state.openFsComments ? posts.find(p => p.id === state.openFsComments) : null;
+  const comments = post ? (post.comments || []) : [];
+  return `
+    <div class="sheet-overlay ${state.openFsComments ? "open" : ""}" id="fsCommentsOverlay"></div>
+    <div class="bottom-sheet fs-comments-sheet ${state.openFsComments ? "open" : ""}" id="fsCommentsSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Comments (${comments.length})</div>
+      ${comments.map(c => `<div class="comment-line"><span><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
+      <div class="comment-input-row" style="margin-top:10px;">
+        <input id="fsCommentInput" type="text" placeholder="Write a comment..." />
+        <button id="fsCommentSubmit">Send</button>
+      </div>
+    </div>
+  `;
+}
+
+function wireFsCommentsHandlers(posts) {
+  const overlay = document.getElementById("fsCommentsOverlay");
+  if (overlay) overlay.onclick = () => setState({ openFsComments: null });
+  const submitBtn = document.getElementById("fsCommentSubmit");
+  if (submitBtn && state.openFsComments) {
+    submitBtn.onclick = () => {
+      submitComment(state.openFsComments);
+      const input = document.getElementById("fsCommentInput");
+      if (input) input.value = "";
+    };
+    const input = document.getElementById("fsCommentInput");
+    if (input) input.onkeydown = (e) => { if (e.key === "Enter") submitBtn.onclick(); };
+  }
+}
+
+function renderShareSheet() {
+  const myUid = state.user ? state.user.uid : null;
+  const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
+  return `
+    <div class="sheet-overlay" id="shareOverlay"></div>
+    <div class="bottom-sheet" id="shareSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Send to</div>
+      <div class="share-sendto-row">
+        ${friends.length ? friends.map(u => `
+          <button class="share-sendto-item" data-uid="${u.uid}">
+            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            <span style="font-size:11px;">${escapeHtml((u.name || "User").split(" ")[0])}</span>
+          </button>
+        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
+      </div>
+      <div class="share-grid">
+        <button class="share-grid-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
+        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
+        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
+        <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
+        <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
+        <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
+        <button class="share-grid-item" id="shareReport"><span class="sheet-icon" style="background:#D85A30">⚑</span>Report</button>
+        <button class="share-grid-item" id="shareDownload"><span class="sheet-icon" style="background:#555">⬇</span>Download</button>
+        <button class="share-grid-item" id="sharePromote"><span class="sheet-icon" style="background:#e67e22">🔥</span>Promote</button>
+        <button class="share-grid-item" id="shareGroup"><span class="sheet-icon" style="background:#2f8cf0">👥</span>Create group</button>
+        <button class="share-grid-item" id="shareWallpaper"><span class="sheet-icon" style="background:#16a085">▦</span>Set as wallpaper</button>
+        <button class="share-grid-item" id="shareGif"><span class="sheet-icon" style="background:#7f8c8d">GIF</span>Share as GIF</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderOwnerSheet() {
+  return `
+    <div class="sheet-overlay" id="ownerOverlay"></div>
+    <div class="bottom-sheet" id="ownerSheet">
+      <div class="sheet-handle"></div>
+      <button class="menu-list-item" id="editPostBtn">✏️ Edit post</button>
+      <button class="menu-list-item" id="pinPostBtn">📌 Pin to profile</button>
+      <div class="menu-list-item" style="display:block; cursor:default;">
+        🔒 Who can see this
+        <div class="privacy-options" id="privacyOptions">
+          <button class="privacy-option" data-level="public">Public</button>
+          <button class="privacy-option" data-level="friends">Friends</button>
+          <button class="privacy-option" data-level="private">Only me</button>
+        </div>
+      </div>
+      <button class="menu-list-item danger" id="deletePostBtn">🗑️ Delete</button>
+    </div>
+  `;
+}
+
+/* ================= Bottom nav bar ================= */
+function renderBottomNav(activeKey) {
+  const reqCount = (state.myUserDoc && state.myUserDoc.followRequests) ? state.myUserDoc.followRequests.length : 0;
+  const myUid = state.user ? state.user.uid : null;
+  const unreadTotal = myUid
+    ? state.threads.reduce((sum, t) => sum + ((t.unread && t.unread[myUid]) || 0), 0)
+    : 0;
+
+  return `
+    <div class="bottom-nav">
+      <button class="nav-item ${activeKey === "feed" ? "active" : ""}" id="navHomeBtn">
+        ${homeIconSvg(activeKey === "feed")}
+        <span>Home</span>
+      </button>
+      <button class="nav-item ${activeKey === "friends" ? "active" : ""}" id="navFriendsBtn">
+        <span class="nav-icon-wrap">
+          ${friendsIconSvg(activeKey === "friends")}
+          ${reqCount > 0 ? `<span class="nav-badge">${reqCount > 9 ? "9+" : reqCount}</span>` : ""}
+        </span>
+        <span>Friends</span>
+      </button>
+      <div class="nav-add">
+        <button class="nav-add-btn" id="navAddBtn" title="Create post">
+          <span class="nav-add-btn-inner">${plusIconSvg()}</span>
+        </button>
+      </div>
+      <button class="nav-item ${activeKey === "inbox" ? "active" : ""}" id="navInboxBtn">
+        <span class="nav-icon-wrap">
+          ${inboxIconSvg(activeKey === "inbox")}
+          ${unreadTotal > 0 ? `<span class="nav-badge">${unreadTotal > 9 ? "9+" : unreadTotal}</span>` : ""}
+        </span>
+        <span>Inbox</span>
+      </button>
+      <button class="nav-item ${activeKey === "profile" ? "active" : ""}" id="navProfileBtn">
+        ${profileIconSvg(activeKey === "profile")}
+        <span>Profile</span>
+      </button>
+    </div>
+  `;
+}
+
+function wireBottomNav() {
+  const homeBtn = document.getElementById("navHomeBtn");
+  const friendsBtn = document.getElementById("navFriendsBtn");
+  const addBtn = document.getElementById("navAddBtn");
+  const inboxBtn = document.getElementById("navInboxBtn");
+  const profileBtn = document.getElementById("navProfileBtn");
+
+  if (homeBtn) homeBtn.onclick = () => setState({ view: "feed" });
+  if (friendsBtn) friendsBtn.onclick = openFriendsScreen;
+  if (addBtn) addBtn.onclick = openCameraScreen;
+  if (inboxBtn) inboxBtn.onclick = openInboxScreen;
+  if (profileBtn) profileBtn.onclick = () => openProfile();
+}
+
+/* ================================================================
+   CAMERA / CREATE SCREEN
+   Tapping "+" opens the camera first (like the reference screenshot):
+   record/photo controls, mode row (10m/60s/15s/PHOTO/TEXT), and a
+   small gallery-shortcut thumbnail so the user can still pick an
+   existing video/photo from their gallery instead of recording.
+   ================================================================ */
+function openCameraScreen() {
+  setState({
+    view: "camera",
+    cameraMode: "15s",
+    cameraRecording: false,
+    cameraRecordSeconds: 0,
+    cameraCapturedType: null,
+    cameraCapturedUrl: null,
+    cameraCapturedBlob: null,
+    cameraError: null
+  });
+  startCameraStream();
+}
+
+function stopCameraStream() {
+  if (state.cameraStream) {
+    state.cameraStream.getTracks().forEach(t => t.stop());
+    state.cameraStream = null;
+  }
+  if (recordTimerRef) { clearInterval(recordTimerRef); recordTimerRef = null; }
+}
+
+function startCameraStream(facing) {
+  const facingMode = facing || state.cameraFacing || "user";
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    state.cameraError = "Camera isn't available on this device/browser. Use the gallery button below to pick a photo or video instead.";
+    render();
+    return;
+  }
+  if (state.cameraStream) {
+    state.cameraStream.getTracks().forEach(t => t.stop());
+  }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: true })
+    .then((stream) => {
+      state.cameraStream = stream;
+      state.cameraFacing = facingMode;
+      state.cameraError = null;
+      render();
+      const videoEl = document.getElementById("liveCameraVideo");
+      if (videoEl) { videoEl.srcObject = stream; videoEl.play().catch(() => {}); }
+    })
+    .catch((err) => {
+      console.error(err);
+      state.cameraError = "Couldn't access the camera (permission denied or unavailable). Use the gallery button below to pick a photo or video instead.";
+      render();
+    });
+}
+
+function flipCamera() {
+  const next = state.cameraFacing === "user" ? "environment" : "user";
+  startCameraStream(next);
+}
+
+function closeCameraScreen() {
+  stopCameraStream();
+  setState({ view: "feed", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+}
+
+function renderCameraScreen() {
+  // ---- Review screen: after capturing a photo or video ----
+  if (state.cameraCapturedType) {
+    const mediaHtml = state.cameraCapturedType === "video"
+      ? `<video class="captured" src="${state.cameraCapturedUrl}" controls autoplay loop></video>`
+      : `<img class="captured" src="${state.cameraCapturedUrl}" />`;
+    root.innerHTML = `
+      <div class="camera-screen">
+        <div class="camera-viewport">
+          ${mediaHtml}
+          <div class="camera-top-bar">
+            <button class="camera-close-btn" id="camCloseBtn">✕</button>
+            <div></div>
+          </div>
+        </div>
+        <div class="capture-review-bar">
+          <button class="capture-retake-btn" id="camRetakeBtn">Retake</button>
+          <button class="capture-use-btn" id="camUseBtn">Use this</button>
+        </div>
+      </div>
+    `;
+    document.getElementById("camCloseBtn").onclick = closeCameraScreen;
+    document.getElementById("camRetakeBtn").onclick = () => {
+      setState({ cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+      startCameraStream();
+    };
+    document.getElementById("camUseBtn").onclick = useCapturedMedia;
+    return;
+  }
+
+  // ---- Live camera / recording screen ----
+  const modes = ["10m", "60s", "15s", "PHOTO", "TEXT"];
+  root.innerHTML = `
+    <div class="camera-screen">
+      <div class="camera-viewport">
+        ${state.cameraError
+          ? `<div class="camera-error-box">${escapeHtml(state.cameraError)}</div>`
+          : `<video class="live ${state.cameraFacing === "user" ? "mirrored" : ""}" id="liveCameraVideo" autoplay playsinline muted></video>`
+        }
+        ${state.cameraRecording ? `<div class="camera-record-timer" id="recTimer">${formatRecTime(state.cameraRecordSeconds)}</div>` : ""}
+        <div class="camera-top-bar">
+          <button class="camera-close-btn" id="camCloseBtn2">✕</button>
+          ${!state.cameraError ? `<button class="camera-flip-btn" id="camFlipBtn">🔄</button>` : `<div></div>`}
+        </div>
+      </div>
+      <div class="camera-bottom-bar">
+        <div class="camera-mode-row">
+          ${modes.map(m => `<button class="camera-mode-btn ${state.cameraMode === m ? "active" : ""}" data-mode="${m}">${m}</button>`).join("")}
+        </div>
+        <div class="camera-controls-row">
+          <div class="camera-gallery-shortcut" id="camGalleryShortcut" title="Choose from gallery">
+            ${state.cameraLastGalleryThumb ? `<img src="${state.cameraLastGalleryThumb}" />` : "🖼️"}
+            <input type="file" accept="image/*,video/*" id="camGalleryInput" style="display:none" />
+          </div>
+          <button class="camera-record-btn ${state.cameraRecording ? "recording" : ""}" id="camRecordBtn">
+            <span class="camera-record-btn-inner"></span>
+          </button>
+          <div class="camera-next-placeholder"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("camCloseBtn2").onclick = closeCameraScreen;
+  const flipBtn = document.getElementById("camFlipBtn");
+  if (flipBtn) flipBtn.onclick = flipCamera;
+
+  document.querySelectorAll(".camera-mode-btn").forEach(btn => {
+    btn.onclick = () => {
+      const mode = btn.dataset.mode;
+      if (mode === "TEXT") {
+        // Text-only post: close the camera and open the compose screen with no media
+        stopCameraStream();
+        setState({ view: "postCompose", composerMedia: null, composerMediaType: null, composerText: "" });
+        return;
+      }
+      setState({ cameraMode: mode });
+    };
+  });
+
+  document.getElementById("camGalleryShortcut").onclick = () => document.getElementById("camGalleryInput").click();
+  document.getElementById("camGalleryInput").onchange = handleCameraGallerySelect;
+
+  document.getElementById("camRecordBtn").onclick = () => {
+    if (state.cameraMode === "PHOTO") {
+      capturePhotoFromStream();
+    } else {
+      if (state.cameraRecording) stopVideoRecording();
+      else startVideoRecording();
+    }
+  };
+
+  const videoEl = document.getElementById("liveCameraVideo");
+  if (videoEl && state.cameraStream) { videoEl.srcObject = state.cameraStream; videoEl.play().catch(() => {}); }
+}
+
+function formatRecTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
+function capturePhotoFromStream() {
+  const videoEl = document.getElementById("liveCameraVideo");
+  if (!videoEl) return;
+  const canvas = document.createElement("canvas");
+  canvas.width = videoEl.videoWidth || 720;
+  canvas.height = videoEl.videoHeight || 1280;
+  const ctx = canvas.getContext("2d");
+  if (state.cameraFacing === "user") {
+    // The live preview is mirrored for a natural selfie view, but the saved photo
+    // should NOT be mirrored (so text/details look correct to everyone else) —
+    // flip the drawing context back before capturing.
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+  stopCameraStream();
+  setState({ cameraCapturedType: "photo", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null });
+}
+
+function maxRecordMs() {
+  if (state.cameraMode === "10m") return 10 * 60 * 1000;
+  if (state.cameraMode === "60s") return 60 * 1000;
+  return 15 * 1000; // 15s default
+}
+
+function startVideoRecording() {
+  if (!state.cameraStream) return;
+  recordedChunksRef = [];
+  try {
+    mediaRecorderRef = new MediaRecorder(state.cameraStream);
+  } catch (e) {
+    console.error(e);
+    showToast("Recording isn't supported on this browser");
+    return;
+  }
+  mediaRecorderRef.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunksRef.push(e.data); };
+  mediaRecorderRef.onstop = () => {
+    const blob = new Blob(recordedChunksRef, { type: "video/webm" });
+    const url = URL.createObjectURL(blob);
+    stopCameraStream();
+    setState({ cameraCapturedType: "video", cameraCapturedUrl: url, cameraCapturedBlob: blob, cameraRecording: false, cameraRecordSeconds: 0 });
+  };
+  mediaRecorderRef.start();
+  state.cameraRecording = true;
+  state.cameraRecordSeconds = 0;
+  render();
+  const limitMs = maxRecordMs();
+  recordTimerRef = setInterval(() => {
+    state.cameraRecordSeconds += 1;
+    const timerEl = document.getElementById("recTimer");
+    if (timerEl) timerEl.textContent = formatRecTime(state.cameraRecordSeconds);
+    if (state.cameraRecordSeconds * 1000 >= limitMs) stopVideoRecording();
+  }, 1000);
+}
+
+function stopVideoRecording() {
+  if (mediaRecorderRef && mediaRecorderRef.state !== "inactive") mediaRecorderRef.stop();
+  if (recordTimerRef) { clearInterval(recordTimerRef); recordTimerRef = null; }
+}
+
+/* Gallery shortcut inside the camera screen: pick an existing photo/video to post */
+function handleCameraGallerySelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const isVideo = file.type.startsWith("video/");
+  stopCameraStream();
+  if (isVideo) {
+    fileToDataUrl(file, (dataUrl) => {
+      setState({ cameraCapturedType: "video", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null, cameraLastGalleryThumb: null });
+    });
+  } else {
+    compressImageToDataUrl(file, { maxDim: 900, quality: 0.75 }, (dataUrl) => {
+      setState({ cameraCapturedType: "photo", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null, cameraLastGalleryThumb: dataUrl });
+    });
+  }
+}
+
+/* "Use this" on the review screen — send captured media into the caption/compose screen */
+function useCapturedMedia() {
+  const type = state.cameraCapturedType;
+  const url = state.cameraCapturedUrl;
+
+  if (type === "photo") {
+    setState({ view: "postCompose", composerMedia: url, composerMediaType: "image", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+    return;
+  }
+
+  if (type === "video") {
+    if (state.cameraCapturedBlob) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setState({ view: "postCompose", composerMedia: reader.result, composerMediaType: "video", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+      };
+      reader.readAsDataURL(state.cameraCapturedBlob);
+    } else {
+      setState({ view: "postCompose", composerMedia: url, composerMediaType: "video", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+    }
+  }
+}
+
+/* ---------------- Post compose screen: caption, privacy, and final Post button ---------------- */
+function renderPostComposeScreen() {
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="composeBackBtn">←</button>
+      <div class="back-title">New post</div>
+    </div>
+    <div class="compose-screen">
+      ${state.composerMedia ? `
+        <div class="compose-media-preview">
+          ${state.composerMediaType === "video" ? `<video src="${state.composerMedia}" controls></video>` : `<img src="${state.composerMedia}" />`}
+        </div>
+      ` : ""}
+      <div class="compose-body">
+        <textarea id="composeTextInput" placeholder="Write a caption...">${escapeHtml(state.composerText)}</textarea>
+        <div class="compose-media-actions">
+          <label>🖼️ Photo
+            <input type="file" accept="image/*" id="composePhotoInput" style="display:none" />
+          </label>
+          <label>🎬 Video
+            <input type="file" accept="video/*" id="composeVideoInput" style="display:none" />
+          </label>
+          ${state.composerMedia ? `<button id="composeRemoveMediaBtn">✕ Remove media</button>` : ""}
+        </div>
+        <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Who can see this</div>
+        <div class="compose-privacy-row">
+          <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public">Public</button>
+          <button class="privacy-option ${state.composePrivacy === "friends" ? "selected" : ""}" data-level="friends">Friends</button>
+          <button class="privacy-option ${state.composePrivacy === "private" ? "selected" : ""}" data-level="private">Only me</button>
+        </div>
+        <button class="btn-primary" id="composePostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>Post</button>
+      </div>
+    </div>
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+  `;
+
+  document.getElementById("composeBackBtn").onclick = () => setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "" });
+  document.getElementById("composeTextInput").oninput = (e) => { state.composerText = e.target.value; };
+  document.getElementById("composePhotoInput").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "image" }));
+  };
+  document.getElementById("composeVideoInput").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    fileToDataUrl(file, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "video" }));
+  };
+  const removeBtn = document.getElementById("composeRemoveMediaBtn");
+  if (removeBtn) removeBtn.onclick = () => setState({ composerMedia: null, composerMediaType: null });
+  document.querySelectorAll(".compose-privacy-row .privacy-option").forEach(btn => {
+    btn.onclick = () => setState({ composePrivacy: btn.dataset.level });
+  });
+  document.getElementById("composePostBtn").onclick = submitPost;
+}
+
+/* ---------------- Friends screen ---------------- */
+function openFriendsScreen() {
+  setState({ view: "friends" });
+  if (!state.allUsersLoaded) {
+    db.collection("users").limit(200).get().then((snap) => {
+      const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== state.user.uid);
+      setState({ allUsers: users, allUsersLoaded: true });
+    }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't load users");
+    });
+  }
+}
+
+/* Computes the currently filtered/sorted Friends list based on tab + search text.
+   Shared by the full-screen render and the search-only refresh below, so both
+   stay perfectly in sync. */
+function getFriendsListData() {
+  const myUid = state.user.uid;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  const q = state.friendsSearch.trim().toLowerCase();
+  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+
+  let list = state.allUsers;
+  if (state.friendsTab === "following") {
+    list = state.allUsers.filter(u => (u.followers || []).includes(myUid));
+  } else if (state.friendsTab === "followers") {
+    list = state.allUsers.filter(u => (u.following || []).includes(myUid));
+  } else if (state.friendsTab === "requests") {
+    list = state.allUsers.filter(u => myRequests.includes(u.uid));
+  }
+  if (q) {
+    list = list.filter(u =>
+      (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
+    );
+  }
+  if (state.friendsTab !== "requests") {
+    list = [...list].sort((a, b) => {
+      const ap = myPinned.includes(a.uid) ? 1 : 0;
+      const bp = myPinned.includes(b.uid) ? 1 : 0;
+      return bp - ap;
+    });
+  }
+
+  const isRequestsTab = state.friendsTab === "requests";
+  const rowsHtml = list.length
+    ? list.map(u => isRequestsTab ? renderRequestRow(u) : renderUserRow(u, myUid, myPinned)).join("")
+    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">${isRequestsTab ? "No pending requests" : "No one here yet"}</div><div class="line2">${isRequestsTab ? "Follow requests you receive will show up here." : "Try a different search or tab."}</div></div>`;
+
+  return { myUid, myPinned, list, isRequestsTab, rowsHtml };
+}
+
+/* Wires up click handlers for every row currently in the .user-list container.
+   Shared by the full render and the search-only refresh. */
+function wireFriendsListRows(list, isRequestsTab) {
+  if (isRequestsTab) {
+    list.forEach(u => {
+      const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
+      const rowInfo = document.getElementById(`userinfo-${u.uid}`);
+      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
+      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
+      if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
+      if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
+      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
+      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
+    });
+  } else {
+    list.forEach(u => {
+      const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
+      const rowInfo = document.getElementById(`userinfo-${u.uid}`);
+      const followBtn = document.getElementById(`followbtn-${u.uid}`);
+      const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
+      if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
+      if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
+      if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+      if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+    });
+  }
+}
+
+/* Called on every keystroke in the Friends search box. This deliberately avoids
+   setState()/render() (which rebuild the ENTIRE screen, including the input box
+   itself — destroying it and re-creating a new one loses focus and closes the
+   mobile keyboard). Instead we only replace the .user-list container's HTML and
+   re-wire its row handlers, leaving the search input element untouched so it
+   keeps focus and the keyboard stays open while typing. */
+function refreshFriendsListOnly() {
+  const userListEl = document.querySelector(".user-list");
+  if (!userListEl) return; // not on the Friends "people" screen right now
+  const { list, isRequestsTab, rowsHtml } = getFriendsListData();
+  userListEl.innerHTML = rowsHtml;
+  wireFriendsListRows(list, isRequestsTab);
+}
+
+function renderFriendsScreen() {
+  const myUid = state.user.uid;
+
+  if (state.friendsSubTab === "videos") {
+    renderFriendsVideoFeed();
+    return;
+  }
+
+  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+  const { list, isRequestsTab, rowsHtml } = getFriendsListData();
+
+  root.innerHTML = `
+    <div class="topbar">
+      <div class="brand-sm" id="brandHomeBtn2">Friends</div>
+    </div>
+    <div class="friends-sub-tabs">
+      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeople">People</button>
+      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideos">Videos</button>
+    </div>
+    <div class="friends-search-wrap">
+      <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
+    </div>
+    <div class="simple-tabs">
+      <button class="simple-tab ${state.friendsTab === "all" ? "active" : ""}" data-tab="all">All</button>
+      <button class="simple-tab ${state.friendsTab === "followers" ? "active" : ""}" data-tab="followers">Followers</button>
+      <button class="simple-tab ${state.friendsTab === "following" ? "active" : ""}" data-tab="following">Following</button>
+      <button class="simple-tab ${state.friendsTab === "requests" ? "active" : ""}" data-tab="requests">Requests${myRequests.length ? ` (${myRequests.length})` : ""}</button>
+    </div>
+    <div class="user-list">${rowsHtml}</div>
+    ${renderBottomNav("friends")}
+  `;
+
+  document.getElementById("brandHomeBtn2").onclick = () => setState({ view: "feed" });
+  document.getElementById("friendsSubPeople").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsSubVideos").onclick = () => setState({ friendsSubTab: "videos" });
+
+  // IMPORTANT: do NOT call setState() here — see refreshFriendsListOnly() comment above.
+  // Mutate state directly and only patch the results list, so the input keeps focus
+  // and the on-screen keyboard stays open while the user types.
+  const searchInput = document.getElementById("friendsSearchInput");
+  searchInput.oninput = (e) => {
+    state.friendsSearch = e.target.value;
+    refreshFriendsListOnly();
+  };
+
+  document.querySelectorAll(".simple-tab[data-tab]").forEach(btn => {
+    btn.onclick = () => setState({ friendsTab: btn.dataset.tab });
+  });
+
+  wireFriendsListRows(list, isRequestsTab);
+  wireBottomNav();
+}
+
+/* Friends' video feed: full-screen swipeable feed (same style as Home), but restricted to ONLY
+   people the user follows — never shows anyone else's posts. */
+function renderFriendsVideoFeed() {
+  const myUid = state.user.uid;
+  const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
+  const videos = state.posts.filter(p =>
+    followingUids.has(p.authorUid) &&
+    p.media &&
+    hiddenSafe(p) &&
+    (!p.privacy || p.privacy === "public")
+  );
+
+  root.innerHTML = `
+    <div class="feed-topbar on-light">
+      <button class="feed-tab-btn" id="friendsToPeopleBtn">People</button>
+      <button class="feed-tab-btn active" style="pointer-events:none;">Videos</button>
+      <button class="feed-search-btn" id="friendsFeedSearchBtn">🔍</button>
+    </div>
+    ${videos.length ? `<div class="fs-scroll" id="fsScrollFriends">${videos.map(renderFsSlide).join("")}</div>` : `
+      <div class="fs-empty-full" style="position:static; min-height:60vh;">
+        <div style="font-size:40px;margin-bottom:10px;">🎬</div>
+        <div style="font-weight:700;margin-bottom:6px;">No friend videos yet</div>
+        <div style="font-size:13px;">Follow people and their posts will show up here.</div>
+      </div>
+    `}
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet(videos)}
+    ${renderBottomNav("friends")}
+  `;
+  document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
+
+  wireFsSlideHandlers(videos);
+  wireSheetHandlers();
+  wireFsCommentsHandlers(videos);
+  wireBottomNav();
+}
+
+function togglePinFriend(uid) {
+  const myUid = state.user.uid;
+  const myRef = db.collection("users").doc(myUid);
+  const pinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  const isPinned = pinned.includes(uid);
+  myRef.update({
+    pinnedFriends: isPinned
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    showToast(isPinned ? "Unpinned" : "Pinned to top");
+  }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
+}
+
+function renderUserRow(u, myUid, myPinned) {
+  const amFollowing = (u.followers || []).includes(myUid);
+  const requested = !amFollowing && (u.followRequests || []).includes(myUid);
+  const label = amFollowing ? "Following" : (requested ? "Requested" : "Follow");
+  const cls = amFollowing ? "following" : (requested ? "requested" : "");
+  const isPinned = (myPinned || []).includes(u.uid);
+  return `
+    <div class="user-row">
+      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+      <div class="user-row-info" id="userinfo-${u.uid}">
+        <div class="u-name">${escapeHtml(u.name || "User")} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
+        <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
+      </div>
+      <div class="user-row-actions">
+        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinfriendbtn-${u.uid}" title="Pin">📌</button>
+        <button class="pill-btn ghost" id="msgbtn-${u.uid}">Message</button>
+        <button class="pill-btn ${cls}" id="followbtn-${u.uid}">${label}</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderRequestRow(u) {
+  return `
+    <div class="user-row">
+      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+      <div class="user-row-info" id="userinfo-${u.uid}">
+        <div class="u-name">${escapeHtml(u.name || "User")}</div>
+        <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))} wants to follow you</div>
+      </div>
+      <div class="request-row-actions">
+        <button class="pill-btn" id="acceptbtn-${u.uid}">Accept</button>
+        <button class="pill-btn ghost" id="declinebtn-${u.uid}">Decline</button>
+      </div>
+    </div>
+  `;
+}
+
+/* Sends / cancels a follow request, or unfollows, depending on current relationship state */
+function toggleFollowFromList(targetUid) {
+  const myUid = state.user.uid;
+  const target = state.allUsers.find(u => u.uid === targetUid);
+  if (!target) return;
+  const amFollowing = (target.followers || []).includes(myUid);
+  const requested = !amFollowing && (target.followRequests || []).includes(myUid);
+  const targetRef = db.collection("users").doc(targetUid);
+  const myRef = db.collection("users").doc(myUid);
+
+  let action;
+  if (amFollowing) {
+    const batch = db.batch();
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+    action = batch.commit();
+  } else if (requested) {
+    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  } else {
+    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
+  }
+
+  action.then(() => {
+    const updated = state.allUsers.map(u => {
+      if (u.uid !== targetUid) return u;
+      const followers = new Set(u.followers || []);
+      const followRequests = new Set(u.followRequests || []);
+      if (amFollowing) {
+        followers.delete(myUid);
+      } else if (requested) {
+        followRequests.delete(myUid);
+      } else {
+        followRequests.add(myUid);
+      }
+      return { ...u, followers: Array.from(followers), followRequests: Array.from(followRequests) };
+    });
+    setState({ allUsers: updated });
+    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't update follow status");
+  });
+}
+
+function acceptFollowRequest(requesterUid) {
+  const myUid = state.user.uid;
+  const myRef = db.collection("users").doc(myUid);
+  const requesterRef = db.collection("users").doc(requesterUid);
+  const batch = db.batch();
+  batch.update(myRef, {
+    followers: firebase.firestore.FieldValue.arrayUnion(requesterUid),
+    followRequests: firebase.firestore.FieldValue.arrayRemove(requesterUid)
+  });
+  batch.update(requesterRef, {
+    following: firebase.firestore.FieldValue.arrayUnion(myUid)
+  });
+  batch.commit().then(() => {
+    const updated = state.allUsers.map(u => {
+      if (u.uid !== requesterUid) return u;
+      const following = new Set(u.following || []);
+      following.add(myUid);
+      return { ...u, following: Array.from(following) };
+    });
+    setState({ allUsers: updated });
+    showToast("Follow request accepted");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't accept request");
+  });
+}
+
+function declineFollowRequest(requesterUid) {
+  const myUid = state.user.uid;
+  db.collection("users").doc(myUid).update({
+    followRequests: firebase.firestore.FieldValue.arrayRemove(requesterUid)
+  }).then(() => {
+    showToast("Request declined");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't decline request");
+  });
+}
+
+/* ---------------- Inbox / threads ---------------- */
+function threadIdFor(uidA, uidB) {
+  return [uidA, uidB].sort().join("_");
+}
+
+let unsubscribeThreads = null;
+let prevThreadUnreadRef = {}; // threadId -> last-seen unread count, used to detect real-time new messages for notifications
+function listenToThreads() {
+  if (unsubscribeThreads) unsubscribeThreads();
+  const myUid = state.user.uid;
+  unsubscribeThreads = db.collection("threads")
+    .where("participants", "array-contains", myUid)
+    .onSnapshot((snap) => {
+      const threads = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
+
+      // Real-time notification: if a thread's unread count for me just went up
+      // and I'm not already looking at that chat, fire a browser notification.
+      threads.forEach(t => {
+        const unread = (t.unread && t.unread[myUid]) || 0;
+        const prev = prevThreadUnreadRef[t.id] || 0;
+        const otherUid = (t.participants || []).find(p => p !== myUid);
+        const isViewingThisChat = state.view === "chat" && state.chatUid === otherUid;
+        if (unread > prev && !isViewingThisChat && window.Notification && Notification.permission === "granted") {
+          const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "Someone" };
+          try {
+            new Notification(otherInfo.name, { body: t.lastMessage || "New message", tag: t.id });
+          } catch (e) { /* notification not supported in this context */ }
+        }
+        prevThreadUnreadRef[t.id] = unread;
+      });
+
+      setState({ threads });
+    }, (err) => {
+      console.error(err);
+      showToast("Couldn't load inbox");
+    });
+}
+
+function openInboxScreen() {
+  // The threads and activity listeners run continuously from login (so nav badges
+  // and notifications stay live in real time); opening the tab just switches the view.
+  setState({ view: "inbox", inboxSection: null });
+}
+
+/* Real-time listener: likes/comments made by others on my own posts, newest first — powers the Activity section.
+   Runs continuously (started at login) so new activity appears immediately without reopening the tab. */
+let unsubscribeActivity = null;
+function listenToActivity() {
+  if (unsubscribeActivity) unsubscribeActivity();
+  const myUid = state.user.uid;
+  unsubscribeActivity = db.collection("posts").where("authorUid", "==", myUid).limit(50)
+    .onSnapshot((snap) => {
+      const items = [];
+      snap.docs.forEach(d => {
+        const p = d.data();
+        (p.comments || []).forEach(c => items.push({ type: "comment", text: `${c.name} commented: "${(c.text || "").slice(0, 60)}"`, postId: d.id }));
+        (p.likes || []).filter(uid => uid !== myUid).forEach(uid => items.push({ type: "like", text: `Someone liked your post`, postId: d.id }));
+      });
+      setState({ activity: items.slice(0, 40), activityLoaded: true });
+    }, (err) => console.error(err));
+}
+
+/* Records a lightweight activity/notification entry for a target user (used for follow requests, etc.) */
+function logActivity(targetUid, type, text) {
+  db.collection("users").doc(targetUid).collection("notifications").add({
+    type, text, fromUid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false
+  }).catch((err) => console.error(err));
+}
+
+function renderInboxScreen() {
+  if (state.inboxSection) return renderInboxSubScreen();
+
+  const myUid = state.user.uid;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+  const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+
+  const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
+  const activeThreads = state.threads.filter(t => !archivedIds.includes(t.id));
+  const archivedThreadsList = state.threads.filter(t => archivedIds.includes(t.id));
+
+  // Stories row: Create + pinned/followed people (pinned first)
+  let storyPeople = state.allUsers.filter(u => (u.followers || []).includes(myUid) || (u.following || []).includes(myUid));
+  storyPeople = storyPeople.sort((a, b) => (myPinned.includes(b.uid) ? 1 : 0) - (myPinned.includes(a.uid) ? 1 : 0)).slice(0, 12);
+
+  const storiesHtml = `
+    <div class="inbox-stories-row">
+      <div class="inbox-story-item" id="storyCreateBtn">
+        <div class="inbox-story-avatar-wrap"><div class="inbox-story-avatar create">+</div></div>
+        <div class="inbox-story-label">Create</div>
+      </div>
+      ${storyPeople.map(u => `
+        <div class="inbox-story-item" data-uid="${u.uid}">
+          <div class="inbox-story-avatar-wrap">
+            <div class="inbox-story-avatar">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            ${myPinned.includes(u.uid) ? `<div class="inbox-story-pin-mark">📌</div>` : ""}
+          </div>
+          <div class="inbox-story-label">${escapeHtml((u.name || "User").split(" ")[0])}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const lastFollower = followersList[followersList.length - 1];
+  const lastActivity = state.activity[0];
+  const rowsHtml = `
+    <div class="inbox-section-row" id="secFollowers">
+      <div class="inbox-section-icon" style="background:#2f8cf0">👥</div>
+      <div class="inbox-section-info">
+        <div class="is-title">New followers</div>
+        <div class="is-sub">${lastFollower ? `${escapeHtml(lastFollower.name || "Someone")} started following you` : "No new followers yet"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secActivity">
+      <div class="inbox-section-icon" style="background:#e84393">❤️</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Activity</div>
+        <div class="is-sub">${lastActivity ? escapeHtml(lastActivity.text) : "No activity yet"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secRequests">
+      <div class="inbox-section-icon" style="background:#5352ed">💬</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Message requests</div>
+        <div class="is-sub">${myRequests.length ? `You have ${myRequests.length} request${myRequests.length > 1 ? "s" : ""}` : "No requests"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secArchive">
+      <div class="inbox-section-icon" style="background:#2f8cf0">🗄️</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Archive</div>
+        <div class="is-sub">${archivedThreadsList.length ? `${archivedThreadsList.length} archived chat${archivedThreadsList.length > 1 ? "s" : ""}` : "No archived chats"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+    <div class="inbox-section-row" id="secSystem">
+      <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
+      <div class="inbox-section-info">
+        <div class="is-title">System notifications</div>
+        <div class="is-sub">Creator updates and app news</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+  `;
+
+  const suggested = state.allUsers.filter(u => !(u.followers || []).includes(myUid)).slice(0, 6);
+  const suggestedHtml = suggested.length ? `
+    <div class="inbox-suggested-heading">Suggested accounts</div>
+    ${suggested.map(u => `
+      <div class="user-row">
+        <div class="avatar" id="sugavatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+        <div class="user-row-info" id="suginfo-${u.uid}">
+          <div class="u-name">${escapeHtml(u.name || "User")}</div>
+          <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
+        </div>
+        <div class="user-row-actions">
+          <button class="pill-btn" id="sugfollow-${u.uid}">Follow</button>
+          <button class="pin-icon-btn" id="sugremove-${u.uid}" title="Remove">✕</button>
+        </div>
+      </div>
+    `).join("")}
+  ` : "";
+
+  const threadsHtml = activeThreads.length
+    ? activeThreads.map(t => renderThreadRow(t, myUid, myPinned)).join("")
+    : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No messages yet</div><div class="line2">Message someone from the Friends tab to start a chat.</div></div>`;
+
+  root.innerHTML = `
+    <div class="topbar">
+      <div class="brand-sm" id="brandHomeBtn3">Inbox</div>
+    </div>
+    ${storiesHtml}
+    ${rowsHtml}
+    <div class="thread-list">${threadsHtml}</div>
+    ${suggestedHtml}
+    <div style="height:16px"></div>
+    ${renderBottomNav("inbox")}
+  `;
+  document.getElementById("brandHomeBtn3").onclick = () => setState({ view: "feed" });
+  document.getElementById("storyCreateBtn").onclick = openCameraScreen;
+  document.querySelectorAll(".inbox-story-item[data-uid]").forEach(el => {
+    el.onclick = () => openChat(el.dataset.uid);
+  });
+
+  document.getElementById("secFollowers").onclick = () => setState({ inboxSection: "followers" });
+  document.getElementById("secActivity").onclick = () => setState({ inboxSection: "activity" });
+  document.getElementById("secRequests").onclick = () => setState({ inboxSection: "requests" });
+  document.getElementById("secArchive").onclick = () => setState({ inboxSection: "archive" });
+  document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
+
+  suggested.forEach(u => {
+    const av = document.getElementById(`sugavatar-${u.uid}`);
+    const info = document.getElementById(`suginfo-${u.uid}`);
+    const followBtn = document.getElementById(`sugfollow-${u.uid}`);
+    const removeBtn = document.getElementById(`sugremove-${u.uid}`);
+    if (av) av.onclick = () => openProfile(u.uid);
+    if (info) info.onclick = () => openProfile(u.uid);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+    if (removeBtn) removeBtn.onclick = () => setState({ allUsers: state.allUsers.filter(x => x.uid !== u.uid) });
+  });
+
+  activeThreads.forEach(t => {
+    const row = document.getElementById(`thread-${t.id}`);
+    const otherUid = (t.participants || []).find(p => p !== myUid);
+    if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
+    const pinBtn = document.getElementById(`pinthread-${t.id}`);
+    if (pinBtn) pinBtn.onclick = () => togglePinFriend(otherUid);
+    const archBtn = document.getElementById(`archthread-${t.id}`);
+    if (archBtn) archBtn.onclick = () => archiveThread(t.id, true);
+  });
+
+  wireBottomNav();
+}
+
+/* Sub-screens for each Inbox section (New followers / Activity / Requests / Archive / System) */
+function renderInboxSubScreen() {
+  const myUid = state.user.uid;
+  const section = state.inboxSection;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  let title = "";
+  let bodyHtml = "";
+
+  if (section === "followers") {
+    title = "New followers";
+    const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
+    bodyHtml = followersList.length
+      ? `<div class="user-list">${followersList.map(u => renderUserRow(u, myUid, myPinned)).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
+  } else if (section === "activity") {
+    title = "Activity";
+    bodyHtml = state.activity.length
+      ? `<div class="thread-list">${state.activity.map(a => `
+          <div class="inbox-section-row">
+            <div class="inbox-section-icon" style="background:#e84393">${a.type === "like" ? "❤️" : "💬"}</div>
+            <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
+          </div>
+        `).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
+  } else if (section === "requests") {
+    title = "Message requests";
+    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+    const list = state.allUsers.filter(u => myRequests.includes(u.uid));
+    bodyHtml = list.length
+      ? `<div class="user-list">${list.map(renderRequestRow).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No pending requests</div><div class="line2">Follow requests you receive show up here.</div></div>`;
+  } else if (section === "archive") {
+    title = "Archive";
+    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+    const list = state.threads.filter(t => archivedIds.includes(t.id));
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(t => renderThreadRow(t, myUid, myPinned, true)).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">No archived chats</div><div class="line2">Chats you archive show up here.</div></div>`;
+  } else if (section === "system") {
+    title = "System notifications";
+    bodyHtml = `
+      <div class="thread-list">
+        <div class="inbox-section-row">
+          <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
+          <div class="inbox-section-info">
+            <div class="is-title">Welcome to Milon</div>
+            <div class="is-sub">Thanks for joining — explore Friends and Inbox to connect with people.</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="inboxSubBackBtn">←</button>
+      <div class="back-title">${title}</div>
+    </div>
+    ${bodyHtml}
+    ${renderBottomNav("inbox")}
+  `;
+  document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
+
+  if (section === "followers") {
+    state.allUsers.filter(u => (u.following || []).includes(myUid)).forEach(u => {
+      const av = document.getElementById(`useravatar-${u.uid}`);
+      const info = document.getElementById(`userinfo-${u.uid}`);
+      const followBtn = document.getElementById(`followbtn-${u.uid}`);
+      const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
+      if (av) av.onclick = () => openProfile(u.uid);
+      if (info) info.onclick = () => openProfile(u.uid);
+      if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+      if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+    });
+  } else if (section === "requests") {
+    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+    state.allUsers.filter(u => myRequests.includes(u.uid)).forEach(u => {
+      const av = document.getElementById(`useravatar-${u.uid}`);
+      const info = document.getElementById(`userinfo-${u.uid}`);
+      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
+      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
+      if (av) av.onclick = () => openProfile(u.uid);
+      if (info) info.onclick = () => openProfile(u.uid);
+      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
+      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
+    });
+  } else if (section === "archive") {
+    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+    state.threads.filter(t => archivedIds.includes(t.id)).forEach(t => {
+      const otherUid = (t.participants || []).find(p => p !== myUid);
+      const row = document.getElementById(`thread-${t.id}`);
+      if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
+      const unarchBtn = document.getElementById(`unarchthread-${t.id}`);
+      if (unarchBtn) unarchBtn.onclick = () => archiveThread(t.id, false);
+    });
+  }
+
+  wireBottomNav();
+}
+
+/* Archive / unarchive a thread by storing its id in my own user doc */
+function archiveThread(threadId, archive) {
+  const myUid = state.user.uid;
+  db.collection("users").doc(myUid).update({
+    archivedThreads: archive
+      ? firebase.firestore.FieldValue.arrayUnion(threadId)
+      : firebase.firestore.FieldValue.arrayRemove(threadId)
+  }).then(() => {
+    showToast(archive ? "Chat archived" : "Chat unarchived");
+  }).catch((err) => { console.error(err); showToast("Couldn't update archive"); });
+}
+
+function renderThreadRow(t, myUid, myPinned, inArchive) {
+  const otherUid = (t.participants || []).find(p => p !== myUid);
+  const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
+  const unread = (t.unread && t.unread[myUid]) || 0;
+  const isPinned = (myPinned || []).includes(otherUid);
+  return `
+    <div class="thread-row ${unread > 0 ? "unread" : ""}" id="thread-${t.id}">
+      <div class="avatar">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}</div>
+      <div class="thread-info">
+        <div class="t-name">${escapeHtml(otherInfo.name)} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
+        <div class="t-preview">${escapeHtml(t.lastMessage || "")}</div>
+      </div>
+      ${unread > 0 ? `<div class="thread-unread-dot"></div>` : ""}
+      <div class="thread-row-actions">
+        ${inArchive
+          ? `<button class="pin-icon-btn" id="unarchthread-${t.id}" title="Unarchive">↩️</button>`
+          : `<button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
+             <button class="pin-icon-btn" id="archthread-${t.id}" title="Archive">🗄️</button>`
+        }
+      </div>
+      <div class="thread-time">${timeAgo(t.lastMessageAt)}</div>
+    </div>
+  `;
+}
+
+/* ---------------- Chat screen ---------------- */
+let unsubscribeChat = null;
+function openChat(otherUid) {
+  if (!otherUid) return;
+  const myUid = state.user.uid;
+  const threadId = threadIdFor(myUid, otherUid);
+
+  db.collection("users").doc(otherUid).get().then((doc) => {
+    const chatProfile = doc.exists ? doc.data() : { name: "User", avatar: null };
+    setState({ view: "chat", chatUid: otherUid, chatProfile, chatMessages: [], chatText: "", chatMedia: null });
+
+    // Mark this thread read for me now that I've opened it
+    db.collection("threads").doc(threadId).set({
+      [`unread.${myUid}`]: 0
+    }, { merge: true }).catch((err) => console.error(err));
+
+    if (unsubscribeChat) unsubscribeChat();
+    unsubscribeChat = db.collection("threads").doc(threadId).collection("messages")
+      .orderBy("createdAt", "asc")
+      .limit(200)
+      .onSnapshot((snap) => {
+        state.chatMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
+        const box = document.getElementById("chatMessagesBox");
+        if (box) box.scrollTop = box.scrollHeight;
+      }, (err) => console.error(err));
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't open chat");
+  });
+}
+
+const CHAT_QUICK_REACTIONS = ["❤️", "😂", "👍", "👉", "🐾"]; // last one stands in for a "Streak Pet" style reaction
+
+function renderChatScreen() {
+  const myUid = state.user.uid;
+  const other = state.chatProfile || {};
+  const bubblesHtml = state.chatMessages.map(m => {
+    const isReactionOnly = m.reaction && !m.text && !m.image && !m.video && !m.audio;
+    return `
+    <div class="chat-bubble ${isReactionOnly ? "reaction-only" : ""} ${m.senderUid === myUid ? "mine" : "theirs"}">
+      ${m.image ? `<img src="${m.image}" />` : ""}
+      ${m.video ? `<video src="${m.video}" controls></video>` : ""}
+      ${m.audio ? `<audio src="${m.audio}" controls></audio>` : ""}
+      ${m.text ? `<div class="${(m.image || m.video) ? "bubble-text-with-image" : ""}">${escapeHtml(m.text)}</div>` : ""}
+    </div>
+  `;
+  }).join("");
+
+  root.innerHTML = `
+    <div class="chat-header">
+      <button class="profile-back-btn" id="chatBackBtn">←</button>
+      <div class="avatar">${other.avatar ? `<img src="${other.avatar}" />` : initials(other.name || "User")}</div>
+      <div class="c-name">${escapeHtml(other.name || "User")}</div>
+    </div>
+    <div class="chat-messages" id="chatMessagesBox">${bubblesHtml}</div>
+    <div class="chat-input-bar">
+      <div class="chat-reaction-row">
+        ${CHAT_QUICK_REACTIONS.map(r => `<button class="chat-reaction-btn" data-r="${r}">${r}</button>`).join("")}
+      </div>
+      ${state.chatStickerPanelOpen ? `
+        <div class="chat-sticker-panel">
+          ${["🎉","🔥","😍","👏","😢","😮","🙌","💯"].map(s => `<button data-s="${s}">${s}</button>`).join("")}
+        </div>
+      ` : ""}
+      ${state.chatMedia ? `
+        <div class="chat-media-preview">
+          ${state.chatMediaType === "video" ? `<video src="${state.chatMedia}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;"></video>` : `<img src="${state.chatMedia}" />`}
+          <button class="chat-media-remove" id="removeChatMediaBtn">✕</button>
+        </div>` : ""}
+      <div class="chat-input-row">
+        <label class="chat-image-btn" title="Camera">
+          📷
+          <input type="file" accept="image/*,video/*" capture="environment" id="chatCameraInput" style="display:none" />
+        </label>
+        <label class="chat-image-btn" title="Photo/video from gallery">
+          🖼️
+          <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
+        </label>
+        <input id="chatInput" type="text" placeholder="Message..." value="${escapeHtml(state.chatText)}" />
+        <button class="chat-image-btn" id="chatStickerBtn" title="Stickers">😊</button>
+        <button class="chat-image-btn chat-mic-btn ${state.chatRecordingVoice ? "recording" : ""}" id="chatMicBtn" title="Voice message">${state.chatRecordingVoice ? "⏹" : "🎤"}</button>
+        <button class="chat-send-btn" id="chatSendBtn" ${(!state.chatText.trim() && !state.chatMedia) ? "disabled" : ""}>➤</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("chatBackBtn").onclick = () => {
+    if (unsubscribeChat) unsubscribeChat();
+    setState({ view: "inbox", chatStickerPanelOpen: false });
+  };
+  const input = document.getElementById("chatInput");
+  input.oninput = (e) => {
+    state.chatText = e.target.value;
+    document.getElementById("chatSendBtn").disabled = !state.chatText.trim() && !state.chatMedia;
+  };
+  input.onkeydown = (e) => { if (e.key === "Enter") sendChatMessage(); };
+  document.getElementById("chatSendBtn").onclick = sendChatMessage;
+  document.getElementById("chatCameraInput").onchange = handleChatMediaSelect;
+  document.getElementById("chatGalleryInput").onchange = handleChatMediaSelect;
+  document.getElementById("chatStickerBtn").onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
+  document.getElementById("chatMicBtn").onclick = () => {
+    if (state.chatRecordingVoice) stopVoiceRecording();
+    else startVoiceRecording();
+  };
+
+  document.querySelectorAll(".chat-reaction-btn").forEach(btn => {
+    btn.onclick = () => sendReactionMessage(btn.dataset.r);
+  });
+  document.querySelectorAll(".chat-sticker-panel button").forEach(btn => {
+    btn.onclick = () => sendReactionMessage(btn.dataset.s);
+  });
+
+  const removeChatMediaBtn = document.getElementById("removeChatMediaBtn");
+  if (removeChatMediaBtn) removeChatMediaBtn.onclick = () => setState({ chatMedia: null, chatMediaType: null });
+
+  const box = document.getElementById("chatMessagesBox");
+  if (box) box.scrollTop = box.scrollHeight;
+}
+
+function handleChatMediaSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const isVideo = file.type.startsWith("video/");
+  if (isVideo) {
+    fileToDataUrl(file, (dataUrl) => setState({ chatMedia: dataUrl, chatMediaType: "video" }));
+  } else {
+    compressImageToDataUrl(file, { maxDim: 700, quality: 0.65 }, (compressed) => setState({ chatMedia: compressed, chatMediaType: "image" }));
+  }
+}
+
+/* Quick emoji reaction (heart/laugh/thumbs-up/point/Streak Pet, or a sticker) sent as its own message */
+function sendReactionMessage(emoji) {
+  if (!state.chatUid) return;
+  const myUid = state.user.uid;
+  const otherUid = state.chatUid;
+  const threadId = threadIdFor(myUid, otherUid);
+  const threadRef = db.collection("threads").doc(threadId);
+  setState({ chatStickerPanelOpen: false });
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    reaction: emoji,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, otherUid],
+      participantInfo: {
+        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      },
+      lastMessage: emoji,
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${myUid}`]: 0
+    }, { merge: true });
+  }).catch((err) => console.error(err));
+}
+
+/* Voice message recording via the mic button */
+let voiceRecorderRef = null;
+let voiceChunksRef = [];
+let voiceTimerRef = null;
+function startVoiceRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast("Microphone isn't available on this device/browser");
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+    voiceChunksRef = [];
+    voiceRecorderRef = new MediaRecorder(stream);
+    voiceRecorderRef.ondataavailable = (e) => { if (e.data && e.data.size > 0) voiceChunksRef.push(e.data); };
+    voiceRecorderRef.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(voiceChunksRef, { type: "audio/webm" });
+      const reader = new FileReader();
+      reader.onload = () => sendVoiceMessage(reader.result);
+      reader.readAsDataURL(blob);
+    };
+    voiceRecorderRef.start();
+    state.chatRecordingVoice = true;
+    state.chatVoiceSeconds = 0;
+    render();
+    voiceTimerRef = setInterval(() => {
+      state.chatVoiceSeconds += 1;
+      if (state.chatVoiceSeconds >= 60) stopVoiceRecording(); // 60s cap per voice note
+    }, 1000);
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't access the microphone");
+  });
+}
+
+function stopVoiceRecording() {
+  if (voiceRecorderRef && voiceRecorderRef.state !== "inactive") voiceRecorderRef.stop();
+  if (voiceTimerRef) { clearInterval(voiceTimerRef); voiceTimerRef = null; }
+  state.chatRecordingVoice = false;
+  render();
+}
+
+function sendVoiceMessage(audioDataUrl) {
+  if (!state.chatUid) return;
+  const myUid = state.user.uid;
+  const otherUid = state.chatUid;
+  const threadId = threadIdFor(myUid, otherUid);
+  const threadRef = db.collection("threads").doc(threadId);
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    audio: audioDataUrl,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, otherUid],
+      participantInfo: {
+        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      },
+      lastMessage: "🎤 Voice message",
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${myUid}`]: 0
+    }, { merge: true });
+  }).catch((err) => console.error(err));
+}
+
+function sendChatMessage() {
+  const text = state.chatText.trim();
+  const media = state.chatMedia;
+  const mediaType = state.chatMediaType;
+  if (!text && !media) return;
+  if (!state.chatUid) return;
+  const myUid = state.user.uid;
+  const otherUid = state.chatUid;
+  const threadId = threadIdFor(myUid, otherUid);
+  const threadRef = db.collection("threads").doc(threadId);
+
+  state.chatText = "";
+  state.chatMedia = null;
+  state.chatMediaType = null;
+  render();
+
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    text: text,
+    image: mediaType === "image" ? media : null,
+    video: mediaType === "video" ? media : null,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, otherUid],
+      participantInfo: {
+        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      },
+      lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${myUid}`]: 0
+    }, { merge: true });
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't send message");
+  });
+}
+
+/* Bottom nav icons (outline style, filled/darker when active) */
+function homeIconSvg(active) {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${active ? "#262420" : "#6B6860"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>`;
+}
+function friendsIconSvg(active) {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${active ? "#262420" : "#6B6860"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="8" r="2.2"/><path d="M15.5 13.2c1.9.4 3.5 2 3.5 4.3"/></svg>`;
+}
+function plusIconSvg() {
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>`;
+}
+function inboxIconSvg(active) {
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${active ? "#262420" : "#6B6860"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 12h4l1.5 2h5L16 12h4"/></svg>`;
+}
+function profileIconSvg(active) {
+  const fill = active ? "#262420" : "none";
+  const stroke = active ? "#262420" : "#6B6860";
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>`;
+}
+
+/* ================= Profile screen ================= */
+function openProfile(targetUid) {
+  const uid = targetUid || state.user.uid;
+  const isOwn = uid === state.user.uid;
+  const ref = db.collection("users").doc(uid);
+
+  ref.get().then((doc) => {
+    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], pinnedPosts: [] };
+
+    if (isOwn) {
+      setState({ view: "profile", viewingUid: null, profile: data, profileTab: "posts" });
+      return;
+    }
+
+    // Viewing someone else's profile: fetch only their public posts
+    db.collection("posts").where("authorUid", "==", uid).get().then((snap) => {
+      const posts = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => (!p.privacy || p.privacy === "public") && !p.hidden)
+        .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: posts });
+    }).catch((err) => {
+      console.error(err);
+      setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: [] });
+    });
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't load profile");
+  });
+}
+
+/* Sends / cancels a follow request, or unfollows, from the profile screen's follow button */
+function toggleFollow(targetUid) {
+  const myUid = state.user.uid;
+  const profile = state.profile || {};
+  const amFollowing = (profile.followers || []).includes(myUid);
+  const requested = !amFollowing && (profile.followRequests || []).includes(myUid);
+  const targetRef = db.collection("users").doc(targetUid);
+  const myRef = db.collection("users").doc(myUid);
+
+  let action;
+  if (amFollowing) {
+    const batch = db.batch();
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+    action = batch.commit();
+  } else if (requested) {
+    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  } else {
+    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
+  }
+
+  action.then(() => {
+    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+    openProfile(targetUid);
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't update follow status");
+  });
+}
+
+function renderProfileScreen() {
+  const profile = state.profile || {};
+  const isOwn = !state.viewingUid || state.viewingUid === state.user.uid;
+  const targetUid = isOwn ? state.user.uid : state.viewingUid;
+  const pinnedPosts = profile.pinnedPosts || [];
+
+  // Posts belonging to the profile being viewed.
+  // Own profile: derived from the loaded global feed (last 50 posts) so private posts are included.
+  // Other user's profile: fetched separately and already filtered to public-only (see openProfile).
+  const myPosts = isOwn ? state.posts.filter(p => p.authorUid === targetUid) : state.viewingPosts;
+
+  let publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
+  // Pinned posts float to the top of the grid
+  publicPosts = [...publicPosts].sort((a, b) => (pinnedPosts.includes(b.id) ? 1 : 0) - (pinnedPosts.includes(a.id) ? 1 : 0));
+  const privatePosts = isOwn ? myPosts.filter(p => p.privacy && p.privacy !== "public") : [];
+  const repostedPosts = isOwn ? state.posts.filter(p => (p.reposts || []).includes(targetUid)) : [];
+  const savedPosts = isOwn ? state.posts.filter(p => (p.savedBy || []).includes(targetUid)) : [];
+  const likedPosts = isOwn ? state.posts.filter(p => (p.likes || []).includes(targetUid)) : [];
+
+  const totalLikesReceived = publicPosts.concat(privatePosts).reduce((sum, p) => sum + ((p.likes || []).length), 0);
+  const followers = (profile.followers || []).length;
+  const following = (profile.following || []).length;
+  const amFollowing = !isOwn && (profile.followers || []).includes(state.user.uid);
+  const requestedByMe = !isOwn && !amFollowing && (profile.followRequests || []).includes(state.user.uid);
+
+  const tabs = isOwn ? [
+    { key: "posts", icon: gridIconSvg() },
+    { key: "private", icon: lockIconSvg() },
+    { key: "reposts", icon: repostIconSvg() },
+    { key: "saved", icon: bookmarkIconSvg() },
+    { key: "likes", icon: heartIconSvg() }
+  ] : [
+    { key: "posts", icon: gridIconSvg() }
+  ];
+
+  const tabConfig = {
+    posts: { list: publicPosts, empty1: "Share your first post", empty2: "Posts you create will show up here.", cta: isOwn },
+    private: { list: privatePosts, empty1: "No private posts", empty2: "Posts set to Friends or Only me will show up here.", cta: false },
+    reposts: { list: repostedPosts, empty1: "No reposts yet", empty2: "Posts you repost will show up here.", cta: false },
+    saved: { list: savedPosts, empty1: "Nothing saved yet", empty2: "Posts you save will show up here.", cta: false },
+    likes: { list: likedPosts, empty1: "No likes yet", empty2: "Posts you like will show up here.", cta: false }
+  };
+
+  const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
+  const tabBodyHtml = activeTab.list.length
+    ? renderProfileGrid(activeTab.list, pinnedPosts)
+    : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta);
+
+  const linksHtml = (profile.youtubeLink || profile.facebookLink) ? `
+    <div class="profile-links">
+      ${profile.youtubeLink ? `<a class="profile-link-chip" href="${escapeHtml(profile.youtubeLink)}" target="_blank" rel="noopener">▶ YouTube</a>` : ""}
+      ${profile.facebookLink ? `<a class="profile-link-chip" href="${escapeHtml(profile.facebookLink)}" target="_blank" rel="noopener">f Facebook</a>` : ""}
+    </div>
+  ` : "";
+
+  root.innerHTML = `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="profileBackBtn">←</button>
+      <div class="profile-title">Profile</div>
+      <div style="width:28px"></div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || "User")}</div>
+        ${isOwn ? `
+        <label class="profile-avatar-edit" title="Change photo">
+          +
+          <input type="file" accept="image/*" id="avatarInput" style="display:none" />
+        </label>` : ""}
+      </div>
+      <div class="profile-name-row">
+        <div class="profile-name" id="profileNameText">${escapeHtml(profile.name || "User")}</div>
+        ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="Edit profile">✏️</button>` : ""}
+      </div>
+      <div class="profile-handle">@${escapeHtml(profile.handle || slugifyHandle(profile.name || "user"))}</div>
+      ${profile.bio ? `<div class="profile-bio">${escapeHtml(profile.bio)}</div>` : ""}
+      ${linksHtml}
+
+      ${!isOwn
+        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>`
+        : ""
+      }
+
+      <div class="profile-stats">
+        <button class="profile-stat" id="followingStat"><div class="num">${following}</div><div class="lbl">Following</div></button>
+        <button class="profile-stat" id="followersStat"><div class="num">${followers}</div><div class="lbl">Followers</div></button>
+        <div class="profile-stat"><div class="num">${totalLikesReceived}</div><div class="lbl">Likes</div></div>
+      </div>
+    </div>
+
+    <div class="profile-tabs">
+      ${tabs.map(t => `<button class="profile-tab ${state.profileTab === t.key ? "active" : ""}" data-tab="${t.key}">${t.icon}</button>`).join("")}
+    </div>
+
+    ${tabBodyHtml}
+
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+
+    ${isOwn ? renderBottomNav("profile") : ""}
+  `;
+
+  document.getElementById("profileBackBtn").onclick = () => setState({ view: "feed" });
+  document.getElementById("followingStat").onclick = () => openFollowList(targetUid, "following");
+  document.getElementById("followersStat").onclick = () => openFollowList(targetUid, "followers");
+
+  if (isOwn) {
+    document.getElementById("editNameBtn").onclick = openEditProfileScreen;
+    document.getElementById("avatarInput").onchange = handleAvatarSelect;
+    wireBottomNav();
+  } else {
+    document.getElementById("followBtn").onclick = () => toggleFollow(targetUid);
+  }
+
+  document.querySelectorAll(".profile-tab").forEach(btn => {
+    btn.onclick = () => setState({ profileTab: btn.dataset.tab });
+  });
+
+  const uploadBtn = document.getElementById("profileUploadBtn");
+  if (uploadBtn) uploadBtn.onclick = openCameraScreen;
+
+  activeTab.list.forEach(p => {
+    const pinEl = document.getElementById(`gridpin-${p.id}`);
+    if (pinEl) pinEl.onclick = (e) => { e.stopPropagation(); togglePinPost(p.id); };
+  });
+}
+
+function renderProfileGrid(posts, pinnedPosts) {
+  return `
+    <div class="profile-grid">
+      ${posts.map(p => {
+        const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
+        const isPinned = (pinnedPosts || []).includes(p.id);
+        const mediaHtml = p.media
+          ? (isVideo ? `<video src="${p.media}" muted></video>` : `<img src="${p.media}" />`)
+          : "";
+        return `
+          <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridpin-${p.id}" title="Tap pin icon to pin/unpin" style="cursor:pointer">
+            ${mediaHtml || escapeHtml((p.text || "").slice(0, 60))}
+            ${isPinned ? `<div class="grid-pin-badge">📌</div>` : ""}
+            ${isVideo ? `<div class="grid-video-badge">▶</div>` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function togglePinPost(postId) {
+  const myUid = state.user.uid;
+  const pinnedPosts = (state.profile && state.profile.pinnedPosts) || [];
+  const isPinned = pinnedPosts.includes(postId);
+  db.collection("users").doc(myUid).update({
+    pinnedPosts: isPinned
+      ? firebase.firestore.FieldValue.arrayRemove(postId)
+      : firebase.firestore.FieldValue.arrayUnion(postId)
+  }).then(() => {
+    const updated = isPinned ? pinnedPosts.filter(id => id !== postId) : [...pinnedPosts, postId];
+    state.profile = { ...state.profile, pinnedPosts: updated };
+    render();
+    showToast(isPinned ? "Unpinned" : "Pinned to top");
+  }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
+}
+
+function profileEmptyHtml(line1, line2, showCta) {
+  return `
+    <div class="profile-empty">
+      ${mailboxIconSvg()}
+      <div class="line1">${escapeHtml(line1)}</div>
+      <div class="line2">${escapeHtml(line2)}</div>
+      ${showCta ? `<button class="profile-upload-btn" id="profileUploadBtn">Create a post</button>` : ""}
+    </div>
+  `;
+}
+
+/* ---------------- Following / Followers list screen ---------------- */
+function openFollowList(targetUid, kind) {
+  setState({ view: "followList", followListUid: targetUid, followListKind: kind });
+  if (!state.allUsersLoaded) {
+    db.collection("users").limit(200).get().then((snap) => {
+      const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== state.user.uid);
+      setState({ allUsers: users, allUsersLoaded: true });
+    }).catch((err) => console.error(err));
+  }
+}
+
+function renderFollowListScreen() {
+  const targetUid = state.followListUid;
+  const kind = state.followListKind;
+  const isOwn = targetUid === state.user.uid;
+  const profile = isOwn ? state.profile : (state.allUsers.find(u => u.uid === targetUid) || {});
+  const ids = kind === "following" ? (profile.following || []) : (profile.followers || []);
+  const list = state.allUsers.filter(u => ids.includes(u.uid));
+  const myUid = state.user.uid;
+
+  const rowsHtml = list.length
+    ? list.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("")
+    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`;
+
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="followListBackBtn">←</button>
+      <div class="back-title">${kind === "following" ? "Following" : "Followers"}</div>
+    </div>
+    <div class="user-list">${rowsHtml}</div>
+  `;
+  document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
+
+  list.forEach(u => {
+    const av = document.getElementById(`useravatar-${u.uid}`);
+    const info = document.getElementById(`userinfo-${u.uid}`);
+    const followBtn = document.getElementById(`followbtn-${u.uid}`);
+    const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
+    const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
+    if (av) av.onclick = () => openProfile(u.uid);
+    if (info) info.onclick = () => openProfile(u.uid);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+    if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
+    if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+  });
+}
+
+/* ---------------- Edit Profile screen (TikTok-style) ---------------- */
+function openEditProfileScreen() {
+  const p = state.profile || {};
+  setState({
+    view: "editProfile",
+    editName: p.name || "",
+    editHandle: p.handle || "",
+    editBio: p.bio || "",
+    editYoutube: p.youtubeLink || "",
+    editFacebook: p.facebookLink || ""
+  });
+}
+
+function renderEditProfileScreen() {
+  const profile = state.profile || {};
+  const appOrigin = window.location.origin + window.location.pathname;
+
+  root.innerHTML = `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="editBackBtn">←</button>
+      <div class="profile-title">Edit profile</div>
+      <div style="width:28px"></div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || "User")}</div>
+        <label class="profile-avatar-edit" title="Change photo">
+          📷
+          <input type="file" accept="image/*" id="editAvatarInput" style="display:none" />
+        </label>
+      </div>
+      <label class="link-btn" id="changePhotoLabel" style="color:var(--teal-deep); font-weight:600; cursor:pointer;">Change photo</label>
+    </div>
+
+    <div style="padding: 0 14px;">
+      <div class="field">
+        <label>Name</label>
+        <input id="editNameInput" type="text" value="${escapeHtml(state.editName)}" placeholder="Your name" maxlength="40" />
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input id="editHandleInput" type="text" value="${escapeHtml(state.editHandle)}" placeholder="username" maxlength="24" />
+        <div style="font-size:12px; color:var(--ink-soft); margin-top:6px; word-break:break-all;">${escapeHtml(appOrigin)}?u=${escapeHtml(state.editHandle || "")}</div>
+      </div>
+
+      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">Basic info</div>
+      <div class="field">
+        <label>Bio</label>
+        <textarea id="editBioInput" rows="3" maxlength="150" placeholder="Write a short description about who you are or what your account is about" style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.editBio)}</textarea>
+      </div>
+
+      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">Links</div>
+      <div class="field">
+        <label>YouTube link</label>
+        <input id="editYoutubeInput" type="url" value="${escapeHtml(state.editYoutube)}" placeholder="https://youtube.com/@yourchannel" />
+      </div>
+      <div class="field">
+        <label>Facebook link</label>
+        <input id="editFacebookInput" type="url" value="${escapeHtml(state.editFacebook)}" placeholder="https://facebook.com/yourprofile" />
+      </div>
+
+      <button class="btn-primary" id="saveProfileBtn" style="margin-top:10px; margin-bottom:30px;">Save</button>
+    </div>
+  `;
+
+  document.getElementById("editBackBtn").onclick = () => setState({ view: "profile" });
+  document.getElementById("editAvatarInput").onchange = handleAvatarSelect;
+  document.getElementById("changePhotoLabel").onclick = () => document.getElementById("editAvatarInput").click();
+
+  document.getElementById("editNameInput").oninput = (e) => { state.editName = e.target.value; };
+  document.getElementById("editHandleInput").oninput = (e) => { state.editHandle = e.target.value; };
+  document.getElementById("editBioInput").oninput = (e) => { state.editBio = e.target.value; };
+  document.getElementById("editYoutubeInput").oninput = (e) => { state.editYoutube = e.target.value; };
+  document.getElementById("editFacebookInput").oninput = (e) => { state.editFacebook = e.target.value; };
+
+  document.getElementById("saveProfileBtn").onclick = saveEditedProfile;
+}
+
+function saveEditedProfile() {
+  const name = state.editName.trim();
+  if (!name) { showToast("Name can't be empty"); return; }
+  const handle = slugifyHandle(state.editHandle.trim() || name);
+  const bio = state.editBio.trim().slice(0, 150);
+  const youtubeLink = state.editYoutube.trim();
+  const facebookLink = state.editFacebook.trim();
+
+  const btn = document.getElementById("saveProfileBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }
+
+  db.collection("users").doc(state.user.uid).update({ name, handle, bio, youtubeLink, facebookLink })
+    .then(() => {
+      state.profile = { ...state.profile, name, handle, bio, youtubeLink, facebookLink };
+      setState({ view: "profile" });
+      showToast("Profile updated");
+    })
+    .catch((err) => {
+      console.error(err);
+      showToast("Couldn't update profile");
+      if (btn) { btn.disabled = false; btn.textContent = "Save"; }
+    });
+}
+
+function toggleRepost(post) {
+  const uid = state.user.uid;
+  const reposted = (post.reposts || []).includes(uid);
+  db.collection("posts").doc(post.id).update({
+    reposts: reposted
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    showToast(reposted ? "Repost removed" : "Reposted");
+  }).catch((err) => console.error(err));
+}
+
+function toggleSave(post) {
+  const uid = state.user.uid;
+  const saved = (post.savedBy || []).includes(uid);
+  db.collection("posts").doc(post.id).update({
+    savedBy: saved
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    showToast(saved ? "Removed from saved" : "Saved");
+  }).catch((err) => console.error(err));
+}
+
+function handleAvatarSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImageToDataUrl(file, { maxDim: 300, quality: 0.75, square: true }, (compressed) => {
+    db.collection("users").doc(state.user.uid).update({ avatar: compressed })
+      .then(() => {
+        state.profile = { ...state.profile, avatar: compressed };
+        render();
+      })
+      .catch((err) => { console.error(err); showToast("Couldn't update photo"); });
+  });
+}
+
+/* Small inline icon helpers for the profile tab bar / empty state */
+function gridIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`; }
+function lockIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`; }
+function repostIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`; }
+function bookmarkIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`; }
+function heartIconSvg() { return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>`; }
+function mailboxIconSvg() { return `<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="8" width="12" height="9" rx="2"/><path d="M3 12h12"/><path d="M9 21v-4"/></svg>`; }
+
+/* ================= Share sheet: handlers ================= */
+function wireSheetHandlers() {
+  document.getElementById("shareOverlay").onclick = closeSheets;
+  document.getElementById("ownerOverlay").onclick = closeSheets;
+
+  document.querySelectorAll(".share-sendto-item").forEach(btn => {
+    btn.onclick = () => doSendPostToFriend(btn.dataset.uid);
+  });
+
+  document.getElementById("copyLinkBtn").onclick = doCopyLink;
+  document.getElementById("shareWhatsapp").onclick = () => doShareTo("whatsapp");
+  document.getElementById("shareMessenger").onclick = () => doShareTo("messenger");
+  document.getElementById("shareFacebook").onclick = () => doShareTo("facebook");
+  document.getElementById("shareRepost").onclick = doRepostFromSheet;
+  document.getElementById("shareReport").onclick = doReportFromSheet;
+  document.getElementById("shareDownload").onclick = doDownloadFromSheet;
+  document.getElementById("shareGroup").onclick = doCreateGroupFromSheet;
+  document.getElementById("shareStatus").onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
+  document.getElementById("sharePromote").onclick = () => { showToast("Promote isn't available in this build yet"); closeSheets(); };
+  document.getElementById("shareWallpaper").onclick = () => { showToast("Browsers can't set a phone wallpaper — downloading the image instead"); doDownloadFromSheet(); };
+  document.getElementById("shareGif").onclick = () => { showToast("GIF conversion isn't available in this build yet"); closeSheets(); };
+
+  document.getElementById("editPostBtn").onclick = doEditPost;
+  document.getElementById("pinPostBtn").onclick = doPinPostFromSheet;
+  document.getElementById("deletePostBtn").onclick = doDeletePost;
+  document.querySelectorAll(".privacy-options .privacy-option").forEach(btn => {
+    btn.onclick = () => setPrivacy(btn.dataset.level);
+  });
+}
+
+/* Send a post directly into a chat thread with a friend, as a shared-post message */
+function doSendPostToFriend(uid) {
+  if (!uid || !activePostId) return;
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post) return;
+  const myUid = state.user.uid;
+  const threadId = threadIdFor(myUid, uid);
+  const threadRef = db.collection("threads").doc(threadId);
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    text: `Shared a post: "${(post.text || "").slice(0, 60)}"`,
+    image: post.media && post.mediaType !== "video" ? post.media : null,
+    sharedPostId: post.id,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, uid],
+      lastMessage: "Shared a post",
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${uid}`]: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true });
+  }).then(() => {
+    showToast("Sent!");
+    closeSheets();
+  }).catch((err) => { console.error(err); showToast("Couldn't send"); });
+}
+
+function doRepostFromSheet() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (post) toggleRepost(post);
+  closeSheets();
+}
+
+/* Report a post; once a post collects 5+ distinct reports it is auto-hidden from public feeds
+   (still visible to its own author, who sees it flagged) — a simple, real, working moderation layer. */
+function doReportFromSheet() {
+  if (!activePostId) return;
+  const myUid = state.user.uid;
+  const ref = db.collection("posts").doc(activePostId);
+  db.runTransaction((tx) => {
+    return tx.get(ref).then((doc) => {
+      if (!doc.exists) return;
+      const data = doc.data();
+      const reports = data.reports || [];
+      if (reports.includes(myUid)) return;
+      const newReports = [...reports, myUid];
+      tx.update(ref, { reports: newReports, hidden: newReports.length >= 5 ? true : (data.hidden || false) });
+    });
+  }).then(() => {
+    showToast("Thanks — this post has been reported");
+    closeSheets();
+  }).catch((err) => { console.error(err); showToast("Couldn't submit report"); });
+}
+
+function doDownloadFromSheet() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post || !post.media) { showToast("Nothing to download"); return; }
+  const a = document.createElement("a");
+  a.href = post.media;
+  a.download = `milon-post-${post.id}.${post.mediaType === "video" ? "webm" : "jpg"}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  closeSheets();
+}
+
+/* Minimal working "Create group" — makes a group thread doc the user can message into (starts with just them; more members can be added by chatting the group's id to others in a future iteration) */
+function doCreateGroupFromSheet() {
+  const myUid = state.user.uid;
+  db.collection("groups").add({
+    ownerUid: myUid,
+    members: [myUid],
+    name: `${state.user.name}'s group`,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    showToast("Group created — find it soon under Inbox");
+    closeSheets();
+  }).catch((err) => { console.error(err); showToast("Couldn't create group"); });
+}
+
+function openShareSheet(postId) {
+  activePostId = postId;
+  document.getElementById("shareOverlay").classList.add("open");
+  document.getElementById("shareSheet").classList.add("open");
+}
+
+function openOwnerMenu(postId) {
+  activePostId = postId;
+  const post = state.posts.find(p => p.id === postId);
+  document.getElementById("ownerOverlay").classList.add("open");
+  document.getElementById("ownerSheet").classList.add("open");
+  const currentLevel = (post && post.privacy) || "public";
+  document.querySelectorAll(".privacy-option").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.level === currentLevel);
+  });
+}
+
+function closeSheets() {
+  document.querySelectorAll(".sheet-overlay, .bottom-sheet").forEach(el => el.classList.remove("open"));
+  activePostId = null;
+}
+
+function getPostLink(postId) {
+  return `${window.location.origin}${window.location.pathname}?post=${postId}`;
+}
+
+function doCopyLink() {
+  const link = getPostLink(activePostId);
+  navigator.clipboard.writeText(link).then(() => {
+    showToast("Link copied!");
+    closeSheets();
+  }).catch(() => {
+    showToast("Couldn't copy the link");
+  });
+}
+
+function doShareTo(platform) {
+  const link = encodeURIComponent(getPostLink(activePostId));
+  const text = encodeURIComponent("Check out this post on Milon!");
+  const urls = {
+    whatsapp: `https://wa.me/?text=${text}%20${link}`,
+    messenger: `fb-messenger://share/?link=${link}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${link}`,
+    telegram: `https://t.me/share/url?url=${link}&text=${text}`,
+    sms: `sms:?body=${text}%20${link}`,
+  };
+  window.open(urls[platform], "_blank");
+  closeSheets();
+}
+
+function doNativeShare() {
+  if (navigator.share) {
+    navigator.share({
+      title: "Milon",
+      text: "Check out this post on Milon!",
+      url: getPostLink(activePostId),
+    }).catch(() => {});
+  } else {
+    doCopyLink();
+    return;
+  }
+  closeSheets();
+}
+
+/* ================= Own post: Edit / Delete / Privacy / Pin ================= */
+function doEditPost() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post) return;
+  const newText = prompt("Edit post:", post.text || "");
+  if (newText !== null && newText.trim() !== "") {
+    db.collection("posts").doc(post.id).update({ text: newText.trim() })
+      .then(() => showToast("Post updated"))
+      .catch((err) => { console.error(err); showToast("Couldn't update the post"); });
+  }
+  closeSheets();
+}
+
+function doPinPostFromSheet() {
+  if (activePostId) togglePinPost(activePostId);
+  closeSheets();
+}
+
+function doDeletePost() {
+  if (!activePostId) return;
+  if (!confirm("Delete this post? This can't be undone.")) return;
+  db.collection("posts").doc(activePostId).delete()
+    .then(() => showToast("Post deleted"))
+    .catch((err) => { console.error(err); showToast("Couldn't delete the post"); });
+  closeSheets();
+}
+
+function setPrivacy(level) {
+  if (!activePostId) return;
+  db.collection("posts").doc(activePostId).update({ privacy: level })
+    .then(() => showToast("Privacy updated"))
+    .catch((err) => { console.error(err); showToast("Couldn't update privacy"); });
+  closeSheets();
+}
+
+/* Take a photo, compress it, and convert it to base64 (Home composer's own image picker) */
+function handleImageSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (compressed) => {
+    setState({ composerMedia: compressed, composerMediaType: "image" });
+  });
+}
+
+function submitPost() {
+  if (!state.composerText.trim() && !state.composerMedia) return;
+
+  const postBtn = document.getElementById("composePostBtn");
+  if (postBtn) { postBtn.disabled = true; postBtn.textContent = "Posting..."; }
+
+  db.collection("posts").add({
+    authorUid: state.user.uid,
+    authorName: state.user.name,
+    text: state.composerText.trim(),
+    media: state.composerMedia,
+    mediaType: state.composerMediaType || (state.composerMedia ? "image" : null),
+    privacy: state.composePrivacy || "public",
+    likes: [],
+    comments: [],
+    reports: [],
+    hidden: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    setState({ composerText: "", composerMedia: null, composerMediaType: null, composePrivacy: "public", view: "feed" });
+    showToast("Posted!");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't create the post");
+    render();
+  });
+}
+
+function toggleLike(post) {
+  const uid = state.user.uid;
+  const liked = (post.likes || []).includes(uid);
+  const ref = db.collection("posts").doc(post.id);
+  ref.update({
+    likes: liked
+      ? firebase.firestore.FieldValue.arrayRemove(uid)
+      : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).catch((err) => console.error(err));
+}
+
+function submitComment(postId) {
+  const input = document.getElementById(`commentInput-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+
+  const ref = db.collection("posts").doc(postId);
+  ref.update({
+    comments: firebase.firestore.FieldValue.arrayUnion({
+      name: state.user.name,
+      text: text
+    })
+  }).catch((err) => console.error(err));
+
+  input.value = "";
+}
+
+function timeAgo(ts) {
+  if (!ts || !ts.toDate) return "just now";
+  const diffMs = Date.now() - ts.toDate().getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function privacyLabel(level) {
+  if (level === "private") return "· Only me";
+  if (level === "friends") return "· Friends";
+  return "";
+}
+
+function renderPost(p) {
+  const likes = p.likes || [];
+  const comments = p.comments || [];
+  const reposts = p.reposts || [];
+  const savedBy = p.savedBy || [];
+  const liked = state.user && likes.includes(state.user.uid);
+  const reposted = state.user && reposts.includes(state.user.uid);
+  const saved = state.user && savedBy.includes(state.user.uid);
+  const showComments = !!state.openComments[p.id];
+  const isOwner = state.user && p.authorUid === state.user.uid;
+  const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
+
+  const mediaHtml = p.media ? `<div class="post-media">${isVideo ? `<video src="${p.media}" controls></video>` : `<img src="${p.media}" />`}</div>` : "";
+
+  const commentsHtml = showComments ? `
+    <div class="comments-box">
+      ${comments.map(c => `<div class="comment-line"><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</div>`).join("")}
+      <div class="comment-input-row">
+        <input id="commentInput-${p.id}" type="text" placeholder="Write a comment..." />
+        <button id="commentSubmit-${p.id}">Send</button>
+      </div>
+    </div>
+  ` : "";
+
+  return `
+    <div class="post">
+      <div class="post-head">
+        <div class="avatar author-link" id="authoravatar-${p.id}">${initials(p.authorName)}</div>
+        <div class="post-head-info author-link" id="authorlink-${p.id}">
+          <div class="name">${escapeHtml(p.authorName)}</div>
+          <div class="time">${timeAgo(p.createdAt)} <span class="privacy-tag">${privacyLabel(p.privacy)}</span></div>
+        </div>
+        ${isOwner ? `<button class="owner-menu-btn" id="owner-${p.id}">⋮</button>` : ""}
+      </div>
+      ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ""}
+      ${mediaHtml}
+      <div class="post-stats">
+        <span>${likes.length} likes</span>
+        <span>${comments.length} comments</span>
+      </div>
+      <div class="post-actions">
+        <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} Like</button>
+        <button class="action-btn" id="comment-${p.id}">💬 Comment</button>
+        <button class="action-btn ${reposted ? "reposted" : ""}" id="repost-${p.id}">↻ Repost</button>
+        <button class="action-btn ${saved ? "saved" : ""}" id="save-${p.id}">${saved ? "🔖" : "📑"} Save</button>
+        <button class="action-btn" id="share-${p.id}">↗️ Share</button>
+      </div>
+      ${commentsHtml}
+    </div>
+  `;
+}
+
+render();
+</script><script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js");
+    });
+  }
+</script>
+</body>
+</html>

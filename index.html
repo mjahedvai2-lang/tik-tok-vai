@@ -3064,7 +3064,13 @@ function toggleLike(post) {
 }
 
 function submitComment(postId) {
-  const input = document.getElementById(`commentInput-${postId}`);
+  // The live full-screen comments sheet uses a single shared input with id
+  // "fsCommentInput" (see renderFsCommentsSheet). The legacy per-post
+  // "commentInput-{postId}" input is kept as a fallback for the old card
+  // layout (renderPost), which isn't used by the current Home feed but is
+  // still here for compatibility.
+  const input = document.getElementById("fsCommentInput") || document.getElementById(`commentInput-${postId}`);
+  if (!input) return;
   const text = input.value.trim();
   if (!text) return;
 
@@ -3074,7 +3080,10 @@ function submitComment(postId) {
       name: state.user.name,
       text: text
     })
-  }).catch((err) => console.error(err));
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't send comment");
+  });
 
   input.value = "";
 }

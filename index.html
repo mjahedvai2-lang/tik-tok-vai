@@ -822,7 +822,17 @@ function listenToOwnUser(uid) {
     render();
   }, (err) => console.error("listenToOwnUser error:", err));
 }
-
+let unsubscribeAllUsers = null;
+function listenToAllUsers() {
+  if (unsubscribeAllUsers) unsubscribeAllUsers();
+  const myUid = state.user.uid;
+  unsubscribeAllUsers = db.collection("users").limit(200).onSnapshot((snap) => {
+    const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== myUid);
+    state.allUsers = users;
+    state.allUsersLoaded = true;
+    render();
+  }, (err) => console.error("listenToAllUsers error:", err));
+}
 /* ================= Real-time posts from Firestore ================= */
 let unsubscribePosts = null;
 function listenToPosts() {

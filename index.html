@@ -499,6 +499,83 @@
   .capture-review-bar button { flex: 1; padding: 13px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
   .capture-retake-btn { background: rgba(255,255,255,0.15); color: #fff; }
   .capture-use-btn { background: var(--coral); color: #fff; }
+  .live.mirrored { transform: scaleX(-1); }
+
+  /* ---------- POST COMPOSE SCREEN (caption after camera/gallery capture) ---------- */
+  .compose-screen { padding-bottom: 100px; }
+  .compose-media-preview { width: 100%; max-height: 380px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .compose-media-preview img, .compose-media-preview video { width: 100%; max-height: 380px; object-fit: contain; }
+  .compose-body { padding: 14px; }
+  .compose-body textarea {
+    width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    font-size: 15px; font-family: inherit; background: var(--card); color: var(--ink); resize: vertical;
+  }
+  .compose-media-actions { display: flex; gap: 10px; margin: 12px 0; }
+  .compose-media-actions label, .compose-media-actions button {
+    flex: 1; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 10px;
+    border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer;
+  }
+  .compose-privacy-row { display: flex; gap: 8px; margin: 10px 0 18px; flex-wrap: wrap; }
+
+  /* ---------- FULL-SCREEN VIDEO FEED (Home / Friends) ---------- */
+  .feed-topbar {
+    position: sticky; top: 0; z-index: 6; background: rgba(0,0,0,0.0);
+    display: flex; align-items: center; justify-content: center; gap: 22px;
+    padding: 14px 16px 10px; color: #fff;
+  }
+  .feed-topbar.on-light { color: var(--ink); }
+  .feed-tab-btn { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 15px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+  .feed-topbar.on-light .feed-tab-btn { color: var(--ink-soft); }
+  .feed-tab-btn.active { color: #fff; }
+  .feed-topbar.on-light .feed-tab-btn.active { color: var(--ink); }
+  .feed-search-btn { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; position: absolute; right: 16px; }
+  .feed-topbar.on-light .feed-search-btn { color: var(--ink); }
+  .fs-scroll { height: calc(100vh - 0px); overflow-y: scroll; scroll-snap-type: y mandatory; }
+  .fs-slide {
+    position: relative; height: calc(100vh - 60px); scroll-snap-align: start; background: #000;
+    display: flex; align-items: flex-end; overflow: hidden;
+  }
+  .fs-slide img, .fs-slide video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .fs-slide .fs-textonly {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 30px;
+    background: linear-gradient(135deg, var(--teal-deep), var(--coral)); color: #fff; font-size: 20px;
+    font-weight: 600; text-align: center; line-height: 1.5;
+  }
+  .fs-overlay-bottom { position: relative; z-index: 2; width: 100%; padding: 16px 70px 22px 14px; color: #fff;
+    background: linear-gradient(to top, rgba(0,0,0,0.55), transparent); }
+  .fs-author { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .fs-caption { font-size: 13px; line-height: 1.5; margin-bottom: 4px; white-space: pre-wrap; }
+  .fs-reposted-tag { font-size: 12px; background: rgba(255,255,255,0.18); display: inline-block; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; }
+  .fs-side-rail {
+    position: absolute; right: 10px; bottom: 90px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 18px; color: #fff;
+  }
+  .fs-side-avatar-wrap { position: relative; margin-bottom: 4px; }
+  .fs-side-avatar { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: var(--coral-soft); color: var(--coral); font-weight: 700; cursor: pointer; }
+  .fs-side-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .fs-side-follow-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: var(--coral); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; cursor: pointer; }
+  .fs-action { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-size: 22px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .fs-action span { font-size: 11px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .fs-action.liked { color: #FE2C55; }
+  .fs-action.saved, .fs-action.reposted { color: #25F4EE; }
+  .fs-empty-full { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--ink-soft); text-align: center; padding: 30px; }
+
+  /* Comments sheet for full-screen feed */
+  .fs-comments-sheet .comment-line { display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---------- EXPANDED SHARE SHEET ---------- */
+  .share-sendto-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 4px 16px; }
+  .share-sendto-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 58px; background: none; border: none; cursor: pointer; }
+  .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 6px 2px 10px; }
+  .share-grid-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: none; font-size: 11px; color: var(--ink); cursor: pointer; }
+
+  /* ---------- CHAT: reactions row + expanded input bar ---------- */
+  .chat-reaction-row { display: flex; gap: 8px; padding: 2px 2px 4px; overflow-x: auto; }
+  .chat-reaction-btn { border: none; background: var(--bg); border-radius: 20px; padding: 7px 12px; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .chat-bubble.reaction-only { font-size: 26px; padding: 4px 6px; background: none !important; border: none !important; }
+  .chat-bubble audio { width: 200px; }
+  .chat-sticker-panel { display: flex; gap: 10px; flex-wrap: wrap; padding: 10px 4px; background: var(--bg); border-radius: 10px; margin-bottom: 6px; }
+  .chat-sticker-panel button { border: none; background: none; font-size: 26px; cursor: pointer; }
+  .chat-mic-btn.recording { background: var(--coral) !important; color: #fff !important; }
 </style>
 </head>
 <body>
@@ -554,7 +631,8 @@ let state = {
   chatProfile: null,    // the other participant's user doc, for the chat header
   chatMessages: [],
   chatText: "",
-  chatMedia: null,       // compressed data-url of an image staged to send in the current chat
+  chatMedia: null,       // compressed data-url of an image/video staged to send in the current chat
+  chatMediaType: null,   // "image" | "video" for chatMedia
 
   // ---- Edit profile page state ----
   editName: "",
@@ -576,7 +654,19 @@ let state = {
   cameraLastGalleryThumb: null,
 
   activity: [],          // recent activity items across users (likes/comments/replies) fetched for the Activity section
-  activityLoaded: false
+  activityLoaded: false,
+
+  // ---- Full-screen video feed state (Home / Friends) ----
+  homeFeedTab: "forYou",   // forYou | following  (Home)
+  openFsComments: null,    // postId whose comments sheet is open in the full-screen feed
+
+  // ---- Post compose screen (caption step after camera capture / gallery pick) ----
+  composePrivacy: "public",
+
+  // ---- Chat extras ----
+  chatStickerPanelOpen: false,
+  chatRecordingVoice: false,
+  chatVoiceSeconds: 0
 };
 
 // Tracks which post the share/owner sheet is currently acting on
@@ -676,11 +766,16 @@ auth.onAuthStateChanged((firebaseUser) => {
       listenToPosts();
       listenToOwnUser(state.user.uid);
       listenToThreads();
+      listenToActivity();
+      if (window.Notification && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
     });
   } else {
     if (unsubscribeOwnUser) unsubscribeOwnUser();
     if (unsubscribeThreads) unsubscribeThreads();
     if (unsubscribeChat) unsubscribeChat();
+    if (unsubscribeActivity) unsubscribeActivity();
     state.user = null;
     state.authReady = true;
     state.posts = [];
@@ -766,6 +861,8 @@ function render() {
     renderCameraScreen();
   } else if (state.view === "followList") {
     renderFollowListScreen();
+  } else if (state.view === "postCompose") {
+    renderPostComposeScreen();
   } else {
     renderApp();
   }
@@ -859,81 +956,179 @@ function handleLogout() {
   auth.signOut();
 }
 
+/* ================= HOME: full-screen swipeable video feed (TikTok-style) ================= */
 function renderApp() {
-  // Privacy filter: public is visible to everyone; private/friends are visible only to the author
-  // (there is no friends-list system yet, so "friends" currently behaves like "private")
-  const visiblePosts = state.posts.filter(p => {
+  const myUid = state.user.uid;
+  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
+
+  let visiblePosts = state.posts.filter(p => {
+    if (!hiddenSafe(p)) return false;
     if (!p.privacy || p.privacy === "public") return true;
-    return p.authorUid === state.user.uid;
+    return p.authorUid === myUid;
   });
 
-  const feedHtml = visiblePosts.length
-    ? visiblePosts.map(renderPost).join("")
-    : `<div class="empty-state"><div class="big">📭</div>No posts yet.<br>Create the first one above.</div>`;
+  if (state.homeFeedTab === "following") {
+    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+    visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
+  }
 
   root.innerHTML = `
-    <div class="topbar">
-      <div class="brand-sm" id="brandHomeBtn">Milon</div>
-      <div class="topbar-right">
-        <button class="logout-btn" id="logoutBtn">Log out</button>
-        <div class="avatar" id="topbarAvatarBtn">${initials(state.user.name)}</div>
-      </div>
+    <div class="feed-topbar">
+      <button class="feed-tab-btn ${state.homeFeedTab === "following" ? "active" : ""}" id="tabFollowingBtn">Following</button>
+      <button class="feed-tab-btn ${state.homeFeedTab === "forYou" ? "active" : ""}" id="tabForYouBtn">For You</button>
+      <button class="feed-search-btn" id="feedSearchBtn">🔍</button>
     </div>
-
-    <div class="composer">
-      <div class="composer-top">
-        <div class="avatar">${initials(state.user.name)}</div>
-        <textarea id="composerInput" placeholder="What's on your mind, ${escapeHtml(state.user.name.split(" ")[0])}?">${escapeHtml(state.composerText)}</textarea>
+    ${visiblePosts.length ? `<div class="fs-scroll" id="fsScroll">${visiblePosts.map(renderFsSlide).join("")}</div>` : `
+      <div class="fs-empty-full">
+        <div style="font-size:40px;margin-bottom:10px;">📭</div>
+        <div style="font-weight:700;margin-bottom:6px;">No posts yet</div>
+        <div style="font-size:13px;">${state.homeFeedTab === "following" ? "Follow people to see their posts here." : "Be the first to post something!"}</div>
       </div>
-      ${state.composerMedia ? `
-        <div class="preview-wrap">
-          ${state.composerMediaType === "video" ? `<video src="${state.composerMedia}" controls></video>` : `<img src="${state.composerMedia}" />`}
-          <button class="remove-media" id="removeMediaBtn">✕</button>
-        </div>` : ""}
-      <div class="composer-actions">
-        <label class="icon-btn" title="Add photo">
-          🖼️
-          <input type="file" accept="image/*" id="imageInput" style="display:none" />
-        </label>
-        <button class="post-btn" id="submitPostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>Post</button>
-      </div>
-    </div>
-
-    <div class="feed">${feedHtml}</div>
-
+    `}
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet(visiblePosts)}
+    ${renderBottomNav("feed")}
+  `;
 
-    <!-- ================= Share sheet ================= -->
+  document.getElementById("tabFollowingBtn").onclick = () => setState({ homeFeedTab: "following" });
+  document.getElementById("tabForYouBtn").onclick = () => setState({ homeFeedTab: "forYou" });
+  document.getElementById("feedSearchBtn").onclick = openFriendsScreen; // reuse Friends' people search for now
+
+  wireFsSlideHandlers(visiblePosts);
+  wireSheetHandlers();
+  wireFsCommentsHandlers(visiblePosts);
+  wireBottomNav();
+}
+
+function renderFsSlide(p) {
+  const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
+  const likes = p.likes || [];
+  const comments = p.comments || [];
+  const savedBy = p.savedBy || [];
+  const reposts = p.reposts || [];
+  const liked = state.user && likes.includes(state.user.uid);
+  const saved = state.user && savedBy.includes(state.user.uid);
+  const reposted = state.user && reposts.includes(state.user.uid);
+  const isOwner = state.user && p.authorUid === state.user.uid;
+  const authorU = (state.allUsers || []).find(u => u.uid === p.authorUid);
+  const amFollowingAuthor = authorU && (authorU.followers || []).includes(state.user.uid);
+
+  const mediaHtml = p.media
+    ? (isVideo ? `<video src="${p.media}" playsinline loop muted autoplay></video>` : `<img src="${p.media}" />`)
+    : `<div class="fs-textonly">${escapeHtml(p.text || "")}</div>`;
+
+  return `
+    <div class="fs-slide" id="fsslide-${p.id}">
+      ${mediaHtml}
+      <div class="fs-side-rail">
+        <div class="fs-side-avatar-wrap">
+          <div class="fs-side-avatar" id="fsavatar-${p.id}">${initials(p.authorName)}</div>
+          ${!isOwner ? `<button class="fs-side-follow-badge" id="fsfollow-${p.id}">${amFollowingAuthor ? "✓" : "+"}</button>` : ""}
+        </div>
+        <button class="fs-action ${liked ? "liked" : ""}" id="fslike-${p.id}">${liked ? "❤️" : "🤍"}<span>${likes.length}</span></button>
+        <button class="fs-action" id="fscomment-${p.id}">💬<span>${comments.length}</span></button>
+        <button class="fs-action ${saved ? "saved" : ""}" id="fssave-${p.id}">🔖<span>${savedBy.length}</span></button>
+        <button class="fs-action" id="fsshare-${p.id}">↗️<span>Share</span></button>
+        ${isOwner ? `<button class="fs-action" id="fsowner-${p.id}">⋮</button>` : ""}
+      </div>
+      <div class="fs-overlay-bottom">
+        ${reposted ? `<div class="fs-reposted-tag">↻ You reposted this</div>` : ""}
+        <div class="fs-author">@${escapeHtml(p.authorName)}</div>
+        ${p.media && p.text ? `<div class="fs-caption">${escapeHtml(p.text)}</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function wireFsSlideHandlers(posts) {
+  posts.forEach(p => {
+    const av = document.getElementById(`fsavatar-${p.id}`);
+    if (av) av.onclick = () => openProfile(p.authorUid);
+    const followBtn = document.getElementById(`fsfollow-${p.id}`);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(p.authorUid);
+    const likeBtn = document.getElementById(`fslike-${p.id}`);
+    if (likeBtn) likeBtn.onclick = () => toggleLike(p);
+    const commentBtn = document.getElementById(`fscomment-${p.id}`);
+    if (commentBtn) commentBtn.onclick = () => setState({ openFsComments: p.id });
+    const saveBtn = document.getElementById(`fssave-${p.id}`);
+    if (saveBtn) saveBtn.onclick = () => toggleSave(p);
+    const shareBtn = document.getElementById(`fsshare-${p.id}`);
+    if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
+    const ownerBtn = document.getElementById(`fsowner-${p.id}`);
+    if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
+  });
+}
+
+function renderFsCommentsSheet(posts) {
+  const post = state.openFsComments ? posts.find(p => p.id === state.openFsComments) : null;
+  const comments = post ? (post.comments || []) : [];
+  return `
+    <div class="sheet-overlay ${state.openFsComments ? "open" : ""}" id="fsCommentsOverlay"></div>
+    <div class="bottom-sheet fs-comments-sheet ${state.openFsComments ? "open" : ""}" id="fsCommentsSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Comments (${comments.length})</div>
+      ${comments.map(c => `<div class="comment-line"><span><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
+      <div class="comment-input-row" style="margin-top:10px;">
+        <input id="fsCommentInput" type="text" placeholder="Write a comment..." />
+        <button id="fsCommentSubmit">Send</button>
+      </div>
+    </div>
+  `;
+}
+
+function wireFsCommentsHandlers(posts) {
+  const overlay = document.getElementById("fsCommentsOverlay");
+  if (overlay) overlay.onclick = () => setState({ openFsComments: null });
+  const submitBtn = document.getElementById("fsCommentSubmit");
+  if (submitBtn && state.openFsComments) {
+    submitBtn.onclick = () => {
+      submitComment(state.openFsComments);
+      const input = document.getElementById("fsCommentInput");
+      if (input) input.value = "";
+    };
+    const input = document.getElementById("fsCommentInput");
+    if (input) input.onkeydown = (e) => { if (e.key === "Enter") submitBtn.onclick(); };
+  }
+}
+
+function renderShareSheet() {
+  const myUid = state.user ? state.user.uid : null;
+  const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
+  return `
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title">Share</div>
-      <div class="sheet-row">
-        <button class="sheet-item" id="copyLinkBtn">
-          <span class="sheet-icon" style="background:#3b82f6">🔗</span> Copy link
-        </button>
-        <button class="sheet-item" id="shareWhatsapp">
-          <span class="sheet-icon" style="background:#25D366">📱</span> WhatsApp
-        </button>
-        <button class="sheet-item" id="shareMessenger">
-          <span class="sheet-icon" style="background:#0084FF">✉️</span> Messenger
-        </button>
-        <button class="sheet-item" id="shareFacebook">
-          <span class="sheet-icon" style="background:#1877F2">f</span> Facebook
-        </button>
-        <button class="sheet-item" id="shareTelegram">
-          <span class="sheet-icon" style="background:#0088cc">➤</span> Telegram
-        </button>
-        <button class="sheet-item" id="shareSms">
-          <span class="sheet-icon" style="background:#6b7280">💬</span> SMS
-        </button>
-        <button class="sheet-item" id="shareMore">
-          <span class="sheet-icon" style="background:#111">⋯</span> More
-        </button>
+      <div class="sheet-title">Send to</div>
+      <div class="share-sendto-row">
+        ${friends.length ? friends.map(u => `
+          <button class="share-sendto-item" data-uid="${u.uid}">
+            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            <span style="font-size:11px;">${escapeHtml((u.name || "User").split(" ")[0])}</span>
+          </button>
+        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
+      </div>
+      <div class="share-grid">
+        <button class="share-grid-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
+        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
+        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
+        <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
+        <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
+        <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
+        <button class="share-grid-item" id="shareReport"><span class="sheet-icon" style="background:#D85A30">⚑</span>Report</button>
+        <button class="share-grid-item" id="shareDownload"><span class="sheet-icon" style="background:#555">⬇</span>Download</button>
+        <button class="share-grid-item" id="sharePromote"><span class="sheet-icon" style="background:#e67e22">🔥</span>Promote</button>
+        <button class="share-grid-item" id="shareGroup"><span class="sheet-icon" style="background:#2f8cf0">👥</span>Create group</button>
+        <button class="share-grid-item" id="shareWallpaper"><span class="sheet-icon" style="background:#16a085">▦</span>Set as wallpaper</button>
+        <button class="share-grid-item" id="shareGif"><span class="sheet-icon" style="background:#7f8c8d">GIF</span>Share as GIF</button>
       </div>
     </div>
+  `;
+}
 
-    <!-- ================= Owner post menu ================= -->
+function renderOwnerSheet() {
+  return `
     <div class="sheet-overlay" id="ownerOverlay"></div>
     <div class="bottom-sheet" id="ownerSheet">
       <div class="sheet-handle"></div>
@@ -949,52 +1144,7 @@ function renderApp() {
       </div>
       <button class="menu-list-item danger" id="deletePostBtn">🗑️ Delete</button>
     </div>
-
-    ${renderBottomNav("feed")}
   `;
-
-  document.getElementById("logoutBtn").onclick = handleLogout;
-  document.getElementById("brandHomeBtn").onclick = () => setState({ view: "feed" });
-  document.getElementById("topbarAvatarBtn").onclick = () => openProfile();
-
-  document.getElementById("composerInput").oninput = (e) => {
-    state.composerText = e.target.value;
-    document.getElementById("submitPostBtn").disabled = !state.composerText.trim() && !state.composerMedia;
-  };
-
-  document.getElementById("imageInput").onchange = handleImageSelect;
-
-  const removeBtn = document.getElementById("removeMediaBtn");
-  if (removeBtn) removeBtn.onclick = () => setState({ composerMedia: null, composerMediaType: null });
-
-  document.getElementById("submitPostBtn").onclick = submitPost;
-
-  visiblePosts.forEach(p => {
-    const likeBtn = document.getElementById(`like-${p.id}`);
-    const commentBtn = document.getElementById(`comment-${p.id}`);
-    const repostBtn = document.getElementById(`repost-${p.id}`);
-    const saveBtn = document.getElementById(`save-${p.id}`);
-    const shareBtn = document.getElementById(`share-${p.id}`);
-    const ownerBtn = document.getElementById(`owner-${p.id}`);
-    const authorLink = document.getElementById(`authorlink-${p.id}`);
-    const authorAvatar = document.getElementById(`authoravatar-${p.id}`);
-    if (likeBtn) likeBtn.onclick = () => toggleLike(p);
-    if (commentBtn) commentBtn.onclick = () => setState({ openComments: { ...state.openComments, [p.id]: !state.openComments[p.id] } });
-    if (repostBtn) repostBtn.onclick = () => toggleRepost(p);
-    if (saveBtn) saveBtn.onclick = () => toggleSave(p);
-    if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
-    if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
-    if (authorLink) authorLink.onclick = () => openProfile(p.authorUid);
-    if (authorAvatar) authorAvatar.onclick = () => openProfile(p.authorUid);
-
-    const commentSubmit = document.getElementById(`commentSubmit-${p.id}`);
-    if (commentSubmit) commentSubmit.onclick = () => submitComment(p.id);
-    const commentInput = document.getElementById(`commentInput-${p.id}`);
-    if (commentInput) commentInput.onkeydown = (e) => { if (e.key === "Enter") submitComment(p.id); };
-  });
-
-  wireSheetHandlers();
-  wireBottomNav();
 }
 
 /* ================= Bottom nav bar ================= */
@@ -1154,7 +1304,7 @@ function renderCameraScreen() {
       <div class="camera-viewport">
         ${state.cameraError
           ? `<div class="camera-error-box">${escapeHtml(state.cameraError)}</div>`
-          : `<video class="live" id="liveCameraVideo" autoplay playsinline muted></video>`
+          : `<video class="live ${state.cameraFacing === "user" ? "mirrored" : ""}" id="liveCameraVideo" autoplay playsinline muted></video>`
         }
         ${state.cameraRecording ? `<div class="camera-record-timer" id="recTimer">${formatRecTime(state.cameraRecordSeconds)}</div>` : ""}
         <div class="camera-top-bar">
@@ -1188,12 +1338,9 @@ function renderCameraScreen() {
     btn.onclick = () => {
       const mode = btn.dataset.mode;
       if (mode === "TEXT") {
-        // Text-only post: close camera and jump to the composer on Home
-        closeCameraScreen();
-        requestAnimationFrame(() => {
-          const input = document.getElementById("composerInput");
-          if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
-        });
+        // Text-only post: close the camera and open the compose screen with no media
+        stopCameraStream();
+        setState({ view: "postCompose", composerMedia: null, composerMediaType: null, composerText: "" });
         return;
       }
       setState({ cameraMode: mode });
@@ -1228,7 +1375,15 @@ function capturePhotoFromStream() {
   const canvas = document.createElement("canvas");
   canvas.width = videoEl.videoWidth || 720;
   canvas.height = videoEl.videoHeight || 1280;
-  canvas.getContext("2d").drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
+  if (state.cameraFacing === "user") {
+    // The live preview is mirrored for a natural selfie view, but the saved photo
+    // should NOT be mirrored (so text/details look correct to everyone else) —
+    // flip the drawing context back before capturing.
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
   stopCameraStream();
   setState({ cameraCapturedType: "photo", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null });
@@ -1292,14 +1447,13 @@ function handleCameraGallerySelect(e) {
   }
 }
 
-/* "Use this" on the review screen — send captured media into the Home composer as the post's media */
+/* "Use this" on the review screen — send captured media into the caption/compose screen */
 function useCapturedMedia() {
   const type = state.cameraCapturedType;
   const url = state.cameraCapturedUrl;
 
   if (type === "photo") {
-    setState({ view: "feed", composerMedia: url, composerMediaType: "image", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
-    focusComposerSoon();
+    setState({ view: "postCompose", composerMedia: url, composerMediaType: "image", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
     return;
   }
 
@@ -1307,22 +1461,69 @@ function useCapturedMedia() {
     if (state.cameraCapturedBlob) {
       const reader = new FileReader();
       reader.onload = () => {
-        setState({ view: "feed", composerMedia: reader.result, composerMediaType: "video", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
-        focusComposerSoon();
+        setState({ view: "postCompose", composerMedia: reader.result, composerMediaType: "video", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
       };
       reader.readAsDataURL(state.cameraCapturedBlob);
     } else {
-      setState({ view: "feed", composerMedia: url, composerMediaType: "video", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
-      focusComposerSoon();
+      setState({ view: "postCompose", composerMedia: url, composerMediaType: "video", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
     }
   }
 }
 
-function focusComposerSoon() {
-  requestAnimationFrame(() => {
-    const input = document.getElementById("composerInput");
-    if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
+/* ---------------- Post compose screen: caption, privacy, and final Post button ---------------- */
+function renderPostComposeScreen() {
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="composeBackBtn">←</button>
+      <div class="back-title">New post</div>
+    </div>
+    <div class="compose-screen">
+      ${state.composerMedia ? `
+        <div class="compose-media-preview">
+          ${state.composerMediaType === "video" ? `<video src="${state.composerMedia}" controls></video>` : `<img src="${state.composerMedia}" />`}
+        </div>
+      ` : ""}
+      <div class="compose-body">
+        <textarea id="composeTextInput" placeholder="Write a caption...">${escapeHtml(state.composerText)}</textarea>
+        <div class="compose-media-actions">
+          <label>🖼️ Photo
+            <input type="file" accept="image/*" id="composePhotoInput" style="display:none" />
+          </label>
+          <label>🎬 Video
+            <input type="file" accept="video/*" id="composeVideoInput" style="display:none" />
+          </label>
+          ${state.composerMedia ? `<button id="composeRemoveMediaBtn">✕ Remove media</button>` : ""}
+        </div>
+        <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Who can see this</div>
+        <div class="compose-privacy-row">
+          <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public">Public</button>
+          <button class="privacy-option ${state.composePrivacy === "friends" ? "selected" : ""}" data-level="friends">Friends</button>
+          <button class="privacy-option ${state.composePrivacy === "private" ? "selected" : ""}" data-level="private">Only me</button>
+        </div>
+        <button class="btn-primary" id="composePostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>Post</button>
+      </div>
+    </div>
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+  `;
+
+  document.getElementById("composeBackBtn").onclick = () => setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "" });
+  document.getElementById("composeTextInput").oninput = (e) => { state.composerText = e.target.value; };
+  document.getElementById("composePhotoInput").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "image" }));
+  };
+  document.getElementById("composeVideoInput").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    fileToDataUrl(file, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "video" }));
+  };
+  const removeBtn = document.getElementById("composeRemoveMediaBtn");
+  if (removeBtn) removeBtn.onclick = () => setState({ composerMedia: null, composerMediaType: null });
+  document.querySelectorAll(".compose-privacy-row .privacy-option").forEach(btn => {
+    btn.onclick = () => setState({ composePrivacy: btn.dataset.level });
   });
+  document.getElementById("composePostBtn").onclick = submitPost;
 }
 
 /* ---------------- Friends screen ---------------- */
@@ -1439,57 +1640,45 @@ function renderFriendsScreen() {
   wireBottomNav();
 }
 
-/* Friends' video feed: posts with media from people I follow, newest first, pinned-by-author videos first per author */
+/* Friends' video feed: full-screen swipeable feed (same style as Home), but restricted to ONLY
+   people the user follows — never shows anyone else's posts. */
 function renderFriendsVideoFeed() {
   const myUid = state.user.uid;
   const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
   const videos = state.posts.filter(p =>
     followingUids.has(p.authorUid) &&
     p.media &&
+    hiddenSafe(p) &&
     (!p.privacy || p.privacy === "public")
   );
 
-  const bodyHtml = videos.length
-    ? `<div class="friends-video-feed">${videos.map(renderFriendVideoCard).join("")}</div>`
-    : `<div class="empty-nav-tab"><div class="big">🎬</div><div class="line1">No friend videos yet</div><div class="line2">Follow people and their posts will show up here.</div></div>`;
-
   root.innerHTML = `
-    <div class="topbar">
-      <div class="brand-sm" id="brandHomeBtn2v">Friends</div>
+    <div class="feed-topbar on-light">
+      <button class="feed-tab-btn" id="friendsToPeopleBtn">People</button>
+      <button class="feed-tab-btn active" style="pointer-events:none;">Videos</button>
+      <button class="feed-search-btn" id="friendsFeedSearchBtn">🔍</button>
     </div>
-    <div class="friends-sub-tabs">
-      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeopleV">People</button>
-      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideosV">Videos</button>
-    </div>
-    ${bodyHtml}
+    ${videos.length ? `<div class="fs-scroll" id="fsScrollFriends">${videos.map(renderFsSlide).join("")}</div>` : `
+      <div class="fs-empty-full" style="position:static; min-height:60vh;">
+        <div style="font-size:40px;margin-bottom:10px;">🎬</div>
+        <div style="font-weight:700;margin-bottom:6px;">No friend videos yet</div>
+        <div style="font-size:13px;">Follow people and their posts will show up here.</div>
+      </div>
+    `}
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet(videos)}
     ${renderBottomNav("friends")}
   `;
-  document.getElementById("brandHomeBtn2v").onclick = () => setState({ view: "feed" });
-  document.getElementById("friendsSubPeopleV").onclick = () => setState({ friendsSubTab: "people" });
-  document.getElementById("friendsSubVideosV").onclick = () => setState({ friendsSubTab: "videos" });
+  document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
 
-  videos.forEach(p => {
-    const el = document.getElementById(`fvhead-${p.id}`);
-    if (el) el.onclick = () => openProfile(p.authorUid);
-  });
+  wireFsSlideHandlers(videos);
+  wireSheetHandlers();
+  wireFsCommentsHandlers(videos);
   wireBottomNav();
-}
-
-function renderFriendVideoCard(p) {
-  const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
-  return `
-    <div class="friend-video-card">
-      <div class="fv-head" id="fvhead-${p.id}" style="cursor:pointer">
-        <div class="avatar">${initials(p.authorName)}</div>
-        <div>
-          <div class="fv-name">${escapeHtml(p.authorName)}</div>
-          <div class="fv-time">${timeAgo(p.createdAt)}</div>
-        </div>
-      </div>
-      ${isVideo ? `<video src="${p.media}" controls></video>` : `<img src="${p.media}" />`}
-      ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ""}
-    </div>
-  `;
 }
 
 function togglePinFriend(uid) {
@@ -1633,6 +1822,7 @@ function threadIdFor(uidA, uidB) {
 }
 
 let unsubscribeThreads = null;
+let prevThreadUnreadRef = {}; // threadId -> last-seen unread count, used to detect real-time new messages for notifications
 function listenToThreads() {
   if (unsubscribeThreads) unsubscribeThreads();
   const myUid = state.user.uid;
@@ -1641,6 +1831,23 @@ function listenToThreads() {
     .onSnapshot((snap) => {
       const threads = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
+
+      // Real-time notification: if a thread's unread count for me just went up
+      // and I'm not already looking at that chat, fire a browser notification.
+      threads.forEach(t => {
+        const unread = (t.unread && t.unread[myUid]) || 0;
+        const prev = prevThreadUnreadRef[t.id] || 0;
+        const otherUid = (t.participants || []).find(p => p !== myUid);
+        const isViewingThisChat = state.view === "chat" && state.chatUid === otherUid;
+        if (unread > prev && !isViewingThisChat && window.Notification && Notification.permission === "granted") {
+          const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "Someone" };
+          try {
+            new Notification(otherInfo.name, { body: t.lastMessage || "New message", tag: t.id });
+          } catch (e) { /* notification not supported in this context */ }
+        }
+        prevThreadUnreadRef[t.id] = unread;
+      });
+
       setState({ threads });
     }, (err) => {
       console.error(err);
@@ -1649,24 +1856,27 @@ function listenToThreads() {
 }
 
 function openInboxScreen() {
-  // The threads listener runs continuously from login (so nav badges stay live);
-  // opening the Inbox tab just switches the view.
+  // The threads and activity listeners run continuously from login (so nav badges
+  // and notifications stay live in real time); opening the tab just switches the view.
   setState({ view: "inbox", inboxSection: null });
-  if (!state.activityLoaded) loadActivity();
 }
 
-/* Fetches likes/comments/reposts made by others on my own posts, newest first — powers the Activity section */
-function loadActivity() {
+/* Real-time listener: likes/comments made by others on my own posts, newest first — powers the Activity section.
+   Runs continuously (started at login) so new activity appears immediately without reopening the tab. */
+let unsubscribeActivity = null;
+function listenToActivity() {
+  if (unsubscribeActivity) unsubscribeActivity();
   const myUid = state.user.uid;
-  db.collection("posts").where("authorUid", "==", myUid).limit(50).get().then((snap) => {
-    const items = [];
-    snap.docs.forEach(d => {
-      const p = d.data();
-      (p.comments || []).forEach(c => items.push({ type: "comment", text: `${c.name} commented: "${(c.text || "").slice(0, 60)}"`, postId: d.id }));
-      (p.likes || []).filter(uid => uid !== myUid).forEach(uid => items.push({ type: "like", text: `Someone liked your post`, postId: d.id }));
-    });
-    setState({ activity: items.slice(0, 40), activityLoaded: true });
-  }).catch((err) => console.error(err));
+  unsubscribeActivity = db.collection("posts").where("authorUid", "==", myUid).limit(50)
+    .onSnapshot((snap) => {
+      const items = [];
+      snap.docs.forEach(d => {
+        const p = d.data();
+        (p.comments || []).forEach(c => items.push({ type: "comment", text: `${c.name} commented: "${(c.text || "").slice(0, 60)}"`, postId: d.id }));
+        (p.likes || []).filter(uid => uid !== myUid).forEach(uid => items.push({ type: "like", text: `Someone liked your post`, postId: d.id }));
+      });
+      setState({ activity: items.slice(0, 40), activityLoaded: true });
+    }, (err) => console.error(err));
 }
 
 /* Records a lightweight activity/notification entry for a target user (used for follow requests, etc.) */
@@ -1995,15 +2205,22 @@ function openChat(otherUid) {
   });
 }
 
+const CHAT_QUICK_REACTIONS = ["❤️", "😂", "👍", "👉", "🐾"]; // last one stands in for a "Streak Pet" style reaction
+
 function renderChatScreen() {
   const myUid = state.user.uid;
   const other = state.chatProfile || {};
-  const bubblesHtml = state.chatMessages.map(m => `
-    <div class="chat-bubble ${m.senderUid === myUid ? "mine" : "theirs"}">
+  const bubblesHtml = state.chatMessages.map(m => {
+    const isReactionOnly = m.reaction && !m.text && !m.image && !m.video && !m.audio;
+    return `
+    <div class="chat-bubble ${isReactionOnly ? "reaction-only" : ""} ${m.senderUid === myUid ? "mine" : "theirs"}">
       ${m.image ? `<img src="${m.image}" />` : ""}
-      ${m.text ? `<div class="${m.image ? "bubble-text-with-image" : ""}">${escapeHtml(m.text)}</div>` : ""}
+      ${m.video ? `<video src="${m.video}" controls></video>` : ""}
+      ${m.audio ? `<audio src="${m.audio}" controls></audio>` : ""}
+      ${m.text ? `<div class="${(m.image || m.video) ? "bubble-text-with-image" : ""}">${escapeHtml(m.text)}</div>` : ""}
     </div>
-  `).join("");
+  `;
+  }).join("");
 
   root.innerHTML = `
     <div class="chat-header">
@@ -2013,17 +2230,31 @@ function renderChatScreen() {
     </div>
     <div class="chat-messages" id="chatMessagesBox">${bubblesHtml}</div>
     <div class="chat-input-bar">
+      <div class="chat-reaction-row">
+        ${CHAT_QUICK_REACTIONS.map(r => `<button class="chat-reaction-btn" data-r="${r}">${r}</button>`).join("")}
+      </div>
+      ${state.chatStickerPanelOpen ? `
+        <div class="chat-sticker-panel">
+          ${["🎉","🔥","😍","👏","😢","😮","🙌","💯"].map(s => `<button data-s="${s}">${s}</button>`).join("")}
+        </div>
+      ` : ""}
       ${state.chatMedia ? `
         <div class="chat-media-preview">
-          <img src="${state.chatMedia}" />
+          ${state.chatMediaType === "video" ? `<video src="${state.chatMedia}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;"></video>` : `<img src="${state.chatMedia}" />`}
           <button class="chat-media-remove" id="removeChatMediaBtn">✕</button>
         </div>` : ""}
       <div class="chat-input-row">
-        <label class="chat-image-btn" title="Send photo">
+        <label class="chat-image-btn" title="Camera">
+          📷
+          <input type="file" accept="image/*,video/*" capture="environment" id="chatCameraInput" style="display:none" />
+        </label>
+        <label class="chat-image-btn" title="Photo/video from gallery">
           🖼️
-          <input type="file" accept="image/*" id="chatImageInput" style="display:none" />
+          <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
         </label>
         <input id="chatInput" type="text" placeholder="Message..." value="${escapeHtml(state.chatText)}" />
+        <button class="chat-image-btn" id="chatStickerBtn" title="Stickers">😊</button>
+        <button class="chat-image-btn chat-mic-btn ${state.chatRecordingVoice ? "recording" : ""}" id="chatMicBtn" title="Voice message">${state.chatRecordingVoice ? "⏹" : "🎤"}</button>
         <button class="chat-send-btn" id="chatSendBtn" ${(!state.chatText.trim() && !state.chatMedia) ? "disabled" : ""}>➤</button>
       </div>
     </div>
@@ -2031,7 +2262,7 @@ function renderChatScreen() {
 
   document.getElementById("chatBackBtn").onclick = () => {
     if (unsubscribeChat) unsubscribeChat();
-    setState({ view: "inbox" });
+    setState({ view: "inbox", chatStickerPanelOpen: false });
   };
   const input = document.getElementById("chatInput");
   input.oninput = (e) => {
@@ -2040,26 +2271,136 @@ function renderChatScreen() {
   };
   input.onkeydown = (e) => { if (e.key === "Enter") sendChatMessage(); };
   document.getElementById("chatSendBtn").onclick = sendChatMessage;
-  document.getElementById("chatImageInput").onchange = handleChatImageSelect;
+  document.getElementById("chatCameraInput").onchange = handleChatMediaSelect;
+  document.getElementById("chatGalleryInput").onchange = handleChatMediaSelect;
+  document.getElementById("chatStickerBtn").onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
+  document.getElementById("chatMicBtn").onclick = () => {
+    if (state.chatRecordingVoice) stopVoiceRecording();
+    else startVoiceRecording();
+  };
+
+  document.querySelectorAll(".chat-reaction-btn").forEach(btn => {
+    btn.onclick = () => sendReactionMessage(btn.dataset.r);
+  });
+  document.querySelectorAll(".chat-sticker-panel button").forEach(btn => {
+    btn.onclick = () => sendReactionMessage(btn.dataset.s);
+  });
 
   const removeChatMediaBtn = document.getElementById("removeChatMediaBtn");
-  if (removeChatMediaBtn) removeChatMediaBtn.onclick = () => setState({ chatMedia: null });
+  if (removeChatMediaBtn) removeChatMediaBtn.onclick = () => setState({ chatMedia: null, chatMediaType: null });
 
   const box = document.getElementById("chatMessagesBox");
   if (box) box.scrollTop = box.scrollHeight;
 }
 
-function handleChatImageSelect(e) {
+function handleChatMediaSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
-  compressImageToDataUrl(file, { maxDim: 700, quality: 0.65 }, (compressed) => {
-    setState({ chatMedia: compressed });
+  const isVideo = file.type.startsWith("video/");
+  if (isVideo) {
+    fileToDataUrl(file, (dataUrl) => setState({ chatMedia: dataUrl, chatMediaType: "video" }));
+  } else {
+    compressImageToDataUrl(file, { maxDim: 700, quality: 0.65 }, (compressed) => setState({ chatMedia: compressed, chatMediaType: "image" }));
+  }
+}
+
+/* Quick emoji reaction (heart/laugh/thumbs-up/point/Streak Pet, or a sticker) sent as its own message */
+function sendReactionMessage(emoji) {
+  if (!state.chatUid) return;
+  const myUid = state.user.uid;
+  const otherUid = state.chatUid;
+  const threadId = threadIdFor(myUid, otherUid);
+  const threadRef = db.collection("threads").doc(threadId);
+  setState({ chatStickerPanelOpen: false });
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    reaction: emoji,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, otherUid],
+      participantInfo: {
+        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      },
+      lastMessage: emoji,
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${myUid}`]: 0
+    }, { merge: true });
+  }).catch((err) => console.error(err));
+}
+
+/* Voice message recording via the mic button */
+let voiceRecorderRef = null;
+let voiceChunksRef = [];
+let voiceTimerRef = null;
+function startVoiceRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast("Microphone isn't available on this device/browser");
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+    voiceChunksRef = [];
+    voiceRecorderRef = new MediaRecorder(stream);
+    voiceRecorderRef.ondataavailable = (e) => { if (e.data && e.data.size > 0) voiceChunksRef.push(e.data); };
+    voiceRecorderRef.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(voiceChunksRef, { type: "audio/webm" });
+      const reader = new FileReader();
+      reader.onload = () => sendVoiceMessage(reader.result);
+      reader.readAsDataURL(blob);
+    };
+    voiceRecorderRef.start();
+    state.chatRecordingVoice = true;
+    state.chatVoiceSeconds = 0;
+    render();
+    voiceTimerRef = setInterval(() => {
+      state.chatVoiceSeconds += 1;
+      if (state.chatVoiceSeconds >= 60) stopVoiceRecording(); // 60s cap per voice note
+    }, 1000);
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't access the microphone");
   });
+}
+
+function stopVoiceRecording() {
+  if (voiceRecorderRef && voiceRecorderRef.state !== "inactive") voiceRecorderRef.stop();
+  if (voiceTimerRef) { clearInterval(voiceTimerRef); voiceTimerRef = null; }
+  state.chatRecordingVoice = false;
+  render();
+}
+
+function sendVoiceMessage(audioDataUrl) {
+  if (!state.chatUid) return;
+  const myUid = state.user.uid;
+  const otherUid = state.chatUid;
+  const threadId = threadIdFor(myUid, otherUid);
+  const threadRef = db.collection("threads").doc(threadId);
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    audio: audioDataUrl,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, otherUid],
+      participantInfo: {
+        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      },
+      lastMessage: "🎤 Voice message",
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${myUid}`]: 0
+    }, { merge: true });
+  }).catch((err) => console.error(err));
 }
 
 function sendChatMessage() {
   const text = state.chatText.trim();
   const media = state.chatMedia;
+  const mediaType = state.chatMediaType;
   if (!text && !media) return;
   if (!state.chatUid) return;
   const myUid = state.user.uid;
@@ -2069,12 +2410,14 @@ function sendChatMessage() {
 
   state.chatText = "";
   state.chatMedia = null;
+  state.chatMediaType = null;
   render();
 
   threadRef.collection("messages").add({
     senderUid: myUid,
     text: text,
-    image: media || null,
+    image: mediaType === "image" ? media : null,
+    video: mediaType === "video" ? media : null,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
     return threadRef.set({
@@ -2083,7 +2426,7 @@ function sendChatMessage() {
         [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
         [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
       },
-      lastMessage: text || "📷 Photo",
+      lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
       lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
       [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
       [`unread.${myUid}`]: 0
@@ -2131,7 +2474,7 @@ function openProfile(targetUid) {
     db.collection("posts").where("authorUid", "==", uid).get().then((snap) => {
       const posts = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .filter(p => !p.privacy || p.privacy === "public")
+        .filter(p => (!p.privacy || p.privacy === "public") && !p.hidden)
         .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: posts });
     }).catch((err) => {
@@ -2549,20 +2892,109 @@ function wireSheetHandlers() {
   document.getElementById("shareOverlay").onclick = closeSheets;
   document.getElementById("ownerOverlay").onclick = closeSheets;
 
+  document.querySelectorAll(".share-sendto-item").forEach(btn => {
+    btn.onclick = () => doSendPostToFriend(btn.dataset.uid);
+  });
+
   document.getElementById("copyLinkBtn").onclick = doCopyLink;
   document.getElementById("shareWhatsapp").onclick = () => doShareTo("whatsapp");
   document.getElementById("shareMessenger").onclick = () => doShareTo("messenger");
   document.getElementById("shareFacebook").onclick = () => doShareTo("facebook");
-  document.getElementById("shareTelegram").onclick = () => doShareTo("telegram");
-  document.getElementById("shareSms").onclick = () => doShareTo("sms");
-  document.getElementById("shareMore").onclick = doNativeShare;
+  document.getElementById("shareRepost").onclick = doRepostFromSheet;
+  document.getElementById("shareReport").onclick = doReportFromSheet;
+  document.getElementById("shareDownload").onclick = doDownloadFromSheet;
+  document.getElementById("shareGroup").onclick = doCreateGroupFromSheet;
+  document.getElementById("shareStatus").onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
+  document.getElementById("sharePromote").onclick = () => { showToast("Promote isn't available in this build yet"); closeSheets(); };
+  document.getElementById("shareWallpaper").onclick = () => { showToast("Browsers can't set a phone wallpaper — downloading the image instead"); doDownloadFromSheet(); };
+  document.getElementById("shareGif").onclick = () => { showToast("GIF conversion isn't available in this build yet"); closeSheets(); };
 
   document.getElementById("editPostBtn").onclick = doEditPost;
   document.getElementById("pinPostBtn").onclick = doPinPostFromSheet;
   document.getElementById("deletePostBtn").onclick = doDeletePost;
-  document.querySelectorAll(".privacy-option").forEach(btn => {
+  document.querySelectorAll(".privacy-options .privacy-option").forEach(btn => {
     btn.onclick = () => setPrivacy(btn.dataset.level);
   });
+}
+
+/* Send a post directly into a chat thread with a friend, as a shared-post message */
+function doSendPostToFriend(uid) {
+  if (!uid || !activePostId) return;
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post) return;
+  const myUid = state.user.uid;
+  const threadId = threadIdFor(myUid, uid);
+  const threadRef = db.collection("threads").doc(threadId);
+  threadRef.collection("messages").add({
+    senderUid: myUid,
+    text: `Shared a post: "${(post.text || "").slice(0, 60)}"`,
+    image: post.media && post.mediaType !== "video" ? post.media : null,
+    sharedPostId: post.id,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    return threadRef.set({
+      participants: [myUid, uid],
+      lastMessage: "Shared a post",
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${uid}`]: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true });
+  }).then(() => {
+    showToast("Sent!");
+    closeSheets();
+  }).catch((err) => { console.error(err); showToast("Couldn't send"); });
+}
+
+function doRepostFromSheet() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (post) toggleRepost(post);
+  closeSheets();
+}
+
+/* Report a post; once a post collects 5+ distinct reports it is auto-hidden from public feeds
+   (still visible to its own author, who sees it flagged) — a simple, real, working moderation layer. */
+function doReportFromSheet() {
+  if (!activePostId) return;
+  const myUid = state.user.uid;
+  const ref = db.collection("posts").doc(activePostId);
+  db.runTransaction((tx) => {
+    return tx.get(ref).then((doc) => {
+      if (!doc.exists) return;
+      const data = doc.data();
+      const reports = data.reports || [];
+      if (reports.includes(myUid)) return;
+      const newReports = [...reports, myUid];
+      tx.update(ref, { reports: newReports, hidden: newReports.length >= 5 ? true : (data.hidden || false) });
+    });
+  }).then(() => {
+    showToast("Thanks — this post has been reported");
+    closeSheets();
+  }).catch((err) => { console.error(err); showToast("Couldn't submit report"); });
+}
+
+function doDownloadFromSheet() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post || !post.media) { showToast("Nothing to download"); return; }
+  const a = document.createElement("a");
+  a.href = post.media;
+  a.download = `milon-post-${post.id}.${post.mediaType === "video" ? "webm" : "jpg"}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  closeSheets();
+}
+
+/* Minimal working "Create group" — makes a group thread doc the user can message into (starts with just them; more members can be added by chatting the group's id to others in a future iteration) */
+function doCreateGroupFromSheet() {
+  const myUid = state.user.uid;
+  db.collection("groups").add({
+    ownerUid: myUid,
+    members: [myUid],
+    name: `${state.user.name}'s group`,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    showToast("Group created — find it soon under Inbox");
+    closeSheets();
+  }).catch((err) => { console.error(err); showToast("Couldn't create group"); });
 }
 
 function openShareSheet(postId) {
@@ -2676,9 +3108,8 @@ function handleImageSelect(e) {
 function submitPost() {
   if (!state.composerText.trim() && !state.composerMedia) return;
 
-  const postBtn = document.getElementById("submitPostBtn");
-  postBtn.disabled = true;
-  postBtn.textContent = "Posting...";
+  const postBtn = document.getElementById("composePostBtn");
+  if (postBtn) { postBtn.disabled = true; postBtn.textContent = "Posting..."; }
 
   db.collection("posts").add({
     authorUid: state.user.uid,
@@ -2686,12 +3117,15 @@ function submitPost() {
     text: state.composerText.trim(),
     media: state.composerMedia,
     mediaType: state.composerMediaType || (state.composerMedia ? "image" : null),
-    privacy: "public",
+    privacy: state.composePrivacy || "public",
     likes: [],
     comments: [],
+    reports: [],
+    hidden: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    setState({ composerText: "", composerMedia: null, composerMediaType: null });
+    setState({ composerText: "", composerMedia: null, composerMediaType: null, composePrivacy: "public", view: "feed" });
+    showToast("Posted!");
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't create the post");

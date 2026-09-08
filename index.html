@@ -1305,22 +1305,38 @@ function renderShareSheet() {
   `;
 }
 
-/* TikTok-style menu for a post I own: analytics/download/pin/group/edit/privacy/delete/keywords/story */
+/* Own-post sheet: friends "Send to" row (real-time chat share) + basic share icons + Edit/Pin/Privacy/Delete.
+   No paid/monetization items here (Analytics, Increase views, Ad settings, Create group, Manage keywords, Add to Story
+   are intentionally left out for now — add back later if needed). */
 function renderOwnPostShareSheet() {
+  const myUid = state.user ? state.user.uid : null;
+  const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
   return `
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">Send to</div>
+      <div class="share-sendto-row">
+        ${friends.length ? friends.map(u => `
+          <button class="share-sendto-item" data-uid="${u.uid}">
+            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            <span style="font-size:11px;">${escapeHtml((u.name || "User").split(" ")[0])}</span>
+          </button>
+        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
+      </div>
       <div class="share-grid">
-        <button class="share-grid-item" id="shareAnalytics"><span class="sheet-icon" style="background:#2f8cf0">📈</span>Analytics</button>
-        <button class="share-grid-item" id="shareDownload"><span class="sheet-icon" style="background:#555">⬇</span>Download</button>
-        <button class="share-grid-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
-        <button class="share-grid-item" id="shareGroup"><span class="sheet-icon" style="background:#2f8cf0">👥</span>Create group</button>
+        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
+        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
+        <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
+        <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
+        <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
+        <button class="share-grid-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
+      </div>
+      <div class="share-grid" style="margin-top:6px;">
         <button class="share-grid-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
+        <button class="share-grid-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
         <button class="share-grid-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
         <button class="share-grid-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>Delete</button>
-        <button class="share-grid-item" id="shareAddStory"><span class="sheet-icon" style="background:#8e44ad">◎</span>Add to Story</button>
       </div>
       <div id="ownPrivacyPanel" style="display:none; padding: 4px 4px 10px;">
         <div class="sheet-title" style="margin-top:6px;">Who can see this</div>
@@ -3435,6 +3451,8 @@ function wireSheetHandlers() {
   if (reportBtn) reportBtn.onclick = doReportFromSheet;
   const statusBtn = document.getElementById("shareStatus");
   if (statusBtn) statusBtn.onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
+  const smsBtn = document.getElementById("shareSms");
+  if (smsBtn) smsBtn.onclick = () => doShareTo("sms");
 
   // ---- Own-post share sheet actions ----
   const analyticsBtn = document.getElementById("shareAnalytics");

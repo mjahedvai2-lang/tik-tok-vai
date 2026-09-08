@@ -247,6 +247,12 @@
   }
   .profile-follow-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
   .profile-follow-btn.requested { background: var(--card); color: var(--ink-soft); border: 1px dashed var(--line); }
+  .profile-follow-btn.primary { flex: 1; margin-top: 0; }
+  .profile-icon-btn {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
   .profile-bio { font-size: 13px; color: var(--ink); margin: 8px auto 0; max-width: 280px; line-height: 1.5; white-space: pre-wrap; }
   .profile-links { display: flex; justify-content: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
   .profile-link-chip {
@@ -2880,10 +2886,17 @@ function renderProfileScreen() {
       ${linksHtml}
 
       ${!isOwn
-        ? `<div class="profile-action-row">
-            <button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>
-            <button class="profile-follow-btn following" id="profileMsgBtn">Message</button>
-          </div>`
+        ? (amFollowing
+            ? `<div class="profile-action-row">
+                <button class="profile-follow-btn following primary" id="profileMsgBtn">➤ Message</button>
+                <button class="profile-icon-btn" id="followManageBtn" title="Following">👤</button>
+                <button class="profile-icon-btn" id="profileMoreBtn" title="More">▾</button>
+              </div>`
+            : `<div class="profile-action-row">
+                <button class="profile-follow-btn ${requestedByMe ? "requested" : ""}" id="followBtn">${requestedByMe ? "Requested" : "Follow"}</button>
+                <button class="profile-follow-btn following" id="profileMsgBtn">Message</button>
+                <button class="profile-icon-btn" id="profileMoreBtn" title="More">▾</button>
+              </div>`)
         : ""
       }
 
@@ -2915,7 +2928,15 @@ function renderProfileScreen() {
     document.getElementById("profileMenuBtn").onclick = () => setState({ view: "menu" });
     wireBottomNav();
   } else {
-    document.getElementById("followBtn").onclick = () => toggleFollow(targetUid);
+    const followBtn = document.getElementById("followBtn");
+    const followManageBtn = document.getElementById("followManageBtn");
+    const profileMoreBtn = document.getElementById("profileMoreBtn");
+    if (followBtn) followBtn.onclick = () => toggleFollow(targetUid);
+    if (followManageBtn) followManageBtn.onclick = () => {
+      if (!confirm(`Unfollow ${profile.name || "this user"}?`)) return;
+      toggleFollow(targetUid);
+    };
+    if (profileMoreBtn) profileMoreBtn.onclick = () => showToast("More options coming soon");
     document.getElementById("profileMsgBtn").onclick = () => openChat(targetUid);
   }
 

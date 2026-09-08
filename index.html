@@ -856,6 +856,7 @@ auth.onAuthStateChanged((firebaseUser) => {
       }
       listenToPosts();
       listenToOwnUser(state.user.uid);
+      listenToAllUsers(state.user.uid);
       listenToThreads();
       listenToNotifications();
       listenToSystemNotices();
@@ -866,6 +867,7 @@ auth.onAuthStateChanged((firebaseUser) => {
     });
   } else {
     if (unsubscribeOwnUser) unsubscribeOwnUser();
+    if (unsubscribeAllUsers) unsubscribeAllUsers();
     if (unsubscribeThreads) unsubscribeThreads();
     if (unsubscribeChat) unsubscribeChat();
     if (unsubscribeChatPresence) unsubscribeChatPresence();
@@ -951,6 +953,20 @@ function listenToProfileUser(uid) {
     }
     render();
   }, (err) => console.error("listenToProfileUser error:", err));
+}
+
+/* Real-time copy of every user doc (capped at 200) — backs the Friends screen, the
+   Following/Followers/Friends list, and story suggestions. Started once at login and kept
+   live for the whole session, so follow/unfollow/remove actions from ANY device show up
+   here immediately without a manual refresh. */
+let unsubscribeAllUsers = null;
+function listenToAllUsers(myUid) {
+  if (unsubscribeAllUsers) unsubscribeAllUsers();
+  unsubscribeAllUsers = db.collection("users").limit(200).onSnapshot((snap) => {
+    state.allUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== myUid);
+    state.allUsersLoaded = true;
+    render();
+  }, (err) => console.error("listenToAllUsers error:", err));
 }
 
 /* ================= Real-time posts from Firestore ================= */
@@ -1819,15 +1835,8 @@ function renderPostComposeScreen() {
 /* ---------------- Friends screen ---------------- */
 function openFriendsScreen() {
   setState({ view: "friends" });
-  if (!state.allUsersLoaded) {
-    db.collection("users").limit(200).get().then((snap) => {
-      const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== state.user.uid);
-      setState({ allUsers: users, allUsersLoaded: true });
-    }).catch((err) => {
-      console.error(err);
-      showToast("Couldn't load users");
-    });
-  }
+  // allUsers is kept live by listenToAllUsers() (started at login), so no one-time
+  // fetch is needed here anymore — the list is already real-time.
   listenToPresenceForAllUsers();
 }
 
@@ -3028,13 +3037,8 @@ function profileEmptyHtml(line1, line2, showCta) {
 
 /* ---------------- Following / Followers list screen ---------------- */
 function openFollowList(targetUid, kind) {
+  // allUsers is kept live by listenToAllUsers() (started at login) — real-time already.
   setState({ view: "followList", followListUid: targetUid, followListKind: kind, followListSearch: "" });
-  if (!state.allUsersLoaded) {
-    db.collection("users").limit(200).get().then((snap) => {
-      const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== state.user.uid);
-      setState({ allUsers: users, allUsersLoaded: true });
-    }).catch((err) => console.error(err));
-  }
 }
 
 /* Computes the three tab lists (Following / Followers / Friends) for whichever profile
@@ -3061,10 +3065,16 @@ function computeFollowListData() {
 /* Row renderer used only on this Following/Followers/Friends screen. Unlike the Friends
    tab's renderUserRow, there's no pin icon or Message button here — tapping the avatar or
    name opens the profile (where Message lives instead), and on your own list a "⋯" menu
-   offers Remove. */
+   offers Remove.
+   Button has 4 states from the two directions of the relationship:
+     I follow them + they follow me   -> "Friends"     (gray)
+     I follow them + they don't       -> "Following"   (gray)
+     I don't follow + they follow me  -> "Follow back" (red)
+     neither follows the other        -> "Follow"      (red) */
 function renderFollowListUserRow(u, myUid, isOwn) {
   const amFollowing = (u.followers || []).includes(myUid);
-  const label = amFollowing ? "Following" : "Follow";
+  const theyFollowMe = (u.following || []).includes(myUid);
+  const label = amFollowing ? (theyFollowMe ? "Friends" : "Following") : (theyFollowMe ? "Follow back" : "Follow");
   const cls = amFollowing ? "following" : "";
   const online = isUserOnline(u.uid);
   return `

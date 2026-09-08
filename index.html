@@ -208,6 +208,19 @@
   }
   .profile-back-btn { border: none; background: none; font-size: 20px; color: var(--ink); cursor: pointer; padding: 4px 6px; }
   .profile-title { font-size: 16px; font-weight: 700; }
+  .profile-menu-btn { border: none; background: none; font-size: 20px; color: var(--ink); cursor: pointer; padding: 4px 6px; width: 28px; }
+
+  /* ---------- MENU / SETTINGS SCREENS ---------- */
+  .menu-section-label { font-size: 12px; color: var(--ink-soft); padding: 18px 18px 8px; }
+  .menu-list { background: var(--card); margin: 0 14px; border-radius: 12px; border: 1px solid var(--line); overflow: hidden; }
+  .menu-item {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    border: none; background: none; text-align: left; font-size: 15px; color: var(--ink); cursor: pointer;
+  }
+  .menu-item + .menu-item { border-top: 1px solid var(--line); }
+  .menu-item .menu-item-icon { width: 20px; text-align: center; flex-shrink: 0; }
+  .menu-item .menu-item-arrow { margin-left: auto; color: var(--ink-soft); }
+  .menu-item.danger { color: var(--coral); }
   .profile-hero { padding: 28px 20px 18px; text-align: center; }
   .profile-avatar-wrap { position: relative; width: 92px; height: 92px; margin: 0 auto 14px; }
   .profile-avatar {
@@ -954,6 +967,10 @@ function render() {
     renderProfileScreen();
   } else if (state.view === "editProfile") {
     renderEditProfileScreen();
+  } else if (state.view === "menu") {
+    renderMenuScreen();
+  } else if (state.view === "settings") {
+    renderSettingsScreen();
   } else if (state.view === "friends") {
     renderFriendsScreen();
   } else if (state.view === "inbox") {
@@ -2813,7 +2830,7 @@ function renderProfileScreen() {
     <div class="profile-topbar">
       <button class="profile-back-btn" id="profileBackBtn">←</button>
       <div class="profile-title">Profile</div>
-      <div style="width:28px"></div>
+      ${isOwn ? `<button class="profile-menu-btn" id="profileMenuBtn">☰</button>` : `<div style="width:28px"></div>`}
     </div>
 
     <div class="profile-hero">
@@ -2863,6 +2880,7 @@ function renderProfileScreen() {
   if (isOwn) {
     document.getElementById("editNameBtn").onclick = openEditProfileScreen;
     document.getElementById("avatarInput").onchange = handleAvatarSelect;
+    document.getElementById("profileMenuBtn").onclick = () => setState({ view: "menu" });
     wireBottomNav();
   } else {
     document.getElementById("followBtn").onclick = () => toggleFollow(targetUid);
@@ -3067,6 +3085,52 @@ function renderEditProfileScreen() {
   document.getElementById("editFacebookInput").oninput = (e) => { state.editFacebook = e.target.value; };
 
   document.getElementById("saveProfileBtn").onclick = saveEditedProfile;
+}
+
+/* ================= MENU screen (☰ from profile) ================= */
+function renderMenuScreen() {
+  root.innerHTML = `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="menuBackBtn">←</button>
+      <div class="profile-title">Menu</div>
+      <div style="width:28px"></div>
+    </div>
+
+    <div class="menu-list">
+      <button class="menu-item" id="menuSettingsBtn">
+        <span class="menu-item-icon">⚙️</span>
+        <span>Settings and privacy</span>
+        <span class="menu-item-arrow">›</span>
+      </button>
+    </div>
+  `;
+
+  document.getElementById("menuBackBtn").onclick = () => setState({ view: "profile" });
+  document.getElementById("menuSettingsBtn").onclick = () => setState({ view: "settings" });
+}
+
+/* ================= SETTINGS screen (Settings and privacy → Log out) ================= */
+function renderSettingsScreen() {
+  root.innerHTML = `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="settingsBackBtn">←</button>
+      <div class="profile-title">Settings and privacy</div>
+      <div style="width:28px"></div>
+    </div>
+
+    <div class="menu-list" style="margin-top:14px;">
+      <button class="menu-item danger" id="logoutBtn">
+        <span class="menu-item-icon">⎋</span>
+        <span>Log out</span>
+      </button>
+    </div>
+  `;
+
+  document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
+  document.getElementById("logoutBtn").onclick = () => {
+    if (!confirm("Log out of Milon?")) return;
+    handleLogout();
+  };
 }
 
 function saveEditedProfile() {

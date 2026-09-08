@@ -625,6 +625,11 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+/* The account whose login email matches this constant gets a "Send notice" composer
+   inside System notifications, so the app owner can broadcast a message to every user
+   without touching Firebase Console. Change this to your own login email. */
+const OWNER_EMAIL = "owner@milon.app";
+
 /* ================= App state ================= */
 const root = document.getElementById("root");
 
@@ -687,8 +692,10 @@ let state = {
   cameraSpeed: "1x",          // 0.5x | 1x | 2x | 3x
   cameraFilter: "none",       // none | bw | warm | cool | vivid | soft
 
-  activity: [],          // recent activity items across users (likes/comments/replies) fetched for the Activity section
+  activity: [],          // real-time notification docs (type: follow | like | comment | message) written to my own users/{uid}/notifications
   activityLoaded: false,
+  systemNotices: [],      // real-time broadcast messages from the app owner (systemNotices collection)
+  ownerNoticeText: "",
 
   // ---- Full-screen video feed state (Home / Friends) ----
   homeFeedTab: "forYou",   // forYou | following  (Home)
@@ -814,7 +821,8 @@ auth.onAuthStateChanged((firebaseUser) => {
       listenToPosts();
       listenToOwnUser(state.user.uid);
       listenToThreads();
-      listenToActivity();
+      listenToNotifications();
+      listenToSystemNotices();
       goOnline(state.user.uid);
       if (window.Notification && Notification.permission === "default") {
         Notification.requestPermission().catch(() => {});
@@ -826,6 +834,7 @@ auth.onAuthStateChanged((firebaseUser) => {
     if (unsubscribeChat) unsubscribeChat();
     if (unsubscribeChatPresence) unsubscribeChatPresence();
     if (unsubscribeActivity) unsubscribeActivity();
+    if (unsubscribeSystemNotices) unsubscribeSystemNotices();
     if (unsubscribeProfileUser) unsubscribeProfileUser();
     state.user = null;
     state.authReady = true;
@@ -1052,7 +1061,7 @@ function renderApp() {
   });
 
   if (state.homeFeedTab === "following") {
-    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
     visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
   }
 
@@ -1269,13 +1278,12 @@ function renderOwnerSheet() {
 
 /* ================= Bottom nav bar ================= */
 function renderBottomNav(activeKey) {
-  const reqCount = (state.myUserDoc && state.myUserDoc.followRequests) ? state.myUserDoc.followRequests.length : 0;
   const myUid = state.user ? state.user.uid : null;
-  const unreadTotal = myUid
+  const unreadThreads = myUid
     ? state.threads.reduce((sum, t) => sum + ((t.unread && t.unread[myUid]) || 0), 0)
     : 0;
-  const activityUnread = state.activity.length;
-  const inboxBadge = unreadTotal + (activityUnread > 0 ? 1 : 0);
+  const unreadNotifications = state.activity.filter(a => !a.read).length;
+  const inboxBadge = unreadThreads + unreadNotifications;
 
   return `
     <div class="bottom-nav">
@@ -1284,10 +1292,7 @@ function renderBottomNav(activeKey) {
         <span>Home</span>
       </button>
       <button class="nav-item ${activeKey === "friends" ? "active" : ""}" id="navFriendsBtn">
-        <span class="nav-icon-wrap">
-          ${friendsIconSvg(activeKey === "friends")}
-          ${reqCount > 0 ? `<span class="nav-badge">${reqCount > 9 ? "9+" : reqCount}</span>` : ""}
-        </span>
+        ${friendsIconSvg(activeKey === "friends")}
         <span>Friends</span>
       </button>
       <div class="nav-add">
@@ -1298,7 +1303,7 @@ function renderBottomNav(activeKey) {
       <button class="nav-item ${activeKey === "inbox" ? "active" : ""}" id="navInboxBtn">
         <span class="nav-icon-wrap">
           ${inboxIconSvg(activeKey === "inbox")}
-          ${unreadTotal > 0 ? `<span class="nav-badge">${unreadTotal > 9 ? "9+" : unreadTotal}</span>` : ""}
+          ${inboxBadge > 0 ? `<span class="nav-badge">${inboxBadge > 9 ? "9+" : inboxBadge}</span>` : ""}
         </span>
         <span>Inbox</span>
       </button>
@@ -1782,6 +1787,26 @@ function isUserOnline(uid) {
   return !!(p && p.online);
 }
 
+/* Friends list: with no search text, shows ONLY mutual friends (you follow them AND they follow
+   you back) — real "friends", not one-sided follows. Typing a search reveals everyone matching
+   the query (with a Follow/Following button), so you can still find and follow new people. */
+function computeFriendsList(myUid, myPinned) {
+  const q = state.friendsSearch.trim().toLowerCase();
+  let list;
+  if (q) {
+    list = state.allUsers.filter(u =>
+      (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
+    );
+  } else {
+    list = state.allUsers.filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid));
+  }
+  return [...list].sort((a, b) => {
+    const ap = myPinned.includes(a.uid) ? 1 : 0;
+    const bp = myPinned.includes(b.uid) ? 1 : 0;
+    return bp - ap;
+  });
+}
+
 function renderFriendsScreen() {
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
@@ -1791,32 +1816,14 @@ function renderFriendsScreen() {
     return;
   }
 
-  const q = state.friendsSearch.trim().toLowerCase();
-  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-
-  let list = state.allUsers;
-  if (q) {
-    list = list.filter(u =>
-      (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
-    );
-  }
-  // Pinned people float to the top
-  list = [...list].sort((a, b) => {
-    const ap = myPinned.includes(a.uid) ? 1 : 0;
-    const bp = myPinned.includes(b.uid) ? 1 : 0;
-    return bp - ap;
-  });
+  const isSearching = !!state.friendsSearch.trim();
+  const list = computeFriendsList(myUid, myPinned);
 
   const rowsHtml = list.length
     ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
-    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No one here yet</div><div class="line2">Try a different search.</div></div>`;
-
-  const requestsSectionHtml = myRequests.length ? `
-    <div class="inbox-suggested-heading">Follow requests (${myRequests.length})</div>
-    <div class="user-list" style="padding-top:0;">
-      ${state.allUsers.filter(u => myRequests.includes(u.uid)).map(renderRequestRow).join("")}
-    </div>
-  ` : "";
+    : (isSearching
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No friends yet</div><div class="line2">Search for people above and follow them — once they follow you back, they'll show up here.</div></div>`);
 
   root.innerHTML = `
     <div class="topbar">
@@ -1829,7 +1836,6 @@ function renderFriendsScreen() {
     <div class="friends-search-wrap">
       <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
     </div>
-    ${requestsSectionHtml}
     <div class="user-list">${rowsHtml}</div>
     ${renderBottomNav("friends")}
   `;
@@ -1845,19 +1851,6 @@ function renderFriendsScreen() {
   searchInput.oninput = (e) => { state.friendsSearch = e.target.value; renderFriendsListOnly(); };
 
   wireFriendsRowHandlers(list);
-  if (myRequests.length) {
-    state.allUsers.filter(u => myRequests.includes(u.uid)).forEach(u => {
-      const av = document.getElementById(`useravatar-${u.uid}`);
-      const info = document.getElementById(`userinfo-${u.uid}`);
-      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
-      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
-      if (av) av.onclick = () => openProfile(u.uid);
-      if (info) info.onclick = () => openProfile(u.uid);
-      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
-      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
-    });
-  }
-
   wireBottomNav();
 }
 
@@ -1866,23 +1859,15 @@ function renderFriendsScreen() {
 function renderFriendsListOnly() {
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
-  const q = state.friendsSearch.trim().toLowerCase();
-  let list = state.allUsers;
-  if (q) {
-    list = list.filter(u =>
-      (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
-    );
-  }
-  list = [...list].sort((a, b) => {
-    const ap = myPinned.includes(a.uid) ? 1 : 0;
-    const bp = myPinned.includes(b.uid) ? 1 : 0;
-    return bp - ap;
-  });
+  const isSearching = !!state.friendsSearch.trim();
+  const list = computeFriendsList(myUid, myPinned);
   const listEl = document.querySelector(".user-list");
   if (!listEl) return;
   listEl.innerHTML = list.length
     ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
-    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No one here yet</div><div class="line2">Try a different search.</div></div>`;
+    : (isSearching
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No friends yet</div><div class="line2">Search for people above and follow them — once they follow you back, they'll show up here.</div></div>`);
   wireFriendsRowHandlers(list);
 }
 
@@ -1905,7 +1890,7 @@ function wireFriendsRowHandlers(list) {
    people the user follows — never shows anyone else's posts. */
 function renderFriendsVideoFeed() {
   const myUid = state.user.uid;
-  const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+  const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
   const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
   const videos = state.posts.filter(p =>
     followingUids.has(p.authorUid) &&
@@ -1958,9 +1943,8 @@ function togglePinFriend(uid) {
 
 function renderUserRow(u, myUid, myPinned) {
   const amFollowing = (u.followers || []).includes(myUid);
-  const requested = !amFollowing && (u.followRequests || []).includes(myUid);
-  const label = amFollowing ? "Following" : (requested ? "Requested" : "Follow");
-  const cls = amFollowing ? "following" : (requested ? "requested" : "");
+  const label = amFollowing ? "Following" : "Follow";
+  const cls = amFollowing ? "following" : "";
   const isPinned = (myPinned || []).includes(u.uid);
   const online = isUserOnline(u.uid);
   return `
@@ -1979,105 +1963,37 @@ function renderUserRow(u, myUid, myPinned) {
   `;
 }
 
-function renderRequestRow(u) {
-  return `
-    <div class="user-row">
-      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
-      <div class="user-row-info" id="userinfo-${u.uid}">
-        <div class="u-name">${escapeHtml(u.name || "User")}</div>
-        <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))} wants to follow you</div>
-      </div>
-      <div class="request-row-actions">
-        <button class="pill-btn" id="acceptbtn-${u.uid}">Accept</button>
-        <button class="pill-btn ghost" id="declinebtn-${u.uid}">Decline</button>
-      </div>
-    </div>
-  `;
-}
-
-/* Sends / cancels a follow request, or unfollows, depending on current relationship state.
-   Uses a batched write covering both users' docs so it works cleanly under security rules
-   that only require each request touch the acting user's own doc plus the single field
-   (followRequests / followers) being modified on the target. */
+/* Follow / unfollow — instant, public-account style (like Instagram's public accounts):
+   tapping Follow immediately adds you to their followers, no request/approval step.
+   "Friend" is simply the case where the follow is mutual in both directions. */
 function toggleFollowFromList(targetUid) {
   const myUid = state.user.uid;
   const target = state.allUsers.find(u => u.uid === targetUid) || (state.profileUserDoc && state.profileUserDoc.uid === targetUid ? state.profileUserDoc : null);
   if (!target) return;
   const amFollowing = (target.followers || []).includes(myUid);
-  const requested = !amFollowing && (target.followRequests || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
-
-  let action;
+  const batch = db.batch();
   if (amFollowing) {
-    const batch = db.batch();
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
-    action = batch.commit();
-  } else if (requested) {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
   } else {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
   }
 
-  action.then(() => {
+  batch.commit().then(() => {
     const updated = state.allUsers.map(u => {
       if (u.uid !== targetUid) return u;
       const followers = new Set(u.followers || []);
-      const followRequests = new Set(u.followRequests || []);
-      if (amFollowing) {
-        followers.delete(myUid);
-      } else if (requested) {
-        followRequests.delete(myUid);
-      } else {
-        followRequests.add(myUid);
-      }
-      return { ...u, followers: Array.from(followers), followRequests: Array.from(followRequests) };
+      if (amFollowing) followers.delete(myUid); else followers.add(myUid);
+      return { ...u, followers: Array.from(followers) };
     });
     setState({ allUsers: updated });
-    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+    if (!amFollowing) logActivity(targetUid, "follow", `${state.user.name} started following you`);
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't update follow status — check your connection or try again");
-  });
-}
-
-function acceptFollowRequest(requesterUid) {
-  const myUid = state.user.uid;
-  const myRef = db.collection("users").doc(myUid);
-  const requesterRef = db.collection("users").doc(requesterUid);
-  const batch = db.batch();
-  batch.update(myRef, {
-    followers: firebase.firestore.FieldValue.arrayUnion(requesterUid),
-    followRequests: firebase.firestore.FieldValue.arrayRemove(requesterUid)
-  });
-  batch.update(requesterRef, {
-    following: firebase.firestore.FieldValue.arrayUnion(myUid)
-  });
-  batch.commit().then(() => {
-    const updated = state.allUsers.map(u => {
-      if (u.uid !== requesterUid) return u;
-      const following = new Set(u.following || []);
-      following.add(myUid);
-      return { ...u, following: Array.from(following) };
-    });
-    setState({ allUsers: updated });
-    showToast("Follow request accepted");
-  }).catch((err) => {
-    console.error(err);
-    showToast("Couldn't accept request");
-  });
-}
-
-function declineFollowRequest(requesterUid) {
-  const myUid = state.user.uid;
-  db.collection("users").doc(myUid).update({
-    followRequests: firebase.firestore.FieldValue.arrayRemove(requesterUid)
-  }).then(() => {
-    showToast("Request declined");
-  }).catch((err) => {
-    console.error(err);
-    showToast("Couldn't decline request");
   });
 }
 
@@ -2122,29 +2038,65 @@ function openInboxScreen() {
   setState({ view: "inbox", inboxSection: null });
 }
 
-/* Real-time listener: likes/comments made by others on my own posts, newest first — powers the Activity section.
-   Runs continuously (started at login) so new activity appears immediately without reopening the tab. */
+/* Real-time notifications: one unified sub-collection per user (users/{uid}/notifications) holds
+   every "follow" / "like" / "comment" / "message" event aimed at me, newest first. Each of the
+   Inbox rows (New followers / Activity / Message requests) is just this same list filtered by type —
+   so all three update live the instant something happens, with no polling or manual refresh. */
 let unsubscribeActivity = null;
-function listenToActivity() {
+function listenToNotifications() {
   if (unsubscribeActivity) unsubscribeActivity();
   const myUid = state.user.uid;
-  unsubscribeActivity = db.collection("posts").where("authorUid", "==", myUid).limit(50)
+  unsubscribeActivity = db.collection("users").doc(myUid).collection("notifications")
+    .orderBy("createdAt", "desc").limit(60)
     .onSnapshot((snap) => {
-      const items = [];
-      snap.docs.forEach(d => {
-        const p = d.data();
-        (p.comments || []).forEach(c => items.push({ type: "comment", text: `${c.name} commented: "${(c.text || "").slice(0, 60)}"`, postId: d.id }));
-        (p.likes || []).filter(uid => uid !== myUid).forEach(uid => items.push({ type: "like", text: `Someone liked your post`, postId: d.id }));
-      });
-      setState({ activity: items.slice(0, 40), activityLoaded: true });
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setState({ activity: items, activityLoaded: true });
     }, (err) => console.error(err));
 }
 
-/* Records a lightweight activity/notification entry for a target user (used for follow requests, etc.) */
-function logActivity(targetUid, type, text) {
+/* Records a real-time notification for a target user. type: "follow" | "like" | "comment" | "message" */
+function logActivity(targetUid, type, text, extra) {
+  if (!targetUid || targetUid === state.user.uid) return; // never notify yourself
   db.collection("users").doc(targetUid).collection("notifications").add({
-    type, text, fromUid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false
+    type, text, fromUid: state.user.uid, fromName: state.user.name,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false, ...(extra || {})
   }).catch((err) => console.error(err));
+}
+
+/* Marks every notification of a given type as read (called when its Inbox section is opened) */
+function markNotificationsRead(type) {
+  const myUid = state.user.uid;
+  const toMark = state.activity.filter(a => (!type || a.type === type) && !a.read);
+  if (!toMark.length) return;
+  const batch = db.batch();
+  toMark.forEach(a => batch.update(db.collection("users").doc(myUid).collection("notifications").doc(a.id), { read: true }));
+  batch.commit().catch((err) => console.error(err));
+}
+
+/* System notifications: a single global collection the app owner can broadcast into. Every user
+   listens to it in real time, so a new notice appears instantly for everyone. */
+let unsubscribeSystemNotices = null;
+function listenToSystemNotices() {
+  if (unsubscribeSystemNotices) unsubscribeSystemNotices();
+  unsubscribeSystemNotices = db.collection("systemNotices").orderBy("createdAt", "desc").limit(20)
+    .onSnapshot((snap) => {
+      setState({ systemNotices: snap.docs.map(d => ({ id: d.id, ...d.data() })) });
+    }, (err) => console.error(err));
+}
+
+function isOwnerAccount() {
+  return !!(state.user && state.user.email && state.user.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+}
+
+function sendSystemNotice() {
+  const text = (state.ownerNoticeText || "").trim();
+  if (!text) return;
+  db.collection("systemNotices").add({
+    text, fromName: state.user.name, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    setState({ ownerNoticeText: "" });
+    showToast("Notice sent to everyone");
+  }).catch((err) => { console.error(err); showToast("Couldn't send notice"); });
 }
 
 function renderInboxScreen() {
@@ -2152,12 +2104,14 @@ function renderInboxScreen() {
 
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
-  const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-  const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+  const activeThreads = state.threads;
 
-  const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
-  const activeThreads = state.threads.filter(t => !archivedIds.includes(t.id));
-  const archivedThreadsList = state.threads.filter(t => archivedIds.includes(t.id));
+  const followNotifs = state.activity.filter(a => a.type === "follow");
+  const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment");
+  const messageNotifs = state.activity.filter(a => a.type === "message");
+  const followUnread = followNotifs.filter(a => !a.read).length;
+  const activityUnread = likeCommentNotifs.filter(a => !a.read).length;
+  const messageNotifUnread = messageNotifs.filter(a => !a.read).length;
 
   let storyPeople = state.allUsers.filter(u => (u.followers || []).includes(myUid) || (u.following || []).includes(myUid));
   storyPeople = storyPeople.sort((a, b) => (myPinned.includes(b.uid) ? 1 : 0) - (myPinned.includes(a.uid) ? 1 : 0)).slice(0, 12);
@@ -2180,38 +2134,32 @@ function renderInboxScreen() {
     </div>
   `;
 
-  const lastFollower = followersList[followersList.length - 1];
-  const lastActivity = state.activity[0];
+  const lastFollow = followNotifs[0];
+  const lastActivityItem = likeCommentNotifs[0];
+  const lastMessageNotif = messageNotifs[0];
+  const lastSystemNotice = state.systemNotices[0];
   const rowsHtml = `
     <div class="inbox-section-row" id="secFollowers">
       <div class="inbox-section-icon" style="background:#2f8cf0">👥</div>
       <div class="inbox-section-info">
-        <div class="is-title">New followers</div>
-        <div class="is-sub">${lastFollower ? `${escapeHtml(lastFollower.name || "Someone")} started following you` : "No new followers yet"}</div>
+        <div class="is-title">New followers${followUnread > 0 ? ` (${followUnread})` : ""}</div>
+        <div class="is-sub">${lastFollow ? escapeHtml(lastFollow.text) : "No new followers yet"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
     <div class="inbox-section-row" id="secActivity">
       <div class="inbox-section-icon" style="background:#e84393">❤️</div>
       <div class="inbox-section-info">
-        <div class="is-title">Activity</div>
-        <div class="is-sub">${lastActivity ? escapeHtml(lastActivity.text) : "No activity yet"}</div>
+        <div class="is-title">Activity${activityUnread > 0 ? ` (${activityUnread})` : ""}</div>
+        <div class="is-sub">${lastActivityItem ? escapeHtml(lastActivityItem.text) : "No activity yet"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
     <div class="inbox-section-row" id="secRequests">
       <div class="inbox-section-icon" style="background:#5352ed">💬</div>
       <div class="inbox-section-info">
-        <div class="is-title">Message requests</div>
-        <div class="is-sub">${myRequests.length ? `You have ${myRequests.length} request${myRequests.length > 1 ? "s" : ""}` : "No requests"}</div>
-      </div>
-      <div class="inbox-section-chevron">›</div>
-    </div>
-    <div class="inbox-section-row" id="secArchive">
-      <div class="inbox-section-icon" style="background:#2f8cf0">🗄️</div>
-      <div class="inbox-section-info">
-        <div class="is-title">Archive</div>
-        <div class="is-sub">${archivedThreadsList.length ? `${archivedThreadsList.length} archived chat${archivedThreadsList.length > 1 ? "s" : ""}` : "No archived chats"}</div>
+        <div class="is-title">Message requests${messageNotifUnread > 0 ? ` (${messageNotifUnread})` : ""}</div>
+        <div class="is-sub">${lastMessageNotif ? escapeHtml(lastMessageNotif.text) : "No new messages"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -2219,7 +2167,7 @@ function renderInboxScreen() {
       <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
       <div class="inbox-section-info">
         <div class="is-title">System notifications</div>
-        <div class="is-sub">Creator updates and app news</div>
+        <div class="is-sub">${lastSystemNotice ? escapeHtml(lastSystemNotice.text) : "Creator updates and app news"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -2264,10 +2212,9 @@ function renderInboxScreen() {
     el.onclick = () => openChat(el.dataset.uid);
   });
 
-  document.getElementById("secFollowers").onclick = () => setState({ inboxSection: "followers" });
-  document.getElementById("secActivity").onclick = () => setState({ inboxSection: "activity" });
-  document.getElementById("secRequests").onclick = () => setState({ inboxSection: "requests" });
-  document.getElementById("secArchive").onclick = () => setState({ inboxSection: "archive" });
+  document.getElementById("secFollowers").onclick = () => { markNotificationsRead("follow"); setState({ inboxSection: "followers" }); };
+  document.getElementById("secActivity").onclick = () => { markNotificationsRead("like"); markNotificationsRead("comment"); setState({ inboxSection: "activity" }); };
+  document.getElementById("secRequests").onclick = () => { markNotificationsRead("message"); setState({ inboxSection: "requests" }); };
   document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
 
   suggested.forEach(u => {
@@ -2287,54 +2234,59 @@ function renderInboxScreen() {
     if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
     const pinBtn = document.getElementById(`pinthread-${t.id}`);
     if (pinBtn) pinBtn.onclick = () => togglePinFriend(otherUid);
-    const archBtn = document.getElementById(`archthread-${t.id}`);
-    if (archBtn) archBtn.onclick = () => archiveThread(t.id, true);
   });
 
   wireBottomNav();
 }
 
-/* Sub-screens for each Inbox section (New followers / Activity / Requests / Archive / System) */
+/* Sub-screens for each Inbox section (New followers / Activity / Message requests / System) */
 function renderInboxSubScreen() {
   const myUid = state.user.uid;
   const section = state.inboxSection;
-  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
   let title = "";
   let bodyHtml = "";
 
+  const notifRow = (a, icon, bg) => `
+    <div class="inbox-section-row" id="notif-${a.id}">
+      <div class="inbox-section-icon" style="background:${bg}">${icon}</div>
+      <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
+    </div>
+  `;
+
   if (section === "followers") {
     title = "New followers";
-    const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
-    bodyHtml = followersList.length
-      ? `<div class="user-list">${followersList.map(u => renderUserRow(u, myUid, myPinned)).join("")}</div>`
+    const list = state.activity.filter(a => a.type === "follow");
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(a => notifRow(a, "👥", "#2f8cf0")).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
   } else if (section === "activity") {
     title = "Activity";
-    bodyHtml = state.activity.length
-      ? `<div class="thread-list">${state.activity.map(a => `
-          <div class="inbox-section-row">
-            <div class="inbox-section-icon" style="background:#e84393">${a.type === "like" ? "❤️" : "💬"}</div>
-            <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
-          </div>
-        `).join("")}</div>`
+    const list = state.activity.filter(a => a.type === "like" || a.type === "comment");
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(a => notifRow(a, a.type === "like" ? "❤️" : "💬", "#e84393")).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
   } else if (section === "requests") {
     title = "Message requests";
-    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-    const list = state.allUsers.filter(u => myRequests.includes(u.uid));
+    const list = state.activity.filter(a => a.type === "message");
     bodyHtml = list.length
-      ? `<div class="user-list">${list.map(renderRequestRow).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No pending requests</div><div class="line2">Follow requests you receive show up here.</div></div>`;
-  } else if (section === "archive") {
-    title = "Archive";
-    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
-    const list = state.threads.filter(t => archivedIds.includes(t.id));
-    bodyHtml = list.length
-      ? `<div class="thread-list">${list.map(t => renderThreadRow(t, myUid, myPinned, true)).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">No archived chats</div><div class="line2">Chats you archive show up here.</div></div>`;
+      ? `<div class="thread-list">${list.map(a => `
+          <div class="inbox-section-row" id="msgnotif-${a.id}" style="cursor:pointer;">
+            <div class="inbox-section-icon" style="background:#5352ed">💬</div>
+            <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
+          </div>
+        `).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No new messages</div><div class="line2">New chats started with you show up here.</div></div>`;
   } else if (section === "system") {
     title = "System notifications";
+    const notices = state.systemNotices;
+    const composerHtml = isOwnerAccount() ? `
+      <div style="padding:14px;">
+        <textarea id="ownerNoticeInput" rows="3" placeholder="Write a notice to send to everyone..." style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.ownerNoticeText)}</textarea>
+        <button class="btn-primary" id="sendOwnerNoticeBtn" style="margin-top:8px;">Send to everyone</button>
+      </div>
+    ` : "";
     bodyHtml = `
+      ${composerHtml}
       <div class="thread-list">
         <div class="inbox-section-row">
           <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
@@ -2343,6 +2295,15 @@ function renderInboxSubScreen() {
             <div class="is-sub">Thanks for joining — explore Friends and Inbox to connect with people.</div>
           </div>
         </div>
+        ${notices.map(n => `
+          <div class="inbox-section-row">
+            <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
+            <div class="inbox-section-info">
+              <div class="is-title">${escapeHtml(n.text)}</div>
+              <div class="is-sub">${timeAgo(n.createdAt)}</div>
+            </div>
+          </div>
+        `).join("")}
       </div>
     `;
   }
@@ -2357,58 +2318,22 @@ function renderInboxSubScreen() {
   `;
   document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
 
-  if (section === "followers") {
-    state.allUsers.filter(u => (u.following || []).includes(myUid)).forEach(u => {
-      const av = document.getElementById(`useravatar-${u.uid}`);
-      const info = document.getElementById(`userinfo-${u.uid}`);
-      const followBtn = document.getElementById(`followbtn-${u.uid}`);
-      const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
-      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
-      if (av) av.onclick = () => openProfile(u.uid);
-      if (info) info.onclick = () => openProfile(u.uid);
-      if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
-      if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
-      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+  if (section === "requests") {
+    state.activity.filter(a => a.type === "message").forEach(a => {
+      const row = document.getElementById(`msgnotif-${a.id}`);
+      if (row) row.onclick = () => openChat(a.fromUid);
     });
-  } else if (section === "requests") {
-    const myRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
-    state.allUsers.filter(u => myRequests.includes(u.uid)).forEach(u => {
-      const av = document.getElementById(`useravatar-${u.uid}`);
-      const info = document.getElementById(`userinfo-${u.uid}`);
-      const acceptBtn = document.getElementById(`acceptbtn-${u.uid}`);
-      const declineBtn = document.getElementById(`declinebtn-${u.uid}`);
-      if (av) av.onclick = () => openProfile(u.uid);
-      if (info) info.onclick = () => openProfile(u.uid);
-      if (acceptBtn) acceptBtn.onclick = () => acceptFollowRequest(u.uid);
-      if (declineBtn) declineBtn.onclick = () => declineFollowRequest(u.uid);
-    });
-  } else if (section === "archive") {
-    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
-    state.threads.filter(t => archivedIds.includes(t.id)).forEach(t => {
-      const otherUid = (t.participants || []).find(p => p !== myUid);
-      const row = document.getElementById(`thread-${t.id}`);
-      if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
-      const unarchBtn = document.getElementById(`unarchthread-${t.id}`);
-      if (unarchBtn) unarchBtn.onclick = () => archiveThread(t.id, false);
-    });
+  } else if (section === "system" && isOwnerAccount()) {
+    const input = document.getElementById("ownerNoticeInput");
+    if (input) input.oninput = (e) => { state.ownerNoticeText = e.target.value; };
+    const sendBtn = document.getElementById("sendOwnerNoticeBtn");
+    if (sendBtn) sendBtn.onclick = sendSystemNotice;
   }
 
   wireBottomNav();
 }
 
-/* Archive / unarchive a thread by storing its id in my own user doc */
-function archiveThread(threadId, archive) {
-  const myUid = state.user.uid;
-  db.collection("users").doc(myUid).update({
-    archivedThreads: archive
-      ? firebase.firestore.FieldValue.arrayUnion(threadId)
-      : firebase.firestore.FieldValue.arrayRemove(threadId)
-  }).then(() => {
-    showToast(archive ? "Chat archived" : "Chat unarchived");
-  }).catch((err) => { console.error(err); showToast("Couldn't update archive"); });
-}
-
-function renderThreadRow(t, myUid, myPinned, inArchive) {
+function renderThreadRow(t, myUid, myPinned) {
   const otherUid = (t.participants || []).find(p => p !== myUid);
   const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
   const unread = (t.unread && t.unread[myUid]) || 0;
@@ -2423,11 +2348,7 @@ function renderThreadRow(t, myUid, myPinned, inArchive) {
       </div>
       ${unread > 0 ? `<div class="thread-unread-dot"></div>` : ""}
       <div class="thread-row-actions">
-        ${inArchive
-          ? `<button class="pin-icon-btn" id="unarchthread-${t.id}" title="Unarchive">↩️</button>`
-          : `<button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
-             <button class="pin-icon-btn" id="archthread-${t.id}" title="Archive">🗄️</button>`
-        }
+        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
       </div>
       <div class="thread-time">${timeAgo(t.lastMessageAt)}</div>
     </div>
@@ -2720,24 +2641,29 @@ function sendChatMessage() {
   state.chatMediaType = null;
   render();
 
-  threadRef.collection("messages").add({
-    senderUid: myUid,
-    text: text,
-    image: mediaType === "image" ? media : null,
-    video: mediaType === "video" ? media : null,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    return threadRef.set({
-      participants: [myUid, otherUid],
-      participantInfo: {
-        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
-      },
-      lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
-      [`unread.${myUid}`]: 0
-    }, { merge: true });
+  threadRef.get().then((threadDoc) => {
+    const isNewThread = !threadDoc.exists;
+    return threadRef.collection("messages").add({
+      senderUid: myUid,
+      text: text,
+      image: mediaType === "image" ? media : null,
+      video: mediaType === "video" ? media : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      return threadRef.set({
+        participants: [myUid, otherUid],
+        participantInfo: {
+          [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+          [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+        },
+        lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+        [`unread.${myUid}`]: 0
+      }, { merge: true });
+    }).then(() => {
+      if (isNewThread) logActivity(otherUid, "message", `${state.user.name} started a conversation with you`);
+    });
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't send message");
@@ -2797,29 +2723,24 @@ function openProfile(targetUid) {
   });
 }
 
-/* Sends / cancels a follow request, or unfollows, from the profile screen's follow button */
+/* Follow / unfollow from the profile screen's follow button — same instant, no-request model */
 function toggleFollow(targetUid) {
   const myUid = state.user.uid;
   const profile = state.profile || {};
   const amFollowing = (profile.followers || []).includes(myUid);
-  const requested = !amFollowing && (profile.followRequests || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
-
-  let action;
+  const batch = db.batch();
   if (amFollowing) {
-    const batch = db.batch();
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
-    action = batch.commit();
-  } else if (requested) {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
   } else {
-    action = targetRef.update({ followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
   }
 
-  action.then(() => {
-    if (!amFollowing && !requested) logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+  batch.commit().then(() => {
+    if (!amFollowing) logActivity(targetUid, "follow", `${state.user.name} started following you`);
     // No need to manually reload — listenToProfileUser's real-time listener will refresh state.profile
   }).catch((err) => {
     console.error(err);
@@ -3497,6 +3418,8 @@ function toggleLike(post) {
     likes: liked
       ? firebase.firestore.FieldValue.arrayRemove(uid)
       : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    if (!liked) logActivity(post.authorUid, "like", `${state.user.name} liked your post`);
   }).catch((err) => console.error(err));
 }
 
@@ -3511,6 +3434,9 @@ function submitCommentText(postId, text) {
       name: state.user.name,
       text: text.trim()
     })
+  }).then(() => {
+    const post = state.posts.find(p => p.id === postId);
+    if (post) logActivity(post.authorUid, "comment", `${state.user.name} commented: "${text.trim().slice(0, 60)}"`);
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't send comment");

@@ -2838,6 +2838,7 @@ function renderProfileScreen() {
   const followers = (profile.followers || []).length;
   const following = (profile.following || []).length;
   const amFollowing = !isOwn && (profile.followers || []).includes(state.user.uid);
+  const theyFollowMe = !isOwn && (profile.following || []).includes(state.user.uid);
   const requestedByMe = !isOwn && !amFollowing && (profile.followRequests || []).includes(state.user.uid);
 
   const tabs = isOwn ? [
@@ -2898,13 +2899,11 @@ function renderProfileScreen() {
         ? (amFollowing
             ? `<div class="profile-action-row">
                 <button class="profile-follow-btn following primary" id="profileMsgBtn">➤ Message</button>
-                <button class="profile-icon-btn" id="followManageBtn" title="Following">👤</button>
-                <button class="profile-icon-btn" id="profileMoreBtn" title="More">▾</button>
+                <button class="profile-icon-btn" id="followManageBtn" title="${theyFollowMe ? "Friends" : "Following"}">👤</button>
               </div>`
             : `<div class="profile-action-row">
-                <button class="profile-follow-btn ${requestedByMe ? "requested" : ""}" id="followBtn">${requestedByMe ? "Requested" : "Follow"}</button>
+                <button class="profile-follow-btn ${requestedByMe ? "requested" : ""}" id="followBtn">${requestedByMe ? "Requested" : (theyFollowMe ? "Follow back" : "Follow")}</button>
                 <button class="profile-follow-btn following" id="profileMsgBtn">Message</button>
-                <button class="profile-icon-btn" id="profileMoreBtn" title="More">▾</button>
               </div>`)
         : ""
       }
@@ -2939,13 +2938,11 @@ function renderProfileScreen() {
   } else {
     const followBtn = document.getElementById("followBtn");
     const followManageBtn = document.getElementById("followManageBtn");
-    const profileMoreBtn = document.getElementById("profileMoreBtn");
     if (followBtn) followBtn.onclick = () => toggleFollow(targetUid);
     if (followManageBtn) followManageBtn.onclick = () => {
       if (!confirm(`Unfollow ${profile.name || "this user"}?`)) return;
       toggleFollow(targetUid);
     };
-    if (profileMoreBtn) profileMoreBtn.onclick = () => showToast("More options coming soon");
     document.getElementById("profileMsgBtn").onclick = () => openChat(targetUid);
   }
 

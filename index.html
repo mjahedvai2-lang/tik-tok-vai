@@ -1586,11 +1586,6 @@ function getFriendsListData() {
   const q = state.friendsSearch.trim().toLowerCase();
 
   let list = state.allUsers;
-  if (state.friendsTab === "following") {
-    list = state.allUsers.filter(u => (u.followers || []).includes(myUid));
-  } else if (state.friendsTab === "followers") {
-    list = state.allUsers.filter(u => (u.following || []).includes(myUid));
-  }
   if (q) {
     list = list.filter(u =>
       (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
@@ -1604,7 +1599,7 @@ function getFriendsListData() {
 
   const rowsHtml = list.length
     ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
-    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No one here yet</div><div class="line2">Try a different search or tab.</div></div>`;
+    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No one here yet</div><div class="line2">Try a different search.</div></div>`;
 
   return { myUid, myPinned, list, rowsHtml };
 }
@@ -1643,36 +1638,20 @@ function refreshFriendsListOnly() {
 function renderFriendsScreen() {
   const myUid = state.user.uid;
 
-  if (state.friendsSubTab === "videos") {
-    renderFriendsVideoFeed();
-    return;
-  }
-
   const { list, rowsHtml } = getFriendsListData();
 
   root.innerHTML = `
     <div class="topbar">
       <div class="brand-sm" id="brandHomeBtn2">Friends</div>
     </div>
-    <div class="friends-sub-tabs">
-      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeople">People</button>
-      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideos">Videos</button>
-    </div>
     <div class="friends-search-wrap">
       <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
-    </div>
-    <div class="simple-tabs">
-      <button class="simple-tab ${state.friendsTab === "all" ? "active" : ""}" data-tab="all">All</button>
-      <button class="simple-tab ${state.friendsTab === "followers" ? "active" : ""}" data-tab="followers">Followers</button>
-      <button class="simple-tab ${state.friendsTab === "following" ? "active" : ""}" data-tab="following">Following</button>
     </div>
     <div class="user-list">${rowsHtml}</div>
     ${renderBottomNav("friends")}
   `;
 
   document.getElementById("brandHomeBtn2").onclick = () => setState({ view: "feed" });
-  document.getElementById("friendsSubPeople").onclick = () => setState({ friendsSubTab: "people" });
-  document.getElementById("friendsSubVideos").onclick = () => setState({ friendsSubTab: "videos" });
 
   // IMPORTANT: do NOT call setState() here — see refreshFriendsListOnly() comment above.
   // Mutate state directly and only patch the results list, so the input keeps focus
@@ -1683,52 +1662,7 @@ function renderFriendsScreen() {
     refreshFriendsListOnly();
   };
 
-  document.querySelectorAll(".simple-tab[data-tab]").forEach(btn => {
-    btn.onclick = () => setState({ friendsTab: btn.dataset.tab });
-  });
-
   wireFriendsListRows(list);
-  wireBottomNav();
-}
-
-/* Friends' video feed: full-screen swipeable feed (same style as Home), but restricted to ONLY
-   people the user follows — never shows anyone else's posts. */
-function renderFriendsVideoFeed() {
-  const myUid = state.user.uid;
-  const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
-  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
-  const videos = state.posts.filter(p =>
-    followingUids.has(p.authorUid) &&
-    p.media &&
-    hiddenSafe(p) &&
-    (!p.privacy || p.privacy === "public")
-  );
-
-  root.innerHTML = `
-    <div class="feed-topbar on-light">
-      <button class="feed-tab-btn" id="friendsToPeopleBtn">People</button>
-      <button class="feed-tab-btn active" style="pointer-events:none;">Videos</button>
-      <button class="feed-search-btn" id="friendsFeedSearchBtn">🔍</button>
-    </div>
-    ${videos.length ? `<div class="fs-scroll" id="fsScrollFriends">${videos.map(renderFsSlide).join("")}</div>` : `
-      <div class="fs-empty-full" style="position:static; min-height:60vh;">
-        <div style="font-size:40px;margin-bottom:10px;">🎬</div>
-        <div style="font-weight:700;margin-bottom:6px;">No friend videos yet</div>
-        <div style="font-size:13px;">Follow people and their posts will show up here.</div>
-      </div>
-    `}
-    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
-    ${renderShareSheet()}
-    ${renderOwnerSheet()}
-    ${renderFsCommentsSheet(videos)}
-    ${renderBottomNav("friends")}
-  `;
-  document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
-  document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
-
-  wireFsSlideHandlers(videos);
-  wireSheetHandlers();
-  wireFsCommentsHandlers(videos);
   wireBottomNav();
 }
 

@@ -1,5 +1,5 @@
 // মিলন — Service Worker (network-first, যাতে সব ফোনে সবসময় সর্বশেষ ভার্সন দেখা যায়)
-const CACHE_NAME = "milon-cache-v2"; // ভার্সন বাড়ানো হলো — পুরনো ক্যাশ স্বয়ংক্রিয়ভাবে মুছে যাবে
+const CACHE_NAME = "milon-cache-v3"; // ভার্সন বাড়ানো হলো — পুরনো ক্যাশ স্বয়ংক্রিয়ভাবে মুছে যাবে
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
@@ -37,7 +37,7 @@ self.addEventListener("fetch", (event) => {
   // পেলে সেটাই দেখাবে + ক্যাশ আপডেট করে রাখবে (পরের অফলাইন ব্যবহারের জন্য)।
   // ইন্টারনেট না থাকলে (অফলাইন) তখনই পুরনো ক্যাশ থেকে দেখাবে।
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then((networkResponse) => {
         const responseClone = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {

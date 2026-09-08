@@ -670,6 +670,7 @@ let state = {
   allUsersLoaded: false,
   friendsSubTab: "people", // people | videos  (videos = friends' video feed)
   friendsSearch: "",
+  followListSearch: "",   // search text for the Following/Followers/Friends screen
 
   threads: [],          // inbox conversations the current user is part of
   inboxSection: null,   // null | "followers" | "activity" | "requests" | "archive" | "system"
@@ -2974,7 +2975,7 @@ function profileEmptyHtml(line1, line2, showCta) {
 
 /* ---------------- Following / Followers list screen ---------------- */
 function openFollowList(targetUid, kind) {
-  setState({ view: "followList", followListUid: targetUid, followListKind: kind });
+  setState({ view: "followList", followListUid: targetUid, followListKind: kind, followListSearch: "" });
   if (!state.allUsersLoaded) {
     db.collection("users").limit(200).get().then((snap) => {
       const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== state.user.uid);
@@ -2983,28 +2984,75 @@ function openFollowList(targetUid, kind) {
   }
 }
 
-function renderFollowListScreen() {
+/* Computes the three tab lists (Following / Followers / Friends) for whichever profile
+   this screen is open on. "Friends" = mutual: people that profile follows AND who follow
+   that profile back. */
+function computeFollowListData() {
   const targetUid = state.followListUid;
-  const kind = state.followListKind;
   const isOwn = targetUid === state.user.uid;
   const profile = isOwn ? state.profile : (state.profileUserDoc && state.profileUserDoc.uid === targetUid ? state.profileUserDoc : (state.allUsers.find(u => u.uid === targetUid) || {}));
-  const ids = kind === "following" ? (profile.following || []) : (profile.followers || []);
-  const list = state.allUsers.filter(u => ids.includes(u.uid));
+  const followingIds = profile.following || [];
+  const followerIds = profile.followers || [];
+  const friendIds = followingIds.filter(id => followerIds.includes(id));
+  const idsForKind = { following: followingIds, followers: followerIds, friends: friendIds };
+  const kind = idsForKind[state.followListKind] ? state.followListKind : "following";
+
+  const q = (state.followListSearch || "").trim().toLowerCase();
+  let list = state.allUsers.filter(u => (idsForKind[kind] || []).includes(u.uid));
+  if (q) {
+    list = list.filter(u => (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q));
+  }
+  return { profile, kind, list, isSearching: !!q, counts: { following: followingIds.length, followers: followerIds.length, friends: friendIds.length } };
+}
+
+function renderFollowListScreen() {
   const myUid = state.user.uid;
+  const { kind, list, isSearching, counts } = computeFollowListData();
 
   const rowsHtml = list.length
     ? list.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("")
-    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`;
+    : (isSearching
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`);
 
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="followListBackBtn">←</button>
-      <div class="back-title">${kind === "following" ? "Following" : "Followers"}</div>
+      <div class="back-title">Connections</div>
+    </div>
+    <div class="friends-sub-tabs">
+      <button class="simple-tab ${kind === "following" ? "active" : ""}" id="followListTabFollowing">Following (${counts.following})</button>
+      <button class="simple-tab ${kind === "followers" ? "active" : ""}" id="followListTabFollowers">Followers (${counts.followers})</button>
+      <button class="simple-tab ${kind === "friends" ? "active" : ""}" id="followListTabFriends">Friends (${counts.friends})</button>
+    </div>
+    <div class="friends-search-wrap">
+      <input id="followListSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.followListSearch || "")}" />
     </div>
     <div class="user-list">${rowsHtml}</div>
   `;
   document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
+  document.getElementById("followListTabFollowing").onclick = () => setState({ followListKind: "following", followListSearch: "" });
+  document.getElementById("followListTabFollowers").onclick = () => setState({ followListKind: "followers", followListSearch: "" });
+  document.getElementById("followListTabFriends").onclick = () => setState({ followListKind: "friends", followListSearch: "" });
 
+  // Same focus-preserving pattern as the Friends screen search box: update state and
+  // re-render only the list, never the input itself, so typing doesn't lose focus/keyboard.
+  const searchInput = document.getElementById("followListSearchInput");
+  searchInput.oninput = (e) => { state.followListSearch = e.target.value; renderFollowListOnly(); };
+
+  wireFriendsRowHandlers(list);
+}
+
+function renderFollowListOnly() {
+  const myUid = state.user.uid;
+  const { list, isSearching } = computeFollowListData();
+  const listEl = document.querySelector(".user-list");
+  if (!listEl) return;
+  listEl.innerHTML = list.length
+    ? list.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("")
+    : (isSearching
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`);
   wireFriendsRowHandlers(list);
 }
 

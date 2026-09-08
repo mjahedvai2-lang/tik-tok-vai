@@ -102,8 +102,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* Only this email may use this panel — everyone else is signed out immediately. */
-const ADMIN_EMAIL = "mjahedvai2@gmail.com";
+/* Only these emails may use this panel — everyone else is signed out immediately. */
+const ADMIN_EMAILS = ["mjahedvai2@gmail.com", "mdjahedvai941@gmail.com"];
 
 const root = document.getElementById("root");
 let state = {
@@ -151,7 +151,7 @@ function timeAgo(ts) {
 auth.onAuthStateChanged((firebaseUser) => {
   state.authReady = true;
   if (firebaseUser) {
-    if ((firebaseUser.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    if (!ADMIN_EMAILS.includes((firebaseUser.email || "").toLowerCase())) {
       state.accessDenied = true;
       state.user = null;
       auth.signOut();

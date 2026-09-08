@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milon — Admin Panel</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F6F3EC; --card: #FFFFFF; --ink: #262420; --ink-soft: #6B6860;
+    --line: #E4E0D5; --teal: #0F6E56; --teal-deep: #085041; --coral: #D85A30; --coral-soft: #FAECE7;
+  }
+  body { font-family: -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+  .login-wrap { max-width: 380px; margin: 15vh auto; padding: 0 20px; }
+  .brand { font-size: 26px; font-weight: 800; color: var(--teal-deep); margin-bottom: 4px; }
+  .sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 24px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .field input, .field textarea {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-size: 15px; background: var(--card); color: var(--ink); font-family: inherit;
+  }
+  .btn {
+    border: none; border-radius: 10px; background: var(--teal-deep); color: #fff;
+    font-size: 14px; font-weight: 700; padding: 11px 18px; cursor: pointer;
+  }
+  .btn.danger { background: #c0392b; }
+  .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+  .error-msg { color: var(--coral); font-size: 13px; margin-top: 10px; text-align: center; min-height: 16px; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { margin: 0; }
+  .logout-btn { border: none; background: none; color: var(--ink-soft); font-size: 13px; cursor: pointer; }
+
+  .stats-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card {
+    flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px; text-align: center;
+  }
+  .stat-card .num { font-size: 24px; font-weight: 800; color: var(--teal-deep); }
+  .stat-card .lbl { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+  .card h3 { font-size: 15px; margin-bottom: 12px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 60;
+  }
+  .toast.show { opacity: 1; }
+
+  .row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .row:last-child { border-bottom: none; }
+  .row .avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--coral-soft); color: var(--coral);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; overflow: hidden;
+  }
+  .row .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .row-info { flex: 1; min-width: 0; }
+  .row-info .name { font-weight: 600; font-size: 14px; }
+  .row-info .sub { font-size: 12px; color: var(--ink-soft); }
+  .row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: var(--coral-soft); color: var(--coral); }
+  .badge.banned { background: #c0392b; color: #fff; }
+  .empty-msg { color: var(--ink-soft); font-size: 13px; text-align: center; padding: 20px 0; }
+  .post-text-preview { font-size: 13px; color: var(--ink); margin-top: 2px; white-space: pre-wrap; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab-btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 18px; cursor: pointer;
+  }
+  .tab-btn.active { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ================= Firebase config (same project as the Milon app) ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDTRdBE8OniAAbmN7iQgo9ejqGqehAer5U",
+  authDomain: "tik-tok-vai.firebaseapp.com",
+  projectId: "tik-tok-vai",
+  storageBucket: "tik-tok-vai.firebasestorage.app",
+  messagingSenderId: "182459233826",
+  appId: "1:182459233826:web:9cfb0c7d24d51307b37c7b",
+  measurementId: "G-0GXPRM00VH"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* Only this email may use this panel — everyone else is signed out immediately. */
+const ADMIN_EMAIL = "mjahedvai2@gmail.com";
+
+const root = document.getElementById("root");
+let state = {
+  authReady: false,
+  user: null,
+  accessDenied: false,
+  authError: "",
+  tab: "overview",       // overview | notices | reports | users
+  users: [],
+  usersLoaded: false,
+  posts: [],
+  postsLoaded: false,
+  noticeText: "",
+  notices: [],
+  toastMsg: ""
+};
+
+function setState(patch) { state = { ...state, ...patch }; render(); }
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+function initials(name) {
+  if (!name) return "?";
+  return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+}
+function showToast(msg) {
+  state.toastMsg = msg;
+  render();
+  requestAnimationFrame(() => { const t = document.getElementById("toast"); if (t) t.classList.add("show"); });
+  setTimeout(() => { const t = document.getElementById("toast"); if (t) t.classList.remove("show"); }, 2200);
+}
+function timeAgo(ts) {
+  if (!ts || !ts.toDate) return "just now";
+  const diffMs = Date.now() - ts.toDate().getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+auth.onAuthStateChanged((firebaseUser) => {
+  state.authReady = true;
+  if (firebaseUser) {
+    if ((firebaseUser.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      state.accessDenied = true;
+      state.user = null;
+      auth.signOut();
+      render();
+      return;
+    }
+    state.user = { uid: firebaseUser.uid, email: firebaseUser.email, name: firebaseUser.displayName || "Admin" };
+    state.accessDenied = false;
+    loadUsers();
+    loadPosts();
+    listenToNotices();
+  } else {
+    state.user = null;
+  }
+  render();
+});
+
+function handleLogin() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
+  if (!email || !pass) { setState({ authError: "Enter your email and password" }); return; }
+  const btn = document.getElementById("loginBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Signing in..."; }
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(() => setState({ authError: "" }))
+    .catch((err) => {
+      console.error(err);
+      setState({ authError: "Incorrect email or password" });
+    });
+}
+
+function handleLogout() { auth.signOut(); }
+
+/* ================= Data loading ================= */
+function loadUsers() {
+  db.collection("users").get().then((snap) => {
+    setState({ users: snap.docs.map(d => ({ uid: d.id, ...d.data() })), usersLoaded: true });
+  }).catch((err) => { console.error(err); showToast("Couldn't load users"); });
+}
+
+function loadPosts() {
+  db.collection("posts").orderBy("createdAt", "desc").limit(300).get().then((snap) => {
+    setState({ posts: snap.docs.map(d => ({ id: d.id, ...d.data() })), postsLoaded: true });
+  }).catch((err) => { console.error(err); showToast("Couldn't load posts"); });
+}
+
+let unsubscribeNotices = null;
+function listenToNotices() {
+  if (unsubscribeNotices) unsubscribeNotices();
+  unsubscribeNotices = db.collection("systemNotices").orderBy("createdAt", "desc").limit(30)
+    .onSnapshot((snap) => { setState({ notices: snap.docs.map(d => ({ id: d.id, ...d.data() })) }); },
+    (err) => console.error(err));
+}
+
+/* ================= Actions ================= */
+function sendNotice() {
+  const text = state.noticeText.trim();
+  if (!text) return;
+  db.collection("systemNotices").add({
+    text, fromName: "Milon Team", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => { setState({ noticeText: "" }); showToast("Notice sent to everyone"); })
+    .catch((err) => { console.error(err); showToast("Couldn't send notice"); });
+}
+
+function deleteNotice(id) {
+  if (!confirm("Delete this notice?")) return;
+  db.collection("systemNotices").doc(id).delete()
+    .then(() => showToast("Notice deleted"))
+    .catch((err) => { console.error(err); showToast("Couldn't delete notice"); });
+}
+
+function toggleBanUser(uid, currentlyBanned) {
+  const label = currentlyBanned ? "unban" : "ban";
+  if (!confirm(`Are you sure you want to ${label} this user?`)) return;
+  db.collection("users").doc(uid).update({ banned: !currentlyBanned }).then(() => {
+    setState({ users: state.users.map(u => u.uid === uid ? { ...u, banned: !currentlyBanned } : u) });
+    showToast(currentlyBanned ? "User unbanned" : "User banned");
+  }).catch((err) => { console.error(err); showToast("Couldn't update user"); });
+}
+
+function deletePost(postId) {
+  if (!confirm("Permanently delete this post?")) return;
+  db.collection("posts").doc(postId).delete().then(() => {
+    setState({ posts: state.posts.filter(p => p.id !== postId) });
+    showToast("Post deleted");
+  }).catch((err) => { console.error(err); showToast("Couldn't delete post"); });
+}
+
+function togglePostHidden(postId, currentlyHidden) {
+  db.collection("posts").doc(postId).update({ hidden: !currentlyHidden }).then(() => {
+    setState({ posts: state.posts.map(p => p.id === postId ? { ...p, hidden: !currentlyHidden } : p) });
+    showToast(currentlyHidden ? "Post unhidden" : "Post hidden");
+  }).catch((err) => { console.error(err); showToast("Couldn't update post"); });
+}
+
+/* ================= Render ================= */
+function render() {
+  if (!state.authReady) { root.innerHTML = `<div class="login-wrap"><div class="sub">Loading...</div></div>`; return; }
+  if (state.accessDenied) { renderAccessDenied(); return; }
+  if (!state.user) { renderLogin(); return; }
+  renderPanel();
+}
+
+function renderAccessDenied() {
+  root.innerHTML = `
+    <div class="login-wrap">
+      <div class="brand">Milon Admin</div>
+      <div class="sub" style="color:var(--coral);">Access denied — this account isn't authorized to use the admin panel.</div>
+      <button class="btn ghost" id="backToLoginBtn" style="width:100%;">Try a different account</button>
+    </div>
+  `;
+  document.getElementById("backToLoginBtn").onclick = () => setState({ accessDenied: false });
+}
+
+function renderLogin() {
+  root.innerHTML = `
+    <div class="login-wrap">
+      <div class="brand">Milon Admin</div>
+      <div class="sub">Sign in with your admin account</div>
+      <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com" /></div>
+      <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="Password" /></div>
+      <button class="btn" id="loginBtn" style="width:100%;">Sign in</button>
+      <div class="error-msg">${escapeHtml(state.authError)}</div>
+    </div>
+  `;
+  document.getElementById("loginBtn").onclick = handleLogin;
+  document.getElementById("loginPass").onkeydown = (e) => { if (e.key === "Enter") handleLogin(); };
+}
+
+function renderPanel() {
+  const totalUsers = state.users.length;
+  const totalPosts = state.posts.length;
+  const bannedCount = state.users.filter(u => u.banned).length;
+  const reportedPosts = state.posts.filter(p => (p.reports || []).length > 0 || p.hidden);
+
+  root.innerHTML = `
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">Milon Admin</div>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn ${state.tab === "overview" ? "active" : ""}" data-tab="overview">Overview</button>
+        <button class="tab-btn ${state.tab === "notices" ? "active" : ""}" data-tab="notices">Send notice</button>
+        <button class="tab-btn ${state.tab === "reports" ? "active" : ""}" data-tab="reports">Reported posts${reportedPosts.length ? ` (${reportedPosts.length})` : ""}</button>
+        <button class="tab-btn ${state.tab === "users" ? "active" : ""}" data-tab="users">Users</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="num">${totalUsers}</div><div class="lbl">Total users</div></div>
+        <div class="stat-card"><div class="num">${totalPosts}</div><div class="lbl">Total posts</div></div>
+        <div class="stat-card"><div class="num">${reportedPosts.length}</div><div class="lbl">Reported posts</div></div>
+        <div class="stat-card"><div class="num">${bannedCount}</div><div class="lbl">Banned users</div></div>
+      </div>
+
+      <div id="tabBody"></div>
+    </div>
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+  `;
+
+  document.getElementById("logoutBtn").onclick = handleLogout;
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.onclick = () => setState({ tab: btn.dataset.tab });
+  });
+
+  const body = document.getElementById("tabBody");
+  if (state.tab === "overview") body.innerHTML = renderOverviewTab();
+  else if (state.tab === "notices") { body.innerHTML = renderNoticesTab(); wireNoticesTab(); }
+  else if (state.tab === "reports") { body.innerHTML = renderReportsTab(reportedPosts); wireReportsTab(reportedPosts); }
+  else if (state.tab === "users") { body.innerHTML = renderUsersTab(); wireUsersTab(); }
+}
+
+function renderOverviewTab() {
+  return `
+    <div class="card">
+      <h3>Welcome</h3>
+      <div class="sub" style="margin-bottom:0;">Use the tabs above to send a notice to every user, review reported posts, or manage user accounts. All changes here take effect in the Milon app in real time.</div>
+    </div>
+  `;
+}
+
+function renderNoticesTab() {
+  return `
+    <div class="card">
+      <h3>Send a notice to everyone</h3>
+      <div class="field">
+        <textarea id="noticeInput" rows="3" placeholder="Write a notice...">${escapeHtml(state.noticeText)}</textarea>
+      </div>
+      <button class="btn" id="sendNoticeBtn">Send to everyone</button>
+    </div>
+    <div class="card">
+      <h3>Past notices</h3>
+      ${state.notices.length ? state.notices.map(n => `
+        <div class="row">
+          <div class="row-info">
+            <div class="name">${escapeHtml(n.text)}</div>
+            <div class="sub">${timeAgo(n.createdAt)}</div>
+          </div>
+          <div class="row-actions"><button class="btn danger" data-del="${n.id}">Delete</button></div>
+        </div>
+      `).join("") : `<div class="empty-msg">No notices sent yet</div>`}
+    </div>
+  `;
+}
+function wireNoticesTab() {
+  document.getElementById("noticeInput").oninput = (e) => { state.noticeText = e.target.value; };
+  document.getElementById("sendNoticeBtn").onclick = sendNotice;
+  document.querySelectorAll("[data-del]").forEach(btn => { btn.onclick = () => deleteNotice(btn.dataset.del); });
+}
+
+function renderReportsTab(reportedPosts) {
+  return `
+    <div class="card">
+      <h3>Reported / hidden posts</h3>
+      ${reportedPosts.length ? reportedPosts.map(p => `
+        <div class="row" style="align-items:flex-start;">
+          <div class="row-info">
+            <div class="name">${escapeHtml(p.authorName || "Unknown")} ${p.hidden ? `<span class="badge banned">Hidden</span>` : ""} <span class="badge">${(p.reports || []).length} reports</span></div>
+            <div class="post-text-preview">${escapeHtml((p.text || "(no caption)").slice(0, 140))}</div>
+          </div>
+          <div class="row-actions" style="flex-direction:column;">
+            <button class="btn ghost" data-toggle-hide="${p.id}" data-hidden="${p.hidden ? "1" : "0"}">${p.hidden ? "Unhide" : "Hide"}</button>
+            <button class="btn danger" data-del-post="${p.id}">Delete</button>
+          </div>
+        </div>
+      `).join("") : `<div class="empty-msg">No reported posts right now</div>`}
+    </div>
+  `;
+}
+function wireReportsTab(reportedPosts) {
+  document.querySelectorAll("[data-toggle-hide]").forEach(btn => {
+    btn.onclick = () => togglePostHidden(btn.dataset.toggleHide, btn.dataset.hidden === "1");
+  });
+  document.querySelectorAll("[data-del-post]").forEach(btn => {
+    btn.onclick = () => deletePost(btn.dataset.delPost);
+  });
+}
+
+function renderUsersTab() {
+  const users = [...state.users].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  return `
+    <div class="card">
+      <h3>All users (${users.length})</h3>
+      ${users.length ? users.map(u => `
+        <div class="row">
+          <div class="avatar">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+          <div class="row-info">
+            <div class="name">${escapeHtml(u.name || "User")} ${u.banned ? `<span class="badge banned">Banned</span>` : ""}</div>
+            <div class="sub">@${escapeHtml(u.handle || "user")} · ${(u.followers || []).length} followers</div>
+          </div>
+          <div class="row-actions">
+            <button class="btn ${u.banned ? "ghost" : "danger"}" data-ban="${u.uid}" data-banned="${u.banned ? "1" : "0"}">${u.banned ? "Unban" : "Ban"}</button>
+          </div>
+        </div>
+      `).join("") : `<div class="empty-msg">No users loaded</div>`}
+    </div>
+  `;
+}
+function wireUsersTab() {
+  document.querySelectorAll("[data-ban]").forEach(btn => {
+    btn.onclick = () => toggleBanUser(btn.dataset.ban, btn.dataset.banned === "1");
+  });
+}
+
+render();
+</script>
+</body>
+</html>

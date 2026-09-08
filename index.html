@@ -1084,6 +1084,27 @@ function handleLogout() {
   auth.signOut();
 }
 
+/* "Clear data" — for the packaged Android (TWA) app, Android's own "Clear storage" only
+   wipes the app shell, not the site data Chrome holds for this origin (localStorage,
+   IndexedDB, Firebase's own auth/cache state). This does that wipe from inside the app
+   itself: sign out, clear localStorage/sessionStorage, delete every IndexedDB database
+   (Firebase persistence included), then reload to a clean slate. Server-side data
+   (posts, videos, profile, followers) is untouched — it lives in Firebase, not on-device. */
+function handleClearData() {
+  auth.signOut().catch(() => {}).finally(() => {
+    try { localStorage.clear(); } catch (e) { console.error(e); }
+    try { sessionStorage.clear(); } catch (e) { console.error(e); }
+    if (window.indexedDB && indexedDB.databases) {
+      indexedDB.databases()
+        .then(dbs => Promise.all(dbs.map(d => d.name ? indexedDB.deleteDatabase(d.name) : null)))
+        .catch((e) => console.error(e))
+        .finally(() => location.reload());
+    } else {
+      location.reload();
+    }
+  });
+}
+
 /* ================= HOME: full-screen swipeable video feed (TikTok-style) ================= */
 function renderApp() {
   const myUid = state.user.uid;
@@ -3270,6 +3291,10 @@ function renderSettingsScreen() {
     </div>
 
     <div class="menu-list" style="margin-top:14px;">
+      <button class="menu-item danger" id="clearDataBtn">
+        <span class="menu-item-icon">🧹</span>
+        <span>Clear data</span>
+      </button>
       <button class="menu-item danger" id="logoutBtn">
         <span class="menu-item-icon">⎋</span>
         <span>Log out</span>
@@ -3278,6 +3303,10 @@ function renderSettingsScreen() {
   `;
 
   document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
+  document.getElementById("clearDataBtn").onclick = () => {
+    if (!confirm("This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?")) return;
+    handleClearData();
+  };
   document.getElementById("logoutBtn").onclick = () => {
     if (!confirm("Log out of Milon?")) return;
     handleLogout();

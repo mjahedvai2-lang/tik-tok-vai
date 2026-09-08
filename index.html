@@ -239,6 +239,8 @@
   .profile-name { font-size: 20px; font-weight: 700; }
   .profile-name-edit-btn { border: none; background: none; color: var(--ink-soft); font-size: 14px; cursor: pointer; }
   .profile-handle { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+  .profile-action-row { margin-top: 14px; display: flex; justify-content: center; gap: 8px; }
+  .profile-action-row .profile-follow-btn { margin-top: 0; }
   .profile-follow-btn {
     margin-top: 14px; display: inline-block; border: none; background: var(--coral);
     color: #fff; font-size: 13px; font-weight: 700; padding: 8px 28px; border-radius: 8px; cursor: pointer;
@@ -379,6 +381,10 @@
   }
   .pin-icon-btn.pinned { color: var(--coral); }
   .pin-flag { font-size: 11px; color: var(--coral); }
+  .kebab-btn {
+    border: none; background: none; color: var(--ink-soft); font-size: 18px; cursor: pointer;
+    padding: 4px 8px; flex-shrink: 0; line-height: 1;
+  }
 
   /* Friends video feed */
   .friends-video-feed { padding: 10px 14px 90px; display: flex; flex-direction: column; gap: 14px; }
@@ -726,6 +732,7 @@ let state = {
 
 // Tracks which post the share/owner sheet is currently acting on
 let activePostId = null;
+let activeFollowListRemoveUid = null;
 let mediaRecorderRef = null;
 let recordedChunksRef = [];
 let recordTimerRef = null;
@@ -2852,7 +2859,10 @@ function renderProfileScreen() {
       ${linksHtml}
 
       ${!isOwn
-        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>`
+        ? `<div class="profile-action-row">
+            <button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>
+            <button class="profile-follow-btn following" id="profileMsgBtn">Message</button>
+          </div>`
         : ""
       }
 
@@ -2885,6 +2895,7 @@ function renderProfileScreen() {
     wireBottomNav();
   } else {
     document.getElementById("followBtn").onclick = () => toggleFollow(targetUid);
+    document.getElementById("profileMsgBtn").onclick = () => openChat(targetUid);
   }
 
   document.querySelectorAll(".profile-tab").forEach(btn => {
@@ -3005,15 +3016,56 @@ function computeFollowListData() {
   return { profile, kind, list, isSearching: !!q, counts: { following: followingIds.length, followers: followerIds.length, friends: friendIds.length } };
 }
 
-function renderFollowListScreen() {
-  const myUid = state.user.uid;
-  const { kind, list, isSearching, counts } = computeFollowListData();
+/* Row renderer used only on this Following/Followers/Friends screen. Unlike the Friends
+   tab's renderUserRow, there's no pin icon or Message button here — tapping the avatar or
+   name opens the profile (where Message lives instead), and on your own list a "⋯" menu
+   offers Remove. */
+function renderFollowListUserRow(u, myUid, isOwn) {
+  const amFollowing = (u.followers || []).includes(myUid);
+  const label = amFollowing ? "Following" : "Follow";
+  const cls = amFollowing ? "following" : "";
+  const online = isUserOnline(u.uid);
+  return `
+    <div class="user-row">
+      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}${online ? `<span class="presence-dot"></span>` : ""}</div>
+      <div class="user-row-info" id="userinfo-${u.uid}">
+        <div class="u-name">${escapeHtml(u.name || "User")}</div>
+        <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
+      </div>
+      <div class="user-row-actions">
+        <button class="pill-btn ${cls}" id="followbtn-${u.uid}">${label}</button>
+        ${isOwn ? `<button class="kebab-btn" id="kebabbtn-${u.uid}" title="More">⋯</button>` : ""}
+      </div>
+    </div>
+  `;
+}
 
-  const rowsHtml = list.length
-    ? list.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("")
+function wireFollowListRowHandlers(list) {
+  list.forEach(u => {
+    const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
+    const rowInfo = document.getElementById(`userinfo-${u.uid}`);
+    const followBtn = document.getElementById(`followbtn-${u.uid}`);
+    const kebabBtn = document.getElementById(`kebabbtn-${u.uid}`);
+    if (rowAvatar) rowAvatar.onclick = () => openProfile(u.uid);
+    if (rowInfo) rowInfo.onclick = () => openProfile(u.uid);
+    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
+    if (kebabBtn) kebabBtn.onclick = () => openRemoveConnMenu(u.uid);
+  });
+}
+
+function followListRowsHtml(list, isSearching, myUid, isOwn) {
+  return list.length
+    ? list.map(u => renderFollowListUserRow(u, myUid, isOwn)).join("")
     : (isSearching
         ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
         : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`);
+}
+
+function renderFollowListScreen() {
+  const myUid = state.user.uid;
+  const isOwn = state.followListUid === myUid;
+  const { kind, list, isSearching, counts } = computeFollowListData();
+  const rowsHtml = followListRowsHtml(list, isSearching, myUid, isOwn);
 
   root.innerHTML = `
     <div class="back-row">
@@ -3029,6 +3081,12 @@ function renderFollowListScreen() {
       <input id="followListSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.followListSearch || "")}" />
     </div>
     <div class="user-list">${rowsHtml}</div>
+    ${isOwn ? `
+    <div class="sheet-overlay" id="removeConnOverlay"></div>
+    <div class="bottom-sheet" id="removeConnSheet">
+      <div class="sheet-handle"></div>
+      <button class="menu-list-item danger" id="removeConnBtn">🚫 Remove</button>
+    </div>` : ""}
   `;
   document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
   document.getElementById("followListTabFollowing").onclick = () => setState({ followListKind: "following", followListSearch: "" });
@@ -3040,20 +3098,65 @@ function renderFollowListScreen() {
   const searchInput = document.getElementById("followListSearchInput");
   searchInput.oninput = (e) => { state.followListSearch = e.target.value; renderFollowListOnly(); };
 
-  wireFriendsRowHandlers(list);
+  if (isOwn) {
+    document.getElementById("removeConnOverlay").onclick = closeSheets;
+    document.getElementById("removeConnBtn").onclick = doRemoveConnection;
+  }
+
+  wireFollowListRowHandlers(list);
 }
 
 function renderFollowListOnly() {
   const myUid = state.user.uid;
+  const isOwn = state.followListUid === myUid;
   const { list, isSearching } = computeFollowListData();
   const listEl = document.querySelector(".user-list");
   if (!listEl) return;
-  listEl.innerHTML = list.length
-    ? list.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("")
-    : (isSearching
-        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
-        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">Nobody here yet</div><div class="line2"></div></div>`);
-  wireFriendsRowHandlers(list);
+  listEl.innerHTML = followListRowsHtml(list, isSearching, myUid, isOwn);
+  wireFollowListRowHandlers(list);
+}
+
+/* "Remove" from the ⋯ menu on your own Following/Followers/Friends screen. On the
+   Followers tab this removes them as your follower without touching who you follow; on
+   the Following/Friends tabs it unfollows them — same effect as tapping "Following". */
+function openRemoveConnMenu(uid) {
+  activeFollowListRemoveUid = uid;
+  const overlay = document.getElementById("removeConnOverlay");
+  const sheet = document.getElementById("removeConnSheet");
+  if (overlay) overlay.classList.add("open");
+  if (sheet) sheet.classList.add("open");
+}
+
+function doRemoveConnection() {
+  const uid = activeFollowListRemoveUid;
+  const kind = state.followListKind;
+  closeSheets();
+  if (!uid) return;
+  const myUid = state.user.uid;
+  const targetRef = db.collection("users").doc(uid);
+  const myRef = db.collection("users").doc(myUid);
+  const batch = db.batch();
+  if (kind === "followers") {
+    batch.update(myRef, { followers: firebase.firestore.FieldValue.arrayRemove(uid) });
+    batch.update(targetRef, { following: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  } else {
+    batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(uid) });
+    batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  }
+  batch.commit().then(() => {
+    const updated = state.allUsers.map(u => {
+      if (u.uid !== uid) return u;
+      const followers = new Set(u.followers || []);
+      const following = new Set(u.following || []);
+      if (kind === "followers") following.delete(myUid); else followers.delete(myUid);
+      return { ...u, followers: Array.from(followers), following: Array.from(following) };
+    });
+    setState({ allUsers: updated });
+    showToast(kind === "followers" ? "Removed" : "Unfollowed");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't remove — check your connection or try again");
+  });
 }
 
 /* ---------------- Edit Profile screen (TikTok-style) ---------------- */
@@ -3429,6 +3532,7 @@ function openOwnerMenu(postId) {
 function closeSheets() {
   document.querySelectorAll(".sheet-overlay, .bottom-sheet").forEach(el => el.classList.remove("open"));
   activePostId = null;
+  activeFollowListRemoveUid = null;
 }
 
 function getPostLink(postId) {

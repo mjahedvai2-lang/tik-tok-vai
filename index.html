@@ -198,9 +198,9 @@
     border: 1px solid var(--line); background: var(--bg); border-radius: 20px;
     padding: 7px 14px; font-size: 13px; color: var(--ink); cursor: pointer;
   }
-  .privacy-option.selected { background: var(--teal-deep); color: #fff; border-color: var(--teal-dee); }
+  .privacy-option.selected { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
 
-  /* --------- PROFILE SCREEN ---------- */
+  /* ---------- PROFILE SCREEN ---------- */
   .profile-topbar {
     position: sticky; top: 0; z-index: 5; background: var(--bg);
     display: flex; align-items: center; justify-content: space-between;
@@ -277,6 +277,12 @@
     position: absolute; top: 5px; right: 5px; color: #fff; font-size: 15px;
     text-shadow: 0 0 4px rgba(0,0,0,0.6);
   }
+  .grid-pin-toggle {
+    position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.55); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; border: none; z-index: 2; cursor: pointer;
+  }
+  .grid-pin-toggle.pinned { background: var(--coral); }
 
   /* ---------- BOTTOM NAV BAR ---------- */
   .bottom-nav {
@@ -337,7 +343,11 @@
     display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line);
     position: relative;
   }
-  .user-row .avatar { width: 44px; height: 44px; font-size: 15px; cursor: pointer; }
+  .user-row .avatar { width: 44px; height: 44px; font-size: 15px; cursor: pointer; position: relative; }
+  .presence-dot {
+    position: absolute; bottom: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%;
+    background: #2ecc71; border: 2px solid var(--bg);
+  }
   .user-row-info { flex: 1; min-width: 0; cursor: pointer; }
   .user-row-info .u-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 5px; }
   .user-row-info .u-handle { font-size: 12px; color: var(--ink-soft); }
@@ -424,6 +434,8 @@
   }
   .chat-header .avatar { width: 34px; height: 34px; font-size: 13px; }
   .chat-header .c-name { font-weight: 700; font-size: 15px; }
+  .chat-header .c-status { font-size: 11px; color: var(--ink-soft); }
+  .chat-header-info { display: flex; flex-direction: column; }
   .chat-messages { padding: 14px; padding-bottom: 110px; display: flex; flex-direction: column; gap: 8px; min-height: 60vh; }
   .chat-bubble {
     max-width: 75%; padding: 9px 13px; border-radius: 16px; font-size: 14px; line-height: 1.45;
@@ -436,6 +448,7 @@
   }
   .chat-bubble img { max-width: 200px; max-height: 260px; border-radius: 10px; display: block; object-fit: cover; }
   .chat-bubble .bubble-text-with-image { margin-top: 6px; }
+  .chat-seen-label { font-size: 10px; color: var(--ink-soft); text-align: right; margin-top: 2px; align-self: flex-end; }
   .chat-input-bar {
     position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 480px;
     background: var(--card); border-top: 1px solid var(--line);
@@ -463,6 +476,7 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
   }
   .chat-send-btn:disabled { background: var(--line); color: var(--ink-soft); }
+  .chat-typing-indicator { font-size: 12px; color: var(--ink-soft); padding: 0 14px 6px; font-style: italic; }
 
   /* ---------- CAMERA / CREATE SCREEN ---------- */
   .camera-screen { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #000; z-index: 200; display: flex; flex-direction: column; }
@@ -470,8 +484,10 @@
   .camera-viewport video.live { width: 100%; height: 100%; object-fit: cover; }
   .camera-viewport img.captured, .camera-viewport video.captured { width: 100%; height: 100%; object-fit: cover; }
   .camera-top-bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px; z-index: 3; }
+  .camera-top-icons { display: flex; align-items: center; gap: 10px; }
   .camera-close-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer; }
-  .camera-flip-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .camera-flip-btn, .camera-flash-btn, .camera-timer-btn { background: rgba(0,0,0,0.35); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .camera-flash-btn.on, .camera-timer-btn.on { background: var(--coral); }
   .camera-hint { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.4); color: #fff; padding: 8px 16px; border-radius: 16px; font-size: 13px; z-index: 3; }
   .camera-error-box { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; padding: 30px; font-size: 14px; line-height: 1.6; }
   .camera-bottom-bar { padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: #000; display: flex; flex-direction: column; gap: 14px; }
@@ -492,14 +508,26 @@
   .camera-record-btn-inner { width: 58px; height: 58px; border-radius: 50%; background: var(--coral); transition: all 0.15s; }
   .camera-record-btn.recording .camera-record-btn-inner { border-radius: 8px; width: 30px; height: 30px; background: #FE2C55; }
   .camera-record-timer { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,44,85,0.85); color: #fff; padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; z-index: 3; }
+  .camera-countdown { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 4; font-size: 90px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
   .camera-next-btn { width: 46px; height: 46px; border-radius: 50%; background: var(--teal); border: none; color: #fff; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .camera-next-placeholder { width: 46px; height: 46px; flex-shrink: 0; }
+  .camera-speed-row { display: flex; justify-content: center; gap: 10px; }
+  .camera-speed-btn { background: rgba(255,255,255,0.12); border: none; color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 14px; cursor: pointer; }
+  .camera-speed-btn.active { background: #fff; color: #111; }
+  .camera-filter-row { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; }
+  .camera-filter-btn { flex-shrink: 0; background: rgba(255,255,255,0.12); border: 2px solid transparent; color: #fff; font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 16px; cursor: pointer; }
+  .camera-filter-btn.active { border-color: #fff; background: rgba(255,255,255,0.25); }
+  .live.mirrored { transform: scaleX(-1); }
+  .live.filter-bw { filter: grayscale(1); }
+  .live.filter-warm { filter: saturate(1.4) sepia(0.25); }
+  .live.filter-cool { filter: saturate(1.2) hue-rotate(180deg) brightness(1.05); }
+  .live.filter-vivid { filter: saturate(1.8) contrast(1.15); }
+  .live.filter-soft { filter: brightness(1.08) contrast(0.92) saturate(0.9); }
 
   .capture-review-bar { padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: #000; display: flex; gap: 10px; }
   .capture-review-bar button { flex: 1; padding: 13px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
   .capture-retake-btn { background: rgba(255,255,255,0.15); color: #fff; }
   .capture-use-btn { background: var(--coral); color: #fff; }
-  .live.mirrored { transform: scaleX(-1); }
 
   /* ---------- POST COMPOSE SCREEN (caption after camera/gallery capture) ---------- */
   .compose-screen { padding-bottom: 100px; }
@@ -543,7 +571,7 @@
   }
   .fs-overlay-bottom { position: relative; z-index: 2; width: 100%; padding: 16px 70px 22px 14px; color: #fff;
     background: linear-gradient(to top, rgba(0,0,0,0.55), transparent); }
-  .fs-author { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .fs-author { font-weight: 700; font-size: 14px; margin-bottom: 4px; cursor: pointer; }
   .fs-caption { font-size: 13px; line-height: 1.5; margin-bottom: 4px; white-space: pre-wrap; }
   .fs-reposted-tag { font-size: 12px; background: rgba(255,255,255,0.18); display: inline-block; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; }
   .fs-side-rail {
@@ -562,7 +590,7 @@
   /* Comments sheet for full-screen feed */
   .fs-comments-sheet .comment-line { display: flex; justify-content: space-between; align-items: center; }
 
-  /* ---------- EXPANDED SHARE SHEET ---------- */
+  /* ---------- SHARE SHEET (owner vs. non-owner variants) ---------- */
   .share-sendto-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 4px 16px; }
   .share-sendto-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 58px; background: none; border: none; cursor: pointer; }
   .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 6px 2px 10px; }
@@ -597,12 +625,13 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+/* The account whose login email matches this constant gets a "Send notice" composer
+   inside System notifications, so the app owner can broadcast a message to every user
+   without touching Firebase Console. Change this to your own login email. */
+const OWNER_EMAIL = "owner@milon.app";
+
 /* ================= App state ================= */
 const root = document.getElementById("root");
-
-// If this page was opened from a shared post link (?post=POST_ID), remember which
-// post that is so we can make sure it's shown once the person is logged in.
-const sharedPostIdFromUrl = new URLSearchParams(window.location.search).get("post");
 
 let state = {
   authReady: false,
@@ -610,8 +639,6 @@ let state = {
   mode: "login",       // login | signup
   authError: "",
   posts: [],
-  sharedPostId: sharedPostIdFromUrl, // postId from a shared link, or null
-  sharedPost: null,                  // the fetched post itself, once loaded (merged into the feed)
   composerText: "",
   composerMedia: null,
   composerMediaType: null, // "image" | "video"
@@ -622,12 +649,12 @@ let state = {
   profileTab: "posts",  // posts | private | reposts | saved | likes
   viewingUid: null,     // null = viewing own profile; otherwise the uid of the profile being viewed
   viewingPosts: [],     // public posts belonging to the profile being viewed (used when viewingUid is set)
+  profileUserDoc: null, // real-time copy of the profile currently being viewed (own or other) — powers live follower/following counts
 
   myUserDoc: null,       // real-time copy of my own users/{uid} doc (for follow-request & badge info)
 
   allUsers: [],         // cached list of {uid, ...userDoc} for the Friends screen
   allUsersLoaded: false,
-  friendsTab: "all",    // all | followers | following | requests
   friendsSubTab: "people", // people | videos  (videos = friends' video feed)
   friendsSearch: "",
 
@@ -635,6 +662,7 @@ let state = {
   inboxSection: null,   // null | "followers" | "activity" | "requests" | "archive" | "system"
   chatUid: null,        // the other participant's uid while in a chat
   chatProfile: null,    // the other participant's user doc, for the chat header
+  chatOtherPresence: null, // real-time presence doc for the other participant {online, lastSeenAt}
   chatMessages: [],
   chatText: "",
   chatMedia: null,       // compressed data-url of an image/video staged to send in the current chat
@@ -658,9 +686,16 @@ let state = {
   cameraCapturedBlob: null,
   cameraError: null,
   cameraLastGalleryThumb: null,
+  cameraFlashOn: false,
+  cameraTimerOn: false,       // 3-second countdown before capture
+  cameraCountdown: 0,
+  cameraSpeed: "1x",          // 0.5x | 1x | 2x | 3x
+  cameraFilter: "none",       // none | bw | warm | cool | vivid | soft
 
-  activity: [],          // recent activity items across users (likes/comments/replies) fetched for the Activity section
+  activity: [],          // real-time notification docs (type: follow | like | comment | message) written to my own users/{uid}/notifications
   activityLoaded: false,
+  systemNotices: [],      // real-time broadcast messages from the app owner (systemNotices collection)
+  ownerNoticeText: "",
 
   // ---- Full-screen video feed state (Home / Friends) ----
   homeFeedTab: "forYou",   // forYou | following  (Home)
@@ -718,6 +753,20 @@ function showToast(msg) {
   }, 2200);
 }
 
+/* Allow-listed file types for uploads — blocks disguised/executable files even if
+   the browser's file picker filter is bypassed. */
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/3gpp", "video/x-matroska"];
+function isAllowedImageFile(file) {
+  return file && ALLOWED_IMAGE_TYPES.includes(file.type);
+}
+function isAllowedVideoFile(file) {
+  return file && ALLOWED_VIDEO_TYPES.includes(file.type);
+}
+function isAllowedMediaFile(file) {
+  return isAllowedImageFile(file) || isAllowedVideoFile(file);
+}
+
 /* Shared helper: read an image file, optionally crop it to a centered square, resize, and
    compress it down to a JPEG data URL. Used by the composer, avatar upload, and chat image send. */
 function compressImageToDataUrl(file, opts, callback) {
@@ -768,11 +817,22 @@ auth.onAuthStateChanged((firebaseUser) => {
     };
     state.authReady = true;
     state.view = "feed";
-    ensureUserProfile(state.user).then(() => loadSharedPostIfNeeded()).then(() => {
+    ensureUserProfile(state.user).then(() => {
+      // Banned check: the separate admin panel can set banned:true on a user's doc.
+      // Block them here so a ban actually takes effect instead of only hiding a button.
+      return db.collection("users").doc(state.user.uid).get();
+    }).then((doc) => {
+      if (doc.exists && doc.data().banned) {
+        auth.signOut();
+        alert("Your account has been suspended by the admin.");
+        return;
+      }
       listenToPosts();
       listenToOwnUser(state.user.uid);
       listenToThreads();
-      listenToActivity();
+      listenToNotifications();
+      listenToSystemNotices();
+      goOnline(state.user.uid);
       if (window.Notification && Notification.permission === "default") {
         Notification.requestPermission().catch(() => {});
       }
@@ -781,7 +841,10 @@ auth.onAuthStateChanged((firebaseUser) => {
     if (unsubscribeOwnUser) unsubscribeOwnUser();
     if (unsubscribeThreads) unsubscribeThreads();
     if (unsubscribeChat) unsubscribeChat();
+    if (unsubscribeChatPresence) unsubscribeChatPresence();
     if (unsubscribeActivity) unsubscribeActivity();
+    if (unsubscribeSystemNotices) unsubscribeSystemNotices();
+    if (unsubscribeProfileUser) unsubscribeProfileUser();
     state.user = null;
     state.authReady = true;
     state.posts = [];
@@ -793,6 +856,22 @@ auth.onAuthStateChanged((firebaseUser) => {
   }
   render();
 });
+
+/* Presence: mark this user online now, and offline automatically when the tab closes. */
+function goOnline(uid) {
+  const ref = db.collection("presence").doc(uid);
+  ref.set({ online: true, lastSeenAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  window.addEventListener("beforeunload", () => {
+    ref.set({ online: false, lastSeenAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      ref.set({ online: false, lastSeenAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+    } else {
+      ref.set({ online: true, lastSeenAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+    }
+  });
+}
 
 /* Create a Firestore profile doc for this user if one doesn't exist yet */
 function ensureUserProfile(user) {
@@ -811,6 +890,7 @@ function ensureUserProfile(user) {
         pinnedPosts: [],
         pinnedFriends: [],
         archivedThreads: [],
+        banned: false,
         youtubeLink: "",
         facebookLink: "",
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -828,31 +908,22 @@ function listenToOwnUser(uid) {
     render();
   }, (err) => console.error("listenToOwnUser error:", err));
 }
-let unsubscribeAllUsers = null;
-function listenToAllUsers() {
-  if (unsubscribeAllUsers) unsubscribeAllUsers();
-  const myUid = state.user.uid;
-  unsubscribeAllUsers = db.collection("users").limit(200).onSnapshot((snap) => {
-    const users = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.uid !== myUid);
-    state.allUsers = users;
-    state.allUsersLoaded = true;
-    render();
-  }, (err) => console.error("listenToAllUsers error:", err));
-}
-/* If the app was opened via a shared post link (?post=POST_ID), fetch that
-   exact post once so it can be pinned to the top of the feed below — this way
-   it's guaranteed to show up even if it's older than the last 50 posts. */
-function loadSharedPostIfNeeded() {
-  if (!state.sharedPostId) return Promise.resolve();
-  return db.collection("posts").doc(state.sharedPostId).get().then((doc) => {
-    if (doc.exists) {
-      state.sharedPost = { id: doc.id, ...doc.data() };
-    } else {
-      showToast("That post couldn't be found — it may have been deleted");
+
+/* Real-time copy of the profile currently open (own or someone else's) — keeps
+   Followers/Following counts and lists live without needing a manual refresh. */
+let unsubscribeProfileUser = null;
+function listenToProfileUser(uid) {
+  if (unsubscribeProfileUser) unsubscribeProfileUser();
+  unsubscribeProfileUser = db.collection("users").doc(uid).onSnapshot((doc) => {
+    if (!doc.exists) return;
+    const data = { uid, ...doc.data() };
+    state.profileUserDoc = data;
+    // Keep the currently-displayed profile object in sync too (drives counts/bio/etc. on screen)
+    if (state.view === "profile" && ((state.viewingUid || state.user.uid) === uid)) {
+      state.profile = data;
     }
-  }).catch((err) => {
-    console.error("loadSharedPostIfNeeded error:", err);
-  });
+    render();
+  }, (err) => console.error("listenToProfileUser error:", err));
 }
 
 /* ================= Real-time posts from Firestore ================= */
@@ -863,14 +934,7 @@ function listenToPosts() {
     .orderBy("createdAt", "desc")
     .limit(50)
     .onSnapshot((snapshot) => {
-      let posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Keep the shared post pinned at the top of the feed, in case it's
-      // older than the 50 most recent posts and wouldn't otherwise be loaded.
-      if (state.sharedPost) {
-        posts = posts.filter(p => p.id !== state.sharedPost.id);
-        posts.unshift(state.sharedPost);
-      }
-      state.posts = posts;
+      state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       render();
     }, (err) => {
       console.error(err);
@@ -1007,7 +1071,7 @@ function renderApp() {
   });
 
   if (state.homeFeedTab === "following") {
-    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).map(u => u.uid));
+    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
     visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
   }
 
@@ -1074,7 +1138,7 @@ function renderFsSlide(p) {
       </div>
       <div class="fs-overlay-bottom">
         ${reposted ? `<div class="fs-reposted-tag">↻ You reposted this</div>` : ""}
-        <div class="fs-author">@${escapeHtml(p.authorName)}</div>
+        <div class="fs-author" id="fsauthorname-${p.id}">@${escapeHtml(p.authorName)}</div>
         ${p.media && p.text ? `<div class="fs-caption">${escapeHtml(p.text)}</div>` : ""}
       </div>
     </div>
@@ -1085,8 +1149,10 @@ function wireFsSlideHandlers(posts) {
   posts.forEach(p => {
     const av = document.getElementById(`fsavatar-${p.id}`);
     if (av) av.onclick = () => openProfile(p.authorUid);
+    const nameEl = document.getElementById(`fsauthorname-${p.id}`);
+    if (nameEl) nameEl.onclick = () => openProfile(p.authorUid);
     const followBtn = document.getElementById(`fsfollow-${p.id}`);
-    if (followBtn) followBtn.onclick = () => toggleFollowFromList(p.authorUid);
+    if (followBtn) followBtn.onclick = (e) => { e.stopPropagation(); toggleFollowFromList(p.authorUid); };
     const likeBtn = document.getElementById(`fslike-${p.id}`);
     if (likeBtn) likeBtn.onclick = () => toggleLike(p);
     const commentBtn = document.getElementById(`fscomment-${p.id}`);
@@ -1122,18 +1188,28 @@ function wireFsCommentsHandlers(posts) {
   if (overlay) overlay.onclick = () => setState({ openFsComments: null });
   const submitBtn = document.getElementById("fsCommentSubmit");
   if (submitBtn && state.openFsComments) {
-    submitBtn.onclick = () => {
-      submitComment(state.openFsComments);
+    const doSubmit = () => {
       const input = document.getElementById("fsCommentInput");
+      const text = input ? input.value.trim() : "";
+      if (!text) return;
+      submitCommentText(state.openFsComments, text);
       if (input) input.value = "";
     };
+    submitBtn.onclick = doSubmit;
     const input = document.getElementById("fsCommentInput");
-    if (input) input.onkeydown = (e) => { if (e.key === "Enter") submitBtn.onclick(); };
+    if (input) input.onkeydown = (e) => { if (e.key === "Enter") doSubmit(); };
   }
 }
 
+/* Owner (my own post) vs. non-owner share sheet — TikTok splits these into two very
+   different menus, so we render whichever one applies to the post currently active. */
 function renderShareSheet() {
   const myUid = state.user ? state.user.uid : null;
+  const post = activePostId ? state.posts.find(p => p.id === activePostId) : null;
+  const isOwner = post && myUid && post.authorUid === myUid;
+
+  if (isOwner) return renderOwnPostShareSheet();
+
   const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
   return `
     <div class="sheet-overlay" id="shareOverlay"></div>
@@ -1156,11 +1232,35 @@ function renderShareSheet() {
         <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
         <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
         <button class="share-grid-item" id="shareReport"><span class="sheet-icon" style="background:#D85A30">⚑</span>Report</button>
+      </div>
+    </div>
+  `;
+}
+
+/* TikTok-style menu for a post I own: analytics/download/pin/group/edit/privacy/delete/keywords/story */
+function renderOwnPostShareSheet() {
+  return `
+    <div class="sheet-overlay" id="shareOverlay"></div>
+    <div class="bottom-sheet" id="shareSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Send to</div>
+      <div class="share-grid">
+        <button class="share-grid-item" id="shareAnalytics"><span class="sheet-icon" style="background:#2f8cf0">📈</span>Analytics</button>
         <button class="share-grid-item" id="shareDownload"><span class="sheet-icon" style="background:#555">⬇</span>Download</button>
-        <button class="share-grid-item" id="sharePromote"><span class="sheet-icon" style="background:#e67e22">🔥</span>Promote</button>
+        <button class="share-grid-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
         <button class="share-grid-item" id="shareGroup"><span class="sheet-icon" style="background:#2f8cf0">👥</span>Create group</button>
-        <button class="share-grid-item" id="shareWallpaper"><span class="sheet-icon" style="background:#16a085">▦</span>Set as wallpaper</button>
-        <button class="share-grid-item" id="shareGif"><span class="sheet-icon" style="background:#7f8c8d">GIF</span>Share as GIF</button>
+        <button class="share-grid-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
+        <button class="share-grid-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
+        <button class="share-grid-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>Delete</button>
+        <button class="share-grid-item" id="shareAddStory"><span class="sheet-icon" style="background:#8e44ad">◎</span>Add to Story</button>
+      </div>
+      <div id="ownPrivacyPanel" style="display:none; padding: 4px 4px 10px;">
+        <div class="sheet-title" style="margin-top:6px;">Who can see this</div>
+        <div class="privacy-options" id="ownPrivacyOptions">
+          <button class="privacy-option" data-level="public">Public</button>
+          <button class="privacy-option" data-level="friends">Friends</button>
+          <button class="privacy-option" data-level="private">Only me</button>
+        </div>
       </div>
     </div>
   `;
@@ -1189,9 +1289,11 @@ function renderOwnerSheet() {
 /* ================= Bottom nav bar ================= */
 function renderBottomNav(activeKey) {
   const myUid = state.user ? state.user.uid : null;
-  const unreadTotal = myUid
+  const unreadThreads = myUid
     ? state.threads.reduce((sum, t) => sum + ((t.unread && t.unread[myUid]) || 0), 0)
     : 0;
+  const unreadNotifications = state.activity.filter(a => !a.read).length;
+  const inboxBadge = unreadThreads + unreadNotifications;
 
   return `
     <div class="bottom-nav">
@@ -1200,9 +1302,7 @@ function renderBottomNav(activeKey) {
         <span>Home</span>
       </button>
       <button class="nav-item ${activeKey === "friends" ? "active" : ""}" id="navFriendsBtn">
-        <span class="nav-icon-wrap">
-          ${friendsIconSvg(activeKey === "friends")}
-        </span>
+        ${friendsIconSvg(activeKey === "friends")}
         <span>Friends</span>
       </button>
       <div class="nav-add">
@@ -1213,7 +1313,7 @@ function renderBottomNav(activeKey) {
       <button class="nav-item ${activeKey === "inbox" ? "active" : ""}" id="navInboxBtn">
         <span class="nav-icon-wrap">
           ${inboxIconSvg(activeKey === "inbox")}
-          ${unreadTotal > 0 ? `<span class="nav-badge">${unreadTotal > 9 ? "9+" : unreadTotal}</span>` : ""}
+          ${inboxBadge > 0 ? `<span class="nav-badge">${inboxBadge > 9 ? "9+" : inboxBadge}</span>` : ""}
         </span>
         <span>Inbox</span>
       </button>
@@ -1241,10 +1341,6 @@ function wireBottomNav() {
 
 /* ================================================================
    CAMERA / CREATE SCREEN
-   Tapping "+" opens the camera first (like the reference screenshot):
-   record/photo controls, mode row (10m/60s/15s/PHOTO/TEXT), and a
-   small gallery-shortcut thumbnail so the user can still pick an
-   existing video/photo from their gallery instead of recording.
    ================================================================ */
 function openCameraScreen() {
   setState({
@@ -1255,7 +1351,12 @@ function openCameraScreen() {
     cameraCapturedType: null,
     cameraCapturedUrl: null,
     cameraCapturedBlob: null,
-    cameraError: null
+    cameraError: null,
+    cameraFlashOn: false,
+    cameraTimerOn: false,
+    cameraCountdown: 0,
+    cameraSpeed: "1x",
+    cameraFilter: "none"
   });
   startCameraStream();
 }
@@ -1286,12 +1387,24 @@ function startCameraStream(facing) {
       render();
       const videoEl = document.getElementById("liveCameraVideo");
       if (videoEl) { videoEl.srcObject = stream; videoEl.play().catch(() => {}); }
+      applyTorch();
     })
     .catch((err) => {
       console.error(err);
       state.cameraError = "Couldn't access the camera (permission denied or unavailable). Use the gallery button below to pick a photo or video instead.";
       render();
     });
+}
+
+/* Toggle the device flashlight/torch (where supported) via the MediaStreamTrack constraints API */
+function applyTorch() {
+  if (!state.cameraStream) return;
+  const track = state.cameraStream.getVideoTracks()[0];
+  if (!track) return;
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  if (caps && caps.torch) {
+    track.applyConstraints({ advanced: [{ torch: !!state.cameraFlashOn }] }).catch(() => {});
+  }
 }
 
 function flipCamera() {
@@ -1336,20 +1449,44 @@ function renderCameraScreen() {
 
   // ---- Live camera / recording screen ----
   const modes = ["10m", "60s", "15s", "PHOTO", "TEXT"];
+  const speeds = ["0.5x", "1x", "2x", "3x"];
+  const filters = [
+    { key: "none", label: "Normal" },
+    { key: "bw", label: "B&W" },
+    { key: "warm", label: "Warm" },
+    { key: "cool", label: "Cool" },
+    { key: "vivid", label: "Vivid" },
+    { key: "soft", label: "Soft" }
+  ];
+  const filterClass = state.cameraFilter && state.cameraFilter !== "none" ? `filter-${state.cameraFilter}` : "";
+
   root.innerHTML = `
     <div class="camera-screen">
       <div class="camera-viewport">
         ${state.cameraError
           ? `<div class="camera-error-box">${escapeHtml(state.cameraError)}</div>`
-          : `<video class="live ${state.cameraFacing === "user" ? "mirrored" : ""}" id="liveCameraVideo" autoplay playsinline muted></video>`
+          : `<video class="live ${state.cameraFacing === "user" ? "mirrored" : ""} ${filterClass}" id="liveCameraVideo" autoplay playsinline muted></video>`
         }
+        ${state.cameraCountdown > 0 ? `<div class="camera-countdown">${state.cameraCountdown}</div>` : ""}
         ${state.cameraRecording ? `<div class="camera-record-timer" id="recTimer">${formatRecTime(state.cameraRecordSeconds)}</div>` : ""}
         <div class="camera-top-bar">
           <button class="camera-close-btn" id="camCloseBtn2">✕</button>
-          ${!state.cameraError ? `<button class="camera-flip-btn" id="camFlipBtn">🔄</button>` : `<div></div>`}
+          ${!state.cameraError ? `
+          <div class="camera-top-icons">
+            <button class="camera-flash-btn ${state.cameraFlashOn ? "on" : ""}" id="camFlashBtn" title="Flash">${state.cameraFlashOn ? "⚡" : "⚡"}</button>
+            <button class="camera-timer-btn ${state.cameraTimerOn ? "on" : ""}" id="camTimerBtn" title="Timer">⏱</button>
+            <button class="camera-flip-btn" id="camFlipBtn" title="Flip camera">🔄</button>
+          </div>` : `<div></div>`}
         </div>
       </div>
       <div class="camera-bottom-bar">
+        ${!state.cameraError ? `
+        <div class="camera-filter-row">
+          ${filters.map(f => `<button class="camera-filter-btn ${state.cameraFilter === f.key ? "active" : ""}" data-filter="${f.key}">${f.label}</button>`).join("")}
+        </div>
+        <div class="camera-speed-row">
+          ${speeds.map(s => `<button class="camera-speed-btn ${state.cameraSpeed === s ? "active" : ""}" data-speed="${s}">${s}</button>`).join("")}
+        </div>` : ""}
         <div class="camera-mode-row">
           ${modes.map(m => `<button class="camera-mode-btn ${state.cameraMode === m ? "active" : ""}" data-mode="${m}">${m}</button>`).join("")}
         </div>
@@ -1370,6 +1507,17 @@ function renderCameraScreen() {
   document.getElementById("camCloseBtn2").onclick = closeCameraScreen;
   const flipBtn = document.getElementById("camFlipBtn");
   if (flipBtn) flipBtn.onclick = flipCamera;
+  const flashBtn = document.getElementById("camFlashBtn");
+  if (flashBtn) flashBtn.onclick = () => { state.cameraFlashOn = !state.cameraFlashOn; render(); applyTorch(); };
+  const timerBtn = document.getElementById("camTimerBtn");
+  if (timerBtn) timerBtn.onclick = () => setState({ cameraTimerOn: !state.cameraTimerOn });
+
+  document.querySelectorAll(".camera-filter-btn").forEach(btn => {
+    btn.onclick = () => setState({ cameraFilter: btn.dataset.filter });
+  });
+  document.querySelectorAll(".camera-speed-btn").forEach(btn => {
+    btn.onclick = () => setState({ cameraSpeed: btn.dataset.speed });
+  });
 
   document.querySelectorAll(".camera-mode-btn").forEach(btn => {
     btn.onclick = () => {
@@ -1388,22 +1536,61 @@ function renderCameraScreen() {
   document.getElementById("camGalleryInput").onchange = handleCameraGallerySelect;
 
   document.getElementById("camRecordBtn").onclick = () => {
-    if (state.cameraMode === "PHOTO") {
-      capturePhotoFromStream();
-    } else {
-      if (state.cameraRecording) stopVideoRecording();
-      else startVideoRecording();
+    if (state.cameraTimerOn && state.cameraCountdown === 0) {
+      runCountdownThen(() => triggerCapture());
+      return;
     }
+    triggerCapture();
   };
 
   const videoEl = document.getElementById("liveCameraVideo");
   if (videoEl && state.cameraStream) { videoEl.srcObject = state.cameraStream; videoEl.play().catch(() => {}); }
 }
 
+function triggerCapture() {
+  if (state.cameraMode === "PHOTO") {
+    capturePhotoFromStream();
+  } else {
+    if (state.cameraRecording) stopVideoRecording();
+    else startVideoRecording();
+  }
+}
+
+/* 3-second on-screen countdown before capture, when the Timer toggle is on */
+function runCountdownThen(callback) {
+  state.cameraCountdown = 3;
+  render();
+  const iv = setInterval(() => {
+    state.cameraCountdown -= 1;
+    if (state.cameraCountdown <= 0) {
+      clearInterval(iv);
+      state.cameraCountdown = 0;
+      render();
+      callback();
+    } else {
+      render();
+    }
+  }, 1000);
+}
+
 function formatRecTime(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
+/* Applies the currently-selected filter to a canvas context via CSS filter string, so
+   photos/videos are saved with the same look the user saw in the live preview. */
+function cssFilterFor(key) {
+  const map = {
+    none: "none",
+    bw: "grayscale(1)",
+    warm: "saturate(1.4) sepia(0.25)",
+    cool: "saturate(1.2) hue-rotate(180deg) brightness(1.05)",
+    vivid: "saturate(1.8) contrast(1.15)",
+    soft: "brightness(1.08) contrast(0.92) saturate(0.9)"
+  };
+  return map[key] || "none";
 }
 
 function capturePhotoFromStream() {
@@ -1413,6 +1600,7 @@ function capturePhotoFromStream() {
   canvas.width = videoEl.videoWidth || 720;
   canvas.height = videoEl.videoHeight || 1280;
   const ctx = canvas.getContext("2d");
+  ctx.filter = cssFilterFor(state.cameraFilter);
   if (state.cameraFacing === "user") {
     // The live preview is mirrored for a natural selfie view, but the saved photo
     // should NOT be mirrored (so text/details look correct to everyone else) —
@@ -1421,7 +1609,7 @@ function capturePhotoFromStream() {
     ctx.scale(-1, 1);
   }
   ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
   stopCameraStream();
   setState({ cameraCapturedType: "photo", cameraCapturedUrl: dataUrl, cameraCapturedBlob: null });
 }
@@ -1435,8 +1623,11 @@ function maxRecordMs() {
 function startVideoRecording() {
   if (!state.cameraStream) return;
   recordedChunksRef = [];
+  const options = {};
+  // MediaRecorder audio track is included by default; the "Sound" control mutes/unmutes
+  // this input track before recording starts (see cameraSoundOn toggle usage in useCapturedMedia's audio track).
   try {
-    mediaRecorderRef = new MediaRecorder(state.cameraStream);
+    mediaRecorderRef = new MediaRecorder(state.cameraStream, options);
   } catch (e) {
     console.error(e);
     showToast("Recording isn't supported on this browser");
@@ -1453,7 +1644,10 @@ function startVideoRecording() {
   state.cameraRecording = true;
   state.cameraRecordSeconds = 0;
   render();
-  const limitMs = maxRecordMs();
+  // "Speed" affects playback rate applied to the reviewed clip (0.5x/1x/2x/3x), and also
+  // scales the recording time limit so a 2x/3x clip still fits the chosen duration mode.
+  const speedFactor = parseFloat((state.cameraSpeed || "1x").replace("x", "")) || 1;
+  const limitMs = maxRecordMs() * speedFactor;
   recordTimerRef = setInterval(() => {
     state.cameraRecordSeconds += 1;
     const timerEl = document.getElementById("recTimer");
@@ -1471,6 +1665,11 @@ function stopVideoRecording() {
 function handleCameraGallerySelect(e) {
   const file = e.target.files[0];
   if (!file) return;
+  if (!isAllowedMediaFile(file)) {
+    showToast("That file type isn't supported");
+    e.target.value = "";
+    return;
+  }
   const isVideo = file.type.startsWith("video/");
   stopCameraStream();
   if (isVideo) {
@@ -1548,11 +1747,13 @@ function renderPostComposeScreen() {
   document.getElementById("composePhotoInput").onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!isAllowedImageFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
     compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "image" }));
   };
   document.getElementById("composeVideoInput").onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!isAllowedVideoFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
     fileToDataUrl(file, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "video" }));
   };
   const removeBtn = document.getElementById("composeRemoveMediaBtn");
@@ -1575,38 +1776,112 @@ function openFriendsScreen() {
       showToast("Couldn't load users");
     });
   }
+  listenToPresenceForAllUsers();
 }
 
-/* Computes the currently filtered/sorted Friends list based on tab + search text.
-   Shared by the full-screen render and the search-only refresh below, so both
-   stay perfectly in sync. */
-function getFriendsListData() {
-  const myUid = state.user.uid;
-  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
-  const q = state.friendsSearch.trim().toLowerCase();
+/* Real-time online/offline presence for everyone currently loaded into allUsers,
+   so green "online" dots update live without a refresh. */
+let unsubscribePresenceList = null;
+let presenceMap = {};
+function listenToPresenceForAllUsers() {
+  if (unsubscribePresenceList) unsubscribePresenceList();
+  unsubscribePresenceList = db.collection("presence").onSnapshot((snap) => {
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data(); });
+    presenceMap = map;
+    render();
+  }, (err) => console.error(err));
+}
+function isUserOnline(uid) {
+  const p = presenceMap[uid];
+  return !!(p && p.online);
+}
 
-  let list = state.allUsers;
+/* Friends list: with no search text, shows ONLY mutual friends (you follow them AND they follow
+   you back) — real "friends", not one-sided follows. Typing a search reveals everyone matching
+   the query (with a Follow/Following button), so you can still find and follow new people. */
+function computeFriendsList(myUid, myPinned) {
+  const q = state.friendsSearch.trim().toLowerCase();
+  let list;
   if (q) {
-    list = list.filter(u =>
+    list = state.allUsers.filter(u =>
       (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
     );
+  } else {
+    list = state.allUsers.filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid));
   }
-  list = [...list].sort((a, b) => {
+  return [...list].sort((a, b) => {
     const ap = myPinned.includes(a.uid) ? 1 : 0;
     const bp = myPinned.includes(b.uid) ? 1 : 0;
     return bp - ap;
   });
+}
+
+function renderFriendsScreen() {
+  const myUid = state.user.uid;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+
+  if (state.friendsSubTab === "videos") {
+    renderFriendsVideoFeed();
+    return;
+  }
+
+  const isSearching = !!state.friendsSearch.trim();
+  const list = computeFriendsList(myUid, myPinned);
 
   const rowsHtml = list.length
     ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
-    : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No one here yet</div><div class="line2">Try a different search.</div></div>`;
+    : (isSearching
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No friends yet</div><div class="line2">Search for people above and follow them — once they follow you back, they'll show up here.</div></div>`);
 
-  return { myUid, myPinned, list, rowsHtml };
+  root.innerHTML = `
+    <div class="topbar">
+      <div class="brand-sm" id="brandHomeBtn2">Friends</div>
+    </div>
+    <div class="friends-sub-tabs">
+      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeople">Friends</button>
+      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideos">Videos</button>
+    </div>
+    <div class="friends-search-wrap">
+      <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
+    </div>
+    <div class="user-list">${rowsHtml}</div>
+    ${renderBottomNav("friends")}
+  `;
+
+  document.getElementById("brandHomeBtn2").onclick = () => setState({ view: "feed" });
+  document.getElementById("friendsSubPeople").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsSubVideos").onclick = () => setState({ friendsSubTab: "videos" });
+
+  // Keep the search box focused across re-renders: update state without a full setState()
+  // re-render on every keystroke (setState() previously destroyed & recreated this input,
+  // which stole focus and closed the keyboard after every character).
+  const searchInput = document.getElementById("friendsSearchInput");
+  searchInput.oninput = (e) => { state.friendsSearch = e.target.value; renderFriendsListOnly(); };
+
+  wireFriendsRowHandlers(list);
+  wireBottomNav();
 }
 
-/* Wires up click handlers for every row currently in the .user-list container.
-   Shared by the full render and the search-only refresh. */
-function wireFriendsListRows(list) {
+/* Re-renders ONLY the user-list portion of the Friends screen (used while typing in the
+   search box) so the search <input> itself is never replaced and never loses focus/keyboard. */
+function renderFriendsListOnly() {
+  const myUid = state.user.uid;
+  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
+  const isSearching = !!state.friendsSearch.trim();
+  const list = computeFriendsList(myUid, myPinned);
+  const listEl = document.querySelector(".user-list");
+  if (!listEl) return;
+  listEl.innerHTML = list.length
+    ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
+    : (isSearching
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No friends yet</div><div class="line2">Search for people above and follow them — once they follow you back, they'll show up here.</div></div>`);
+  wireFriendsRowHandlers(list);
+}
+
+function wireFriendsRowHandlers(list) {
   list.forEach(u => {
     const rowAvatar = document.getElementById(`useravatar-${u.uid}`);
     const rowInfo = document.getElementById(`userinfo-${u.uid}`);
@@ -1621,48 +1896,44 @@ function wireFriendsListRows(list) {
   });
 }
 
-/* Called on every keystroke in the Friends search box. This deliberately avoids
-   setState()/render() (which rebuild the ENTIRE screen, including the input box
-   itself — destroying it and re-creating a new one loses focus and closes the
-   mobile keyboard). Instead we only replace the .user-list container's HTML and
-   re-wire its row handlers, leaving the search input element untouched so it
-   keeps focus and the keyboard stays open while typing. */
-function refreshFriendsListOnly() {
-  const userListEl = document.querySelector(".user-list");
-  if (!userListEl) return; // not on the Friends "people" screen right now
-  const { list, rowsHtml } = getFriendsListData();
-  userListEl.innerHTML = rowsHtml;
-  wireFriendsListRows(list);
-}
-
-function renderFriendsScreen() {
+/* Friends' video feed: full-screen swipeable feed (same style as Home), but restricted to ONLY
+   people the user follows — never shows anyone else's posts. */
+function renderFriendsVideoFeed() {
   const myUid = state.user.uid;
-
-  const { list, rowsHtml } = getFriendsListData();
+  const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
+  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
+  const videos = state.posts.filter(p =>
+    followingUids.has(p.authorUid) &&
+    p.media &&
+    hiddenSafe(p) &&
+    (!p.privacy || p.privacy === "public")
+  );
 
   root.innerHTML = `
-    <div class="topbar">
-      <div class="brand-sm" id="brandHomeBtn2">Friends</div>
+    <div class="feed-topbar on-light">
+      <button class="feed-tab-btn" id="friendsToPeopleBtn">Friends</button>
+      <button class="feed-tab-btn active" style="pointer-events:none;">Videos</button>
+      <button class="feed-search-btn" id="friendsFeedSearchBtn">🔍</button>
     </div>
-    <div class="friends-search-wrap">
-      <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
-    </div>
-    <div class="user-list">${rowsHtml}</div>
+    ${videos.length ? `<div class="fs-scroll" id="fsScrollFriends">${videos.map(renderFsSlide).join("")}</div>` : `
+      <div class="fs-empty-full" style="position:static; min-height:60vh;">
+        <div style="font-size:40px;margin-bottom:10px;">🎬</div>
+        <div style="font-weight:700;margin-bottom:6px;">No friend videos yet</div>
+        <div style="font-size:13px;">Follow people and their posts will show up here.</div>
+      </div>
+    `}
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet(videos)}
     ${renderBottomNav("friends")}
   `;
+  document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
+  document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
 
-  document.getElementById("brandHomeBtn2").onclick = () => setState({ view: "feed" });
-
-  // IMPORTANT: do NOT call setState() here — see refreshFriendsListOnly() comment above.
-  // Mutate state directly and only patch the results list, so the input keeps focus
-  // and the on-screen keyboard stays open while the user types.
-  const searchInput = document.getElementById("friendsSearchInput");
-  searchInput.oninput = (e) => {
-    state.friendsSearch = e.target.value;
-    refreshFriendsListOnly();
-  };
-
-  wireFriendsListRows(list);
+  wireFsSlideHandlers(videos);
+  wireSheetHandlers();
+  wireFsCommentsHandlers(videos);
   wireBottomNav();
 }
 
@@ -1685,9 +1956,10 @@ function renderUserRow(u, myUid, myPinned) {
   const label = amFollowing ? "Following" : "Follow";
   const cls = amFollowing ? "following" : "";
   const isPinned = (myPinned || []).includes(u.uid);
+  const online = isUserOnline(u.uid);
   return `
     <div class="user-row">
-      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}${online ? `<span class="presence-dot"></span>` : ""}</div>
       <div class="user-row-info" id="userinfo-${u.uid}">
         <div class="u-name">${escapeHtml(u.name || "User")} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
         <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
@@ -1701,15 +1973,16 @@ function renderUserRow(u, myUid, myPinned) {
   `;
 }
 
-/* Directly follows or unfollows a user — no request/approval step */
+/* Follow / unfollow — instant, public-account style (like Instagram's public accounts):
+   tapping Follow immediately adds you to their followers, no request/approval step.
+   "Friend" is simply the case where the follow is mutual in both directions. */
 function toggleFollowFromList(targetUid) {
   const myUid = state.user.uid;
-  const target = state.allUsers.find(u => u.uid === targetUid);
+  const target = state.allUsers.find(u => u.uid === targetUid) || (state.profileUserDoc && state.profileUserDoc.uid === targetUid ? state.profileUserDoc : null);
   if (!target) return;
   const amFollowing = (target.followers || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
-
   const batch = db.batch();
   if (amFollowing) {
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
@@ -1727,9 +2000,10 @@ function toggleFollowFromList(targetUid) {
       return { ...u, followers: Array.from(followers) };
     });
     setState({ allUsers: updated });
+    if (!amFollowing) logActivity(targetUid, "follow", `${state.user.name} started following you`);
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update follow status");
+    showToast("Couldn't update follow status — check your connection or try again");
   });
 }
 
@@ -1749,8 +2023,6 @@ function listenToThreads() {
       const threads = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
 
-      // Real-time notification: if a thread's unread count for me just went up
-      // and I'm not already looking at that chat, fire a browser notification.
       threads.forEach(t => {
         const unread = (t.unread && t.unread[myUid]) || 0;
         const prev = prevThreadUnreadRef[t.id] || 0;
@@ -1773,34 +2045,68 @@ function listenToThreads() {
 }
 
 function openInboxScreen() {
-  // The threads and activity listeners run continuously from login (so nav badges
-  // and notifications stay live in real time); opening the tab just switches the view.
   setState({ view: "inbox", inboxSection: null });
 }
 
-/* Real-time listener: likes/comments made by others on my own posts, newest first — powers the Activity section.
-   Runs continuously (started at login) so new activity appears immediately without reopening the tab. */
+/* Real-time notifications: one unified sub-collection per user (users/{uid}/notifications) holds
+   every "follow" / "like" / "comment" / "message" event aimed at me, newest first. Each of the
+   Inbox rows (New followers / Activity / Message requests) is just this same list filtered by type —
+   so all three update live the instant something happens, with no polling or manual refresh. */
 let unsubscribeActivity = null;
-function listenToActivity() {
+function listenToNotifications() {
   if (unsubscribeActivity) unsubscribeActivity();
   const myUid = state.user.uid;
-  unsubscribeActivity = db.collection("posts").where("authorUid", "==", myUid).limit(50)
+  unsubscribeActivity = db.collection("users").doc(myUid).collection("notifications")
+    .orderBy("createdAt", "desc").limit(60)
     .onSnapshot((snap) => {
-      const items = [];
-      snap.docs.forEach(d => {
-        const p = d.data();
-        (p.comments || []).forEach(c => items.push({ type: "comment", text: `${c.name} commented: "${(c.text || "").slice(0, 60)}"`, postId: d.id }));
-        (p.likes || []).filter(uid => uid !== myUid).forEach(uid => items.push({ type: "like", text: `Someone liked your post`, postId: d.id }));
-      });
-      setState({ activity: items.slice(0, 40), activityLoaded: true });
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setState({ activity: items, activityLoaded: true });
     }, (err) => console.error(err));
 }
 
-/* Records a lightweight activity/notification entry for a target user (used for follow requests, etc.) */
-function logActivity(targetUid, type, text) {
+/* Records a real-time notification for a target user. type: "follow" | "like" | "comment" | "message" */
+function logActivity(targetUid, type, text, extra) {
+  if (!targetUid || targetUid === state.user.uid) return; // never notify yourself
   db.collection("users").doc(targetUid).collection("notifications").add({
-    type, text, fromUid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false
+    type, text, fromUid: state.user.uid, fromName: state.user.name,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false, ...(extra || {})
   }).catch((err) => console.error(err));
+}
+
+/* Marks every notification of a given type as read (called when its Inbox section is opened) */
+function markNotificationsRead(type) {
+  const myUid = state.user.uid;
+  const toMark = state.activity.filter(a => (!type || a.type === type) && !a.read);
+  if (!toMark.length) return;
+  const batch = db.batch();
+  toMark.forEach(a => batch.update(db.collection("users").doc(myUid).collection("notifications").doc(a.id), { read: true }));
+  batch.commit().catch((err) => console.error(err));
+}
+
+/* System notifications: a single global collection the app owner can broadcast into. Every user
+   listens to it in real time, so a new notice appears instantly for everyone. */
+let unsubscribeSystemNotices = null;
+function listenToSystemNotices() {
+  if (unsubscribeSystemNotices) unsubscribeSystemNotices();
+  unsubscribeSystemNotices = db.collection("systemNotices").orderBy("createdAt", "desc").limit(20)
+    .onSnapshot((snap) => {
+      setState({ systemNotices: snap.docs.map(d => ({ id: d.id, ...d.data() })) });
+    }, (err) => console.error(err));
+}
+
+function isOwnerAccount() {
+  return !!(state.user && state.user.email && state.user.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+}
+
+function sendSystemNotice() {
+  const text = (state.ownerNoticeText || "").trim();
+  if (!text) return;
+  db.collection("systemNotices").add({
+    text, fromName: state.user.name, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    setState({ ownerNoticeText: "" });
+    showToast("Notice sent to everyone");
+  }).catch((err) => { console.error(err); showToast("Couldn't send notice"); });
 }
 
 function renderInboxScreen() {
@@ -1808,13 +2114,15 @@ function renderInboxScreen() {
 
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
-  const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
+  const activeThreads = state.threads;
 
-  const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
-  const activeThreads = state.threads.filter(t => !archivedIds.includes(t.id));
-  const archivedThreadsList = state.threads.filter(t => archivedIds.includes(t.id));
+  const followNotifs = state.activity.filter(a => a.type === "follow");
+  const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment");
+  const messageNotifs = state.activity.filter(a => a.type === "message");
+  const followUnread = followNotifs.filter(a => !a.read).length;
+  const activityUnread = likeCommentNotifs.filter(a => !a.read).length;
+  const messageNotifUnread = messageNotifs.filter(a => !a.read).length;
 
-  // Stories row: Create + pinned/followed people (pinned first)
   let storyPeople = state.allUsers.filter(u => (u.followers || []).includes(myUid) || (u.following || []).includes(myUid));
   storyPeople = storyPeople.sort((a, b) => (myPinned.includes(b.uid) ? 1 : 0) - (myPinned.includes(a.uid) ? 1 : 0)).slice(0, 12);
 
@@ -1836,30 +2144,32 @@ function renderInboxScreen() {
     </div>
   `;
 
-  const lastFollower = followersList[followersList.length - 1];
-  const lastActivity = state.activity[0];
+  const lastFollow = followNotifs[0];
+  const lastActivityItem = likeCommentNotifs[0];
+  const lastMessageNotif = messageNotifs[0];
+  const lastSystemNotice = state.systemNotices[0];
   const rowsHtml = `
     <div class="inbox-section-row" id="secFollowers">
       <div class="inbox-section-icon" style="background:#2f8cf0">👥</div>
       <div class="inbox-section-info">
-        <div class="is-title">New followers</div>
-        <div class="is-sub">${lastFollower ? `${escapeHtml(lastFollower.name || "Someone")} started following you` : "No new followers yet"}</div>
+        <div class="is-title">New followers${followUnread > 0 ? ` (${followUnread})` : ""}</div>
+        <div class="is-sub">${lastFollow ? escapeHtml(lastFollow.text) : "No new followers yet"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
     <div class="inbox-section-row" id="secActivity">
       <div class="inbox-section-icon" style="background:#e84393">❤️</div>
       <div class="inbox-section-info">
-        <div class="is-title">Activity</div>
-        <div class="is-sub">${lastActivity ? escapeHtml(lastActivity.text) : "No activity yet"}</div>
+        <div class="is-title">Activity${activityUnread > 0 ? ` (${activityUnread})` : ""}</div>
+        <div class="is-sub">${lastActivityItem ? escapeHtml(lastActivityItem.text) : "No activity yet"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
-    <div class="inbox-section-row" id="secArchive">
-      <div class="inbox-section-icon" style="background:#2f8cf0">🗄️</div>
+    <div class="inbox-section-row" id="secRequests">
+      <div class="inbox-section-icon" style="background:#5352ed">💬</div>
       <div class="inbox-section-info">
-        <div class="is-title">Archive</div>
-        <div class="is-sub">${archivedThreadsList.length ? `${archivedThreadsList.length} archived chat${archivedThreadsList.length > 1 ? "s" : ""}` : "No archived chats"}</div>
+        <div class="is-title">Message requests${messageNotifUnread > 0 ? ` (${messageNotifUnread})` : ""}</div>
+        <div class="is-sub">${lastMessageNotif ? escapeHtml(lastMessageNotif.text) : "No new messages"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -1867,7 +2177,7 @@ function renderInboxScreen() {
       <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
       <div class="inbox-section-info">
         <div class="is-title">System notifications</div>
-        <div class="is-sub">Creator updates and app news</div>
+        <div class="is-sub">${lastSystemNotice ? escapeHtml(lastSystemNotice.text) : "Creator updates and app news"}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -1912,9 +2222,9 @@ function renderInboxScreen() {
     el.onclick = () => openChat(el.dataset.uid);
   });
 
-  document.getElementById("secFollowers").onclick = () => setState({ inboxSection: "followers" });
-  document.getElementById("secActivity").onclick = () => setState({ inboxSection: "activity" });
-  document.getElementById("secArchive").onclick = () => setState({ inboxSection: "archive" });
+  document.getElementById("secFollowers").onclick = () => { markNotificationsRead("follow"); setState({ inboxSection: "followers" }); };
+  document.getElementById("secActivity").onclick = () => { markNotificationsRead("like"); markNotificationsRead("comment"); setState({ inboxSection: "activity" }); };
+  document.getElementById("secRequests").onclick = () => { markNotificationsRead("message"); setState({ inboxSection: "requests" }); };
   document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
 
   suggested.forEach(u => {
@@ -1934,47 +2244,59 @@ function renderInboxScreen() {
     if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
     const pinBtn = document.getElementById(`pinthread-${t.id}`);
     if (pinBtn) pinBtn.onclick = () => togglePinFriend(otherUid);
-    const archBtn = document.getElementById(`archthread-${t.id}`);
-    if (archBtn) archBtn.onclick = () => archiveThread(t.id, true);
   });
 
   wireBottomNav();
 }
 
-/* Sub-screens for each Inbox section (New followers / Activity / Requests / Archive / System) */
+/* Sub-screens for each Inbox section (New followers / Activity / Message requests / System) */
 function renderInboxSubScreen() {
   const myUid = state.user.uid;
   const section = state.inboxSection;
-  const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
   let title = "";
   let bodyHtml = "";
 
+  const notifRow = (a, icon, bg) => `
+    <div class="inbox-section-row" id="notif-${a.id}">
+      <div class="inbox-section-icon" style="background:${bg}">${icon}</div>
+      <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
+    </div>
+  `;
+
   if (section === "followers") {
     title = "New followers";
-    const followersList = state.allUsers.filter(u => (u.following || []).includes(myUid));
-    bodyHtml = followersList.length
-      ? `<div class="user-list">${followersList.map(u => renderUserRow(u, myUid, myPinned)).join("")}</div>`
+    const list = state.activity.filter(a => a.type === "follow");
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(a => notifRow(a, "👥", "#2f8cf0")).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
   } else if (section === "activity") {
     title = "Activity";
-    bodyHtml = state.activity.length
-      ? `<div class="thread-list">${state.activity.map(a => `
-          <div class="inbox-section-row">
-            <div class="inbox-section-icon" style="background:#e84393">${a.type === "like" ? "❤️" : "💬"}</div>
+    const list = state.activity.filter(a => a.type === "like" || a.type === "comment");
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(a => notifRow(a, a.type === "like" ? "❤️" : "💬", "#e84393")).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
+  } else if (section === "requests") {
+    title = "Message requests";
+    const list = state.activity.filter(a => a.type === "message");
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(a => `
+          <div class="inbox-section-row" id="msgnotif-${a.id}" style="cursor:pointer;">
+            <div class="inbox-section-icon" style="background:#5352ed">💬</div>
             <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
           </div>
         `).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
-  } else if (section === "archive") {
-    title = "Archive";
-    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
-    const list = state.threads.filter(t => archivedIds.includes(t.id));
-    bodyHtml = list.length
-      ? `<div class="thread-list">${list.map(t => renderThreadRow(t, myUid, myPinned, true)).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">No archived chats</div><div class="line2">Chats you archive show up here.</div></div>`;
+      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No new messages</div><div class="line2">New chats started with you show up here.</div></div>`;
   } else if (section === "system") {
     title = "System notifications";
+    const notices = state.systemNotices;
+    const composerHtml = isOwnerAccount() ? `
+      <div style="padding:14px;">
+        <textarea id="ownerNoticeInput" rows="3" placeholder="Write a notice to send to everyone..." style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.ownerNoticeText)}</textarea>
+        <button class="btn-primary" id="sendOwnerNoticeBtn" style="margin-top:8px;">Send to everyone</button>
+      </div>
+    ` : "";
     bodyHtml = `
+      ${composerHtml}
       <div class="thread-list">
         <div class="inbox-section-row">
           <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
@@ -1983,6 +2305,15 @@ function renderInboxSubScreen() {
             <div class="is-sub">Thanks for joining — explore Friends and Inbox to connect with people.</div>
           </div>
         </div>
+        ${notices.map(n => `
+          <div class="inbox-section-row">
+            <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
+            <div class="inbox-section-info">
+              <div class="is-title">${escapeHtml(n.text)}</div>
+              <div class="is-sub">${timeAgo(n.createdAt)}</div>
+            </div>
+          </div>
+        `).join("")}
       </div>
     `;
   }
@@ -1997,64 +2328,37 @@ function renderInboxSubScreen() {
   `;
   document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
 
-  if (section === "followers") {
-    state.allUsers.filter(u => (u.following || []).includes(myUid)).forEach(u => {
-      const av = document.getElementById(`useravatar-${u.uid}`);
-      const info = document.getElementById(`userinfo-${u.uid}`);
-      const followBtn = document.getElementById(`followbtn-${u.uid}`);
-      const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
-      const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
-      if (av) av.onclick = () => openProfile(u.uid);
-      if (info) info.onclick = () => openProfile(u.uid);
-      if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
-      if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
-      if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
+  if (section === "requests") {
+    state.activity.filter(a => a.type === "message").forEach(a => {
+      const row = document.getElementById(`msgnotif-${a.id}`);
+      if (row) row.onclick = () => openChat(a.fromUid);
     });
-  } else if (section === "archive") {
-    const archivedIds = (state.myUserDoc && state.myUserDoc.archivedThreads) || [];
-    state.threads.filter(t => archivedIds.includes(t.id)).forEach(t => {
-      const otherUid = (t.participants || []).find(p => p !== myUid);
-      const row = document.getElementById(`thread-${t.id}`);
-      if (row) row.onclick = (e) => { if (e.target.closest(".thread-row-actions")) return; openChat(otherUid); };
-      const unarchBtn = document.getElementById(`unarchthread-${t.id}`);
-      if (unarchBtn) unarchBtn.onclick = () => archiveThread(t.id, false);
-    });
+  } else if (section === "system" && isOwnerAccount()) {
+    const input = document.getElementById("ownerNoticeInput");
+    if (input) input.oninput = (e) => { state.ownerNoticeText = e.target.value; };
+    const sendBtn = document.getElementById("sendOwnerNoticeBtn");
+    if (sendBtn) sendBtn.onclick = sendSystemNotice;
   }
 
   wireBottomNav();
 }
 
-/* Archive / unarchive a thread by storing its id in my own user doc */
-function archiveThread(threadId, archive) {
-  const myUid = state.user.uid;
-  db.collection("users").doc(myUid).update({
-    archivedThreads: archive
-      ? firebase.firestore.FieldValue.arrayUnion(threadId)
-      : firebase.firestore.FieldValue.arrayRemove(threadId)
-  }).then(() => {
-    showToast(archive ? "Chat archived" : "Chat unarchived");
-  }).catch((err) => { console.error(err); showToast("Couldn't update archive"); });
-}
-
-function renderThreadRow(t, myUid, myPinned, inArchive) {
+function renderThreadRow(t, myUid, myPinned) {
   const otherUid = (t.participants || []).find(p => p !== myUid);
   const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
   const unread = (t.unread && t.unread[myUid]) || 0;
   const isPinned = (myPinned || []).includes(otherUid);
+  const online = isUserOnline(otherUid);
   return `
     <div class="thread-row ${unread > 0 ? "unread" : ""}" id="thread-${t.id}">
-      <div class="avatar">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}</div>
+      <div class="avatar">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}${online ? `<span class="presence-dot"></span>` : ""}</div>
       <div class="thread-info">
         <div class="t-name">${escapeHtml(otherInfo.name)} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
         <div class="t-preview">${escapeHtml(t.lastMessage || "")}</div>
       </div>
       ${unread > 0 ? `<div class="thread-unread-dot"></div>` : ""}
       <div class="thread-row-actions">
-        ${inArchive
-          ? `<button class="pin-icon-btn" id="unarchthread-${t.id}" title="Unarchive">↩️</button>`
-          : `<button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
-             <button class="pin-icon-btn" id="archthread-${t.id}" title="Archive">🗄️</button>`
-        }
+        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
       </div>
       <div class="thread-time">${timeAgo(t.lastMessageAt)}</div>
     </div>
@@ -2063,6 +2367,7 @@ function renderThreadRow(t, myUid, myPinned, inArchive) {
 
 /* ---------------- Chat screen ---------------- */
 let unsubscribeChat = null;
+let unsubscribeChatPresence = null;
 function openChat(otherUid) {
   if (!otherUid) return;
   const myUid = state.user.uid;
@@ -2086,20 +2391,51 @@ function openChat(otherUid) {
         render();
         const box = document.getElementById("chatMessagesBox");
         if (box) box.scrollTop = box.scrollHeight;
+        // Mark any of the other person's messages as seen by me
+        markMessagesSeen(threadId, myUid);
       }, (err) => console.error(err));
+
+    if (unsubscribeChatPresence) unsubscribeChatPresence();
+    unsubscribeChatPresence = db.collection("presence").doc(otherUid).onSnapshot((doc) => {
+      state.chatOtherPresence = doc.exists ? doc.data() : null;
+      render();
+    }, (err) => console.error(err));
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't open chat");
   });
 }
 
+/* Marks all of the other participant's messages in this thread as seen by me, in real time */
+function markMessagesSeen(threadId, myUid) {
+  const unseen = state.chatMessages.filter(m => m.senderUid !== myUid && !m.seenBy);
+  unseen.forEach(m => {
+    db.collection("threads").doc(threadId).collection("messages").doc(m.id).update({ seenBy: myUid }).catch(() => {});
+  });
+}
+
 const CHAT_QUICK_REACTIONS = ["❤️", "😂", "👍", "👉", "🐾"]; // last one stands in for a "Streak Pet" style reaction
+
+function chatPresenceLabel() {
+  const p = state.chatOtherPresence;
+  if (p && p.online) return "Active now";
+  if (p && p.lastSeenAt && p.lastSeenAt.toDate) return `Active ${timeAgo(p.lastSeenAt)}`;
+  return "";
+}
 
 function renderChatScreen() {
   const myUid = state.user.uid;
   const other = state.chatProfile || {};
-  const bubblesHtml = state.chatMessages.map(m => {
+  const lastMineIdx = (() => {
+    for (let i = state.chatMessages.length - 1; i >= 0; i--) {
+      if (state.chatMessages[i].senderUid === myUid) return i;
+    }
+    return -1;
+  })();
+
+  const bubblesHtml = state.chatMessages.map((m, idx) => {
     const isReactionOnly = m.reaction && !m.text && !m.image && !m.video && !m.audio;
+    const showSeen = idx === lastMineIdx && m.senderUid === myUid && m.seenBy === state.chatUid;
     return `
     <div class="chat-bubble ${isReactionOnly ? "reaction-only" : ""} ${m.senderUid === myUid ? "mine" : "theirs"}">
       ${m.image ? `<img src="${m.image}" />` : ""}
@@ -2107,14 +2443,20 @@ function renderChatScreen() {
       ${m.audio ? `<audio src="${m.audio}" controls></audio>` : ""}
       ${m.text ? `<div class="${(m.image || m.video) ? "bubble-text-with-image" : ""}">${escapeHtml(m.text)}</div>` : ""}
     </div>
+    ${showSeen ? `<div class="chat-seen-label">Seen</div>` : ""}
   `;
   }).join("");
+
+  const presenceLabel = chatPresenceLabel();
 
   root.innerHTML = `
     <div class="chat-header">
       <button class="profile-back-btn" id="chatBackBtn">←</button>
-      <div class="avatar">${other.avatar ? `<img src="${other.avatar}" />` : initials(other.name || "User")}</div>
-      <div class="c-name">${escapeHtml(other.name || "User")}</div>
+      <div class="avatar" id="chatHeaderAvatar">${other.avatar ? `<img src="${other.avatar}" />` : initials(other.name || "User")}${state.chatOtherPresence && state.chatOtherPresence.online ? `<span class="presence-dot"></span>` : ""}</div>
+      <div class="chat-header-info">
+        <div class="c-name" id="chatHeaderName">${escapeHtml(other.name || "User")}</div>
+        ${presenceLabel ? `<div class="c-status">${escapeHtml(presenceLabel)}</div>` : ""}
+      </div>
     </div>
     <div class="chat-messages" id="chatMessagesBox">${bubblesHtml}</div>
     <div class="chat-input-bar">
@@ -2148,8 +2490,11 @@ function renderChatScreen() {
     </div>
   `;
 
+  document.getElementById("chatHeaderAvatar").onclick = () => openProfile(state.chatUid);
+  document.getElementById("chatHeaderName").onclick = () => openProfile(state.chatUid);
   document.getElementById("chatBackBtn").onclick = () => {
     if (unsubscribeChat) unsubscribeChat();
+    if (unsubscribeChatPresence) unsubscribeChatPresence();
     setState({ view: "inbox", chatStickerPanelOpen: false });
   };
   const input = document.getElementById("chatInput");
@@ -2184,6 +2529,11 @@ function renderChatScreen() {
 function handleChatMediaSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
+  if (!isAllowedMediaFile(file)) {
+    showToast("That file type isn't supported");
+    e.target.value = "";
+    return;
+  }
   const isVideo = file.type.startsWith("video/");
   if (isVideo) {
     fileToDataUrl(file, (dataUrl) => setState({ chatMedia: dataUrl, chatMediaType: "video" }));
@@ -2301,24 +2651,29 @@ function sendChatMessage() {
   state.chatMediaType = null;
   render();
 
-  threadRef.collection("messages").add({
-    senderUid: myUid,
-    text: text,
-    image: mediaType === "image" ? media : null,
-    video: mediaType === "video" ? media : null,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    return threadRef.set({
-      participants: [myUid, otherUid],
-      participantInfo: {
-        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
-      },
-      lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
-      [`unread.${myUid}`]: 0
-    }, { merge: true });
+  threadRef.get().then((threadDoc) => {
+    const isNewThread = !threadDoc.exists;
+    return threadRef.collection("messages").add({
+      senderUid: myUid,
+      text: text,
+      image: mediaType === "image" ? media : null,
+      video: mediaType === "video" ? media : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      return threadRef.set({
+        participants: [myUid, otherUid],
+        participantInfo: {
+          [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+          [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+        },
+        lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+        [`unread.${myUid}`]: 0
+      }, { merge: true });
+    }).then(() => {
+      if (isNewThread) logActivity(otherUid, "message", `${state.user.name} started a conversation with you`);
+    });
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't send message");
@@ -2354,7 +2709,8 @@ function openProfile(targetUid) {
     const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], pinnedPosts: [] };
 
     if (isOwn) {
-      setState({ view: "profile", viewingUid: null, profile: data, profileTab: "posts" });
+      setState({ view: "profile", viewingUid: null, profile: { uid, ...data }, profileTab: "posts" });
+      listenToProfileUser(uid);
       return;
     }
 
@@ -2364,10 +2720,12 @@ function openProfile(targetUid) {
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(p => (!p.privacy || p.privacy === "public") && !p.hidden)
         .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-      setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: posts });
+      setState({ view: "profile", viewingUid: uid, profile: { uid, ...data }, profileTab: "posts", viewingPosts: posts });
+      listenToProfileUser(uid);
     }).catch((err) => {
       console.error(err);
-      setState({ view: "profile", viewingUid: uid, profile: data, profileTab: "posts", viewingPosts: [] });
+      setState({ view: "profile", viewingUid: uid, profile: { uid, ...data }, profileTab: "posts", viewingPosts: [] });
+      listenToProfileUser(uid);
     });
   }).catch((err) => {
     console.error(err);
@@ -2375,14 +2733,13 @@ function openProfile(targetUid) {
   });
 }
 
-/* Directly follows or unfollows, from the profile screen's follow button */
+/* Follow / unfollow from the profile screen's follow button — same instant, no-request model */
 function toggleFollow(targetUid) {
   const myUid = state.user.uid;
   const profile = state.profile || {};
   const amFollowing = (profile.followers || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
-
   const batch = db.batch();
   if (amFollowing) {
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
@@ -2393,10 +2750,11 @@ function toggleFollow(targetUid) {
   }
 
   batch.commit().then(() => {
-    openProfile(targetUid);
+    if (!amFollowing) logActivity(targetUid, "follow", `${state.user.name} started following you`);
+    // No need to manually reload — listenToProfileUser's real-time listener will refresh state.profile
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update follow status");
+    showToast("Couldn't update follow status — check your connection or try again");
   });
 }
 
@@ -2406,13 +2764,9 @@ function renderProfileScreen() {
   const targetUid = isOwn ? state.user.uid : state.viewingUid;
   const pinnedPosts = profile.pinnedPosts || [];
 
-  // Posts belonging to the profile being viewed.
-  // Own profile: derived from the loaded global feed (last 50 posts) so private posts are included.
-  // Other user's profile: fetched separately and already filtered to public-only (see openProfile).
   const myPosts = isOwn ? state.posts.filter(p => p.authorUid === targetUid) : state.viewingPosts;
 
   let publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
-  // Pinned posts float to the top of the grid
   publicPosts = [...publicPosts].sort((a, b) => (pinnedPosts.includes(b.id) ? 1 : 0) - (pinnedPosts.includes(a.id) ? 1 : 0));
   const privatePosts = isOwn ? myPosts.filter(p => p.privacy && p.privacy !== "public") : [];
   const repostedPosts = isOwn ? state.posts.filter(p => (p.reposts || []).includes(targetUid)) : [];
@@ -2423,6 +2777,7 @@ function renderProfileScreen() {
   const followers = (profile.followers || []).length;
   const following = (profile.following || []).length;
   const amFollowing = !isOwn && (profile.followers || []).includes(state.user.uid);
+  const requestedByMe = !isOwn && !amFollowing && (profile.followRequests || []).includes(state.user.uid);
 
   const tabs = isOwn ? [
     { key: "posts", icon: gridIconSvg() },
@@ -2444,7 +2799,7 @@ function renderProfileScreen() {
 
   const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
   const tabBodyHtml = activeTab.list.length
-    ? renderProfileGrid(activeTab.list, pinnedPosts)
+    ? renderProfileGrid(activeTab.list, pinnedPosts, isOwn)
     : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta);
 
   const linksHtml = (profile.youtubeLink || profile.facebookLink) ? `
@@ -2479,7 +2834,7 @@ function renderProfileScreen() {
       ${linksHtml}
 
       ${!isOwn
-        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""}" id="followBtn">${amFollowing ? "Following" : "Follow"}</button>`
+        ? `<button class="profile-follow-btn ${amFollowing ? "following" : ""} ${requestedByMe ? "requested" : ""}" id="followBtn">${amFollowing ? "Following" : (requestedByMe ? "Requested" : "Follow")}</button>`
         : ""
       }
 
@@ -2520,13 +2875,41 @@ function renderProfileScreen() {
   const uploadBtn = document.getElementById("profileUploadBtn");
   if (uploadBtn) uploadBtn.onclick = openCameraScreen;
 
+  // Tapping a grid item opens that post; the small pin badge (when present) is its own
+  // click target for pinning/unpinning, so opening a video no longer accidentally pins it.
   activeTab.list.forEach(p => {
-    const pinEl = document.getElementById(`gridpin-${p.id}`);
-    if (pinEl) pinEl.onclick = (e) => { e.stopPropagation(); togglePinPost(p.id); };
+    const openEl = document.getElementById(`gridopen-${p.id}`);
+    if (openEl) openEl.onclick = () => openPostViewer(p.id);
+    const pinToggle = document.getElementById(`gridpintoggle-${p.id}`);
+    if (pinToggle) pinToggle.onclick = (e) => { e.stopPropagation(); togglePinPost(p.id); };
   });
 }
 
-function renderProfileGrid(posts, pinnedPosts) {
+/* Simple full-post viewer opened from a profile grid thumbnail (own post) */
+function openPostViewer(postId) {
+  const post = state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
+  if (!post) return;
+  activePostId = postId;
+  setState({ openFsComments: null });
+  // Reuse the full-screen slide viewer: jump Home feed to this single post via a temporary overlay
+  const overlay = document.createElement("div");
+  overlay.id = "postViewerOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:500;background:#000;";
+  overlay.innerHTML = `
+    <div class="fs-scroll" style="height:100vh;">${renderFsSlide(post)}</div>
+    <button id="postViewerClose" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.4);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;">✕</button>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet([post])}
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById("postViewerClose").onclick = () => overlay.remove();
+  wireFsSlideHandlers([post]);
+  wireSheetHandlers();
+  wireFsCommentsHandlers([post]);
+}
+
+function renderProfileGrid(posts, pinnedPosts, isOwn) {
   return `
     <div class="profile-grid">
       ${posts.map(p => {
@@ -2536,9 +2919,9 @@ function renderProfileGrid(posts, pinnedPosts) {
           ? (isVideo ? `<video src="${p.media}" muted></video>` : `<img src="${p.media}" />`)
           : "";
         return `
-          <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridpin-${p.id}" title="Tap pin icon to pin/unpin" style="cursor:pointer">
+          <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridopen-${p.id}" style="cursor:pointer">
             ${mediaHtml || escapeHtml((p.text || "").slice(0, 60))}
-            ${isPinned ? `<div class="grid-pin-badge">📌</div>` : ""}
+            ${isOwn ? `<button class="grid-pin-toggle ${isPinned ? "pinned" : ""}" id="gridpintoggle-${p.id}" title="Pin/unpin">📌</button>` : (isPinned ? `<div class="grid-pin-badge">📌</div>` : "")}
             ${isVideo ? `<div class="grid-video-badge">▶</div>` : ""}
           </div>
         `;
@@ -2556,9 +2939,6 @@ function togglePinPost(postId) {
       ? firebase.firestore.FieldValue.arrayRemove(postId)
       : firebase.firestore.FieldValue.arrayUnion(postId)
   }).then(() => {
-    const updated = isPinned ? pinnedPosts.filter(id => id !== postId) : [...pinnedPosts, postId];
-    state.profile = { ...state.profile, pinnedPosts: updated };
-    render();
     showToast(isPinned ? "Unpinned" : "Pinned to top");
   }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
 }
@@ -2589,7 +2969,7 @@ function renderFollowListScreen() {
   const targetUid = state.followListUid;
   const kind = state.followListKind;
   const isOwn = targetUid === state.user.uid;
-  const profile = isOwn ? state.profile : (state.allUsers.find(u => u.uid === targetUid) || {});
+  const profile = isOwn ? state.profile : (state.profileUserDoc && state.profileUserDoc.uid === targetUid ? state.profileUserDoc : (state.allUsers.find(u => u.uid === targetUid) || {}));
   const ids = kind === "following" ? (profile.following || []) : (profile.followers || []);
   const list = state.allUsers.filter(u => ids.includes(u.uid));
   const myUid = state.user.uid;
@@ -2607,18 +2987,7 @@ function renderFollowListScreen() {
   `;
   document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
 
-  list.forEach(u => {
-    const av = document.getElementById(`useravatar-${u.uid}`);
-    const info = document.getElementById(`userinfo-${u.uid}`);
-    const followBtn = document.getElementById(`followbtn-${u.uid}`);
-    const msgBtn = document.getElementById(`msgbtn-${u.uid}`);
-    const pinBtn = document.getElementById(`pinfriendbtn-${u.uid}`);
-    if (av) av.onclick = () => openProfile(u.uid);
-    if (info) info.onclick = () => openProfile(u.uid);
-    if (followBtn) followBtn.onclick = () => toggleFollowFromList(u.uid);
-    if (msgBtn) msgBtn.onclick = () => openChat(u.uid);
-    if (pinBtn) pinBtn.onclick = () => togglePinFriend(u.uid);
-  });
+  wireFriendsRowHandlers(list);
 }
 
 /* ---------------- Edit Profile screen (TikTok-style) ---------------- */
@@ -2751,6 +3120,7 @@ function toggleSave(post) {
 function handleAvatarSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
+  if (!isAllowedImageFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
   compressImageToDataUrl(file, { maxDim: 300, quality: 0.75, square: true }, (compressed) => {
     db.collection("users").doc(state.user.uid).update({ avatar: compressed })
       .then(() => {
@@ -2772,30 +3142,61 @@ function mailboxIconSvg() { return `<svg width="44" height="44" viewBox="0 0 24 
 /* ================= Share sheet: handlers ================= */
 function wireSheetHandlers() {
   document.getElementById("shareOverlay").onclick = closeSheets;
-  document.getElementById("ownerOverlay").onclick = closeSheets;
+  const ownerOverlay = document.getElementById("ownerOverlay");
+  if (ownerOverlay) ownerOverlay.onclick = closeSheets;
 
   document.querySelectorAll(".share-sendto-item").forEach(btn => {
     btn.onclick = () => doSendPostToFriend(btn.dataset.uid);
   });
 
-  document.getElementById("copyLinkBtn").onclick = doCopyLink;
-  document.getElementById("shareWhatsapp").onclick = () => doShareTo("whatsapp");
-  document.getElementById("shareMessenger").onclick = () => doShareTo("messenger");
-  document.getElementById("shareFacebook").onclick = () => doShareTo("facebook");
-  document.getElementById("shareRepost").onclick = doRepostFromSheet;
-  document.getElementById("shareReport").onclick = doReportFromSheet;
-  document.getElementById("shareDownload").onclick = doDownloadFromSheet;
-  document.getElementById("shareGroup").onclick = doCreateGroupFromSheet;
-  document.getElementById("shareStatus").onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
-  document.getElementById("sharePromote").onclick = () => { showToast("Promote isn't available in this build yet"); closeSheets(); };
-  document.getElementById("shareWallpaper").onclick = () => { showToast("Browsers can't set a phone wallpaper — downloading the image instead"); doDownloadFromSheet(); };
-  document.getElementById("shareGif").onclick = () => { showToast("GIF conversion isn't available in this build yet"); closeSheets(); };
+  const copyLinkBtn = document.getElementById("copyLinkBtn");
+  if (copyLinkBtn) copyLinkBtn.onclick = doCopyLink;
+  const waBtn = document.getElementById("shareWhatsapp");
+  if (waBtn) waBtn.onclick = () => doShareTo("whatsapp");
+  const msBtn = document.getElementById("shareMessenger");
+  if (msBtn) msBtn.onclick = () => doShareTo("messenger");
+  const fbBtn = document.getElementById("shareFacebook");
+  if (fbBtn) fbBtn.onclick = () => doShareTo("facebook");
+  const repostBtn = document.getElementById("shareRepost");
+  if (repostBtn) repostBtn.onclick = doRepostFromSheet;
+  const reportBtn = document.getElementById("shareReport");
+  if (reportBtn) reportBtn.onclick = doReportFromSheet;
+  const statusBtn = document.getElementById("shareStatus");
+  if (statusBtn) statusBtn.onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
 
-  document.getElementById("editPostBtn").onclick = doEditPost;
-  document.getElementById("pinPostBtn").onclick = doPinPostFromSheet;
-  document.getElementById("deletePostBtn").onclick = doDeletePost;
-  document.querySelectorAll(".privacy-options .privacy-option").forEach(btn => {
-    btn.onclick = () => setPrivacy(btn.dataset.level);
+  // ---- Own-post share sheet actions ----
+  const analyticsBtn = document.getElementById("shareAnalytics");
+  if (analyticsBtn) analyticsBtn.onclick = doShowAnalytics;
+  const downloadBtn = document.getElementById("shareDownload");
+  if (downloadBtn) downloadBtn.onclick = doDownloadFromSheet;
+  const pinOwnBtn = document.getElementById("sharePinOwn");
+  if (pinOwnBtn) pinOwnBtn.onclick = doPinPostFromSheet;
+  const groupBtn = document.getElementById("shareGroup");
+  if (groupBtn) groupBtn.onclick = doCreateGroupFromSheet;
+  const editOwnBtn = document.getElementById("shareEditOwn");
+  if (editOwnBtn) editOwnBtn.onclick = doEditPost;
+  const privacyOwnBtn = document.getElementById("sharePrivacyOwn");
+  if (privacyOwnBtn) privacyOwnBtn.onclick = () => {
+    const panel = document.getElementById("ownPrivacyPanel");
+    if (panel) panel.style.display = panel.style.display === "none" ? "block" : "none";
+  };
+  const deleteOwnBtn = document.getElementById("shareDeleteOwn");
+  if (deleteOwnBtn) deleteOwnBtn.onclick = doDeletePost;
+  const addStoryBtn = document.getElementById("shareAddStory");
+  if (addStoryBtn) addStoryBtn.onclick = () => { showToast("Added to your Story"); closeSheets(); };
+  document.querySelectorAll("#ownPrivacyOptions .privacy-option").forEach(btn => {
+    btn.onclick = () => setPrivacyForActivePost(btn.dataset.level);
+  });
+
+  // ---- Owner "⋮" bottom sheet (used from the full-screen feed's own-post action) ----
+  const editPostBtn = document.getElementById("editPostBtn");
+  if (editPostBtn) editPostBtn.onclick = doEditPost;
+  const pinPostBtn = document.getElementById("pinPostBtn");
+  if (pinPostBtn) pinPostBtn.onclick = doPinPostFromSheet;
+  const deletePostBtn = document.getElementById("deletePostBtn");
+  if (deletePostBtn) deletePostBtn.onclick = doDeletePost;
+  document.querySelectorAll("#privacyOptions .privacy-option").forEach(btn => {
+    btn.onclick = () => setPrivacyForActivePost(btn.dataset.level);
   });
 }
 
@@ -2853,6 +3254,18 @@ function doReportFromSheet() {
   }).catch((err) => { console.error(err); showToast("Couldn't submit report"); });
 }
 
+/* Simple, real (client-computed) analytics summary for one of the user's own posts */
+function doShowAnalytics() {
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post) { closeSheets(); return; }
+  const likes = (post.likes || []).length;
+  const comments = (post.comments || []).length;
+  const reposts = (post.reposts || []).length;
+  const saves = (post.savedBy || []).length;
+  showToast(`❤️ ${likes} · 💬 ${comments} · ↻ ${reposts} · 🔖 ${saves}`);
+  closeSheets();
+}
+
 function doDownloadFromSheet() {
   const post = state.posts.find(p => p.id === activePostId);
   if (!post || !post.media) { showToast("Nothing to download"); return; }
@@ -2881,8 +3294,13 @@ function doCreateGroupFromSheet() {
 
 function openShareSheet(postId) {
   activePostId = postId;
-  document.getElementById("shareOverlay").classList.add("open");
-  document.getElementById("shareSheet").classList.add("open");
+  render();
+  requestAnimationFrame(() => {
+    const ov = document.getElementById("shareOverlay");
+    const sh = document.getElementById("shareSheet");
+    if (ov) ov.classList.add("open");
+    if (sh) sh.classList.add("open");
+  });
 }
 
 function openOwnerMenu(postId) {
@@ -2891,7 +3309,7 @@ function openOwnerMenu(postId) {
   document.getElementById("ownerOverlay").classList.add("open");
   document.getElementById("ownerSheet").classList.add("open");
   const currentLevel = (post && post.privacy) || "public";
-  document.querySelectorAll(".privacy-option").forEach(btn => {
+  document.querySelectorAll("#privacyOptions .privacy-option").forEach(btn => {
     btn.classList.toggle("selected", btn.dataset.level === currentLevel);
   });
 }
@@ -2929,20 +3347,6 @@ function doShareTo(platform) {
   closeSheets();
 }
 
-function doNativeShare() {
-  if (navigator.share) {
-    navigator.share({
-      title: "Milon",
-      text: "Check out this post on Milon!",
-      url: getPostLink(activePostId),
-    }).catch(() => {});
-  } else {
-    doCopyLink();
-    return;
-  }
-  closeSheets();
-}
-
 /* ================= Own post: Edit / Delete / Privacy / Pin ================= */
 function doEditPost() {
   const post = state.posts.find(p => p.id === activePostId);
@@ -2970,7 +3374,7 @@ function doDeletePost() {
   closeSheets();
 }
 
-function setPrivacy(level) {
+function setPrivacyForActivePost(level) {
   if (!activePostId) return;
   db.collection("posts").doc(activePostId).update({ privacy: level })
     .then(() => showToast("Privacy updated"))
@@ -2982,6 +3386,7 @@ function setPrivacy(level) {
 function handleImageSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
+  if (!isAllowedImageFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
   compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (compressed) => {
     setState({ composerMedia: compressed, composerMediaType: "image" });
   });
@@ -3023,31 +3428,37 @@ function toggleLike(post) {
     likes: liked
       ? firebase.firestore.FieldValue.arrayRemove(uid)
       : firebase.firestore.FieldValue.arrayUnion(uid)
+  }).then(() => {
+    if (!liked) logActivity(post.authorUid, "like", `${state.user.name} liked your post`);
   }).catch((err) => console.error(err));
 }
 
-function submitComment(postId) {
-  // The live full-screen comments sheet uses a single shared input with id
-  // "fsCommentInput" (see renderFsCommentsSheet). The legacy per-post
-  // "commentInput-{postId}" input is kept as a fallback for the old card
-  // layout (renderPost), which isn't used by the current Home feed but is
-  // still here for compatibility.
-  const input = document.getElementById("fsCommentInput") || document.getElementById(`commentInput-${postId}`);
-  if (!input) return;
-  const text = input.value.trim();
-  if (!text) return;
-
+/* Shared comment-submission helper used by both the classic feed comment box and the
+   full-screen feed's comments sheet — takes the raw text directly rather than reading
+   from a specific input id, so it works no matter which UI called it. */
+function submitCommentText(postId, text) {
+  if (!text || !text.trim()) return;
   const ref = db.collection("posts").doc(postId);
   ref.update({
     comments: firebase.firestore.FieldValue.arrayUnion({
       name: state.user.name,
-      text: text
+      text: text.trim()
     })
+  }).then(() => {
+    const post = state.posts.find(p => p.id === postId);
+    if (post) logActivity(post.authorUid, "comment", `${state.user.name} commented: "${text.trim().slice(0, 60)}"`);
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't send comment");
   });
+}
 
+function submitComment(postId) {
+  const input = document.getElementById(`commentInput-${postId}`);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  submitCommentText(postId, text);
   input.value = "";
 }
 
@@ -3124,9 +3535,18 @@ render();
 </script><script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js");
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" });
+    });
+    // When a new version of the app takes over, reload once automatically
+    // so everyone always ends up on the latest design/code — no manual
+    // uninstall/reinstall needed.
+    let milonSwRefreshed = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (milonSwRefreshed) return;
+      milonSwRefreshed = true;
+      window.location.reload();
     });
   }
 </script>
 </body>
-  </html>
+</html>

@@ -743,6 +743,7 @@ let state = {
   cameraLastGalleryThumb: null,
   cameraFlashOn: false,
   cameraTimerOn: false,       // 3-second countdown before capture
+  cameraSoundOn: true,        // mic audio on/off for video recording
   cameraCountdown: 0,
   cameraSpeed: "1x",          // 0.5x | 1x | 2x | 3x
   cameraFilter: "none",       // none | bw | warm | cool | vivid | soft
@@ -1272,7 +1273,7 @@ function renderFsCommentsSheet(posts) {
     <div class="bottom-sheet fs-comments-sheet ${state.openFsComments ? "open" : ""}" id="fsCommentsSheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">Comments (${comments.length})</div>
-      ${comments.map(c => `<div class="comment-line"><span><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
+      ${comments.map((c, i) => `<div class="comment-line"><span>${c.uid ? `<b class="comment-author-link" id="commentAuthor-${i}" style="cursor:pointer">${escapeHtml(c.name)}</b>` : `<b>${escapeHtml(c.name)}</b>`}: ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
       <div class="comment-input-row" style="margin-top:10px;">
         <input id="fsCommentInput" type="text" placeholder="Write a comment..." />
         <button id="fsCommentSubmit">Send</button>
@@ -1284,6 +1285,13 @@ function renderFsCommentsSheet(posts) {
 function wireFsCommentsHandlers(posts) {
   const overlay = document.getElementById("fsCommentsOverlay");
   if (overlay) overlay.onclick = () => setState({ openFsComments: null });
+  const post = state.openFsComments ? posts.find(p => p.id === state.openFsComments) : null;
+  const comments = post ? (post.comments || []) : [];
+  comments.forEach((c, i) => {
+    if (!c.uid) return;
+    const authorLink = document.getElementById(`commentAuthor-${i}`);
+    if (authorLink) authorLink.onclick = () => openProfile(c.uid);
+  });
   const submitBtn = document.getElementById("fsCommentSubmit");
   if (submitBtn && state.openFsComments) {
     const doSubmit = () => {
@@ -1382,6 +1390,8 @@ function renderOwnPostShareSheet() {
         <button class="share-grid-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
         <button class="share-grid-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
         <button class="share-grid-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>Delete</button>
+        <button class="share-grid-item" id="shareKeywords"><span class="sheet-icon" style="background:#6b6860">🏷️</span>Manage keywords</button>
+        <button class="share-grid-item" id="shareAddStory"><span class="sheet-icon" style="background:#8e44ad">➕</span>Add to Story</button>
       </div>
       <div id="ownPrivacyPanel" style="display:none; padding: 4px 4px 10px;">
         <div class="sheet-title" style="margin-top:6px;">Who can see this</div>
@@ -1500,6 +1510,7 @@ function openCameraScreen() {
     cameraError: null,
     cameraFlashOn: false,
     cameraTimerOn: false,
+    cameraSoundOn: true,
     cameraCountdown: 0,
     cameraSpeed: "1x",
     cameraFilter: "none"
@@ -1534,6 +1545,7 @@ function startCameraStream(facing) {
       const videoEl = document.getElementById("liveCameraVideo");
       if (videoEl) { videoEl.srcObject = stream; videoEl.play().catch(() => {}); }
       applyTorch();
+      applyMicMute();
     })
     .catch((err) => {
       console.error(err);
@@ -1551,6 +1563,14 @@ function applyTorch() {
   if (caps && caps.torch) {
     track.applyConstraints({ advanced: [{ torch: !!state.cameraFlashOn }] }).catch(() => {});
   }
+}
+
+/* Enables/disables the mic input track live, based on the "Sound" toggle. Muting this way
+   (rather than removing the track) means MediaRecorder still works normally either way. */
+function applyMicMute() {
+  if (!state.cameraStream) return;
+  const audioTrack = state.cameraStream.getAudioTracks()[0];
+  if (audioTrack) audioTrack.enabled = !!state.cameraSoundOn;
 }
 
 function flipCamera() {
@@ -1621,6 +1641,7 @@ function renderCameraScreen() {
           <div class="camera-top-icons">
             <button class="camera-flash-btn ${state.cameraFlashOn ? "on" : ""}" id="camFlashBtn" title="Flash">${state.cameraFlashOn ? "⚡" : "⚡"}</button>
             <button class="camera-timer-btn ${state.cameraTimerOn ? "on" : ""}" id="camTimerBtn" title="Timer">⏱</button>
+            <button class="camera-timer-btn ${state.cameraSoundOn ? "on" : ""}" id="camSoundBtn" title="Sound">${state.cameraSoundOn ? "🔊" : "🔇"}</button>
             <button class="camera-flip-btn" id="camFlipBtn" title="Flip camera">🔄</button>
           </div>` : `<div></div>`}
         </div>
@@ -1657,6 +1678,8 @@ function renderCameraScreen() {
   if (flashBtn) flashBtn.onclick = () => { state.cameraFlashOn = !state.cameraFlashOn; render(); applyTorch(); };
   const timerBtn = document.getElementById("camTimerBtn");
   if (timerBtn) timerBtn.onclick = () => setState({ cameraTimerOn: !state.cameraTimerOn });
+  const soundBtn = document.getElementById("camSoundBtn");
+  if (soundBtn) soundBtn.onclick = () => { state.cameraSoundOn = !state.cameraSoundOn; applyMicMute(); render(); };
 
   document.querySelectorAll(".camera-filter-btn").forEach(btn => {
     btn.onclick = () => setState({ cameraFilter: btn.dataset.filter });
@@ -1768,6 +1791,7 @@ function maxRecordMs() {
 
 function startVideoRecording() {
   if (!state.cameraStream) return;
+  applyMicMute();
   recordedChunksRef = [];
   const options = {};
   // MediaRecorder audio track is included by default; the "Sound" control mutes/unmutes
@@ -3631,6 +3655,8 @@ function wireSheetHandlers() {
   if (deleteOwnBtn) deleteOwnBtn.onclick = doDeletePost;
   const addStoryBtn = document.getElementById("shareAddStory");
   if (addStoryBtn) addStoryBtn.onclick = () => { showToast("Added to your Story"); closeSheets(); };
+  const keywordsBtn = document.getElementById("shareKeywords");
+  if (keywordsBtn) keywordsBtn.onclick = () => { showToast("Keyword management isn't available in this build yet"); closeSheets(); };
   document.querySelectorAll("#ownPrivacyOptions .privacy-option").forEach(btn => {
     btn.onclick = () => setPrivacyForActivePost(btn.dataset.level);
   });
@@ -3977,6 +4003,7 @@ function submitCommentText(postId, text) {
   const ref = db.collection("posts").doc(postId);
   ref.update({
     comments: firebase.firestore.FieldValue.arrayUnion({
+      uid: state.user.uid,
       name: state.user.name,
       text: text.trim()
     })

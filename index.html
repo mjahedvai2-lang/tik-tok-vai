@@ -1246,6 +1246,81 @@ function handleClearData() {
   });
 }
 
+/* ================= For You ranking (TikTok-style dynamic reorder) =================
+   The "Following" tab stays pure reverse-chronological — that's a subscription feed,
+   order should just be "what did the people I follow post". "For You" is the one meant
+   to behave like TikTok's algorithmic feed: instead of newest-first, posts are ranked by
+   engagement velocity (how much interaction they're getting relative to how long they've
+   been up), with a small nudge for creators the viewer already follows, a short-lived
+   freshness floor so brand-new posts get a fair first look before any engagement has had
+   time to accumulate, and a final pass that breaks up back-to-back posts from the same
+   author so one prolific creator can't dominate several slides in a row. This only runs
+   inside a full render() (view change, tab switch, new post arriving) — it never runs on
+   the like/comment "patch in place" path from listenToPosts, so it can't undo the
+   scroll-jump fix: order is stable while a like/comment updates on the current slide. */
+function postAgeHours(p) {
+  let ms;
+  if (p.createdAt && typeof p.createdAt.toMillis === "function") ms = p.createdAt.toMillis();
+  else if (p.createdAt) ms = new Date(p.createdAt).getTime();
+  else ms = Date.now();
+  return Math.max((Date.now() - ms) / 3600000, 0.1);
+}
+
+function scoreForYouPost(p, followingUids) {
+  const likes = (p.likes || []).length;
+  const comments = (p.comments || []).length;
+  const reposts = (p.reposts || []).length;
+  const saves = (p.savedBy || []).length;
+  const engagement = likes + comments * 2 + reposts * 3 + saves * 1.5;
+
+  const ageHours = postAgeHours(p);
+  // Engagement per hour-since-posted — a fresh post picking up fast interaction can
+  // outrank an older post with more total (but slower) engagement.
+  const velocity = engagement / Math.pow(ageHours + 2, 1.3);
+
+  // For You is meant to surface content beyond who you follow, so this boost stays small.
+  const followBoost = followingUids.has(p.authorUid) ? 1.15 : 1;
+
+  // Gentle head start for posts under 3 hours old so they aren't buried before anyone's
+  // had a chance to react to them.
+  const freshnessFloor = ageHours < 3 ? (3 - ageHours) * 0.5 : 0;
+
+  return velocity * followBoost + freshnessFloor;
+}
+
+/* Greedy round-robin by author on the already-score-sorted list, so two posts from the
+   same person don't land back to back unless every remaining post is theirs. */
+function applyAuthorDiversity(posts) {
+  const queueByAuthor = new Map();
+  const authorOrder = [];
+  posts.forEach(p => {
+    if (!queueByAuthor.has(p.authorUid)) { queueByAuthor.set(p.authorUid, []); authorOrder.push(p.authorUid); }
+    queueByAuthor.get(p.authorUid).push(p);
+  });
+  const result = [];
+  let lastAuthor = null;
+  while (result.length < posts.length) {
+    let pickedAny = false;
+    for (const author of authorOrder) {
+      const q = queueByAuthor.get(author);
+      if (q.length && author !== lastAuthor) {
+        result.push(q.shift());
+        lastAuthor = author;
+        pickedAny = true;
+        if (result.length >= posts.length) break;
+      }
+    }
+    if (!pickedAny) {
+      // Everything left belongs to lastAuthor (or only one author remains) — drain as-is.
+      for (const author of authorOrder) {
+        const q = queueByAuthor.get(author);
+        while (q.length) { result.push(q.shift()); lastAuthor = author; }
+      }
+    }
+  }
+  return result;
+}
+
 /* ================= HOME: full-screen swipeable video feed (TikTok-style) ================= */
 function renderApp() {
   const myUid = state.user.uid;
@@ -1257,9 +1332,16 @@ function renderApp() {
     return p.authorUid === myUid;
   });
 
+  const followingUidsForRanking = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
+
   if (state.homeFeedTab === "following") {
-    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
-    visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
+    visiblePosts = visiblePosts.filter(p => followingUidsForRanking.has(p.authorUid) || p.authorUid === myUid);
+  } else if (state.homeFeedTab === "forYou") {
+    const scored = visiblePosts
+      .map(p => ({ p, score: scoreForYouPost(p, followingUidsForRanking) }))
+      .sort((a, b) => b.score - a.score)
+      .map(s => s.p);
+    visiblePosts = applyAuthorDiversity(scored);
   }
 
   // Safety net for the rarer case a full rebuild does happen here (e.g. a brand new post

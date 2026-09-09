@@ -2605,6 +2605,7 @@ function renderChatScreen() {
   }).join("");
 
   const presenceLabel = chatPresenceLabel();
+  const hasContent = !!(state.chatText.trim() || state.chatMedia);
 
   root.innerHTML = `
     <div class="chat-header">
@@ -2617,10 +2618,11 @@ function renderChatScreen() {
     </div>
     <div class="chat-messages" id="chatMessagesBox">${bubblesHtml}</div>
     <div class="chat-input-bar">
+      ${!hasContent ? `
       <div class="chat-reaction-row">
         ${CHAT_QUICK_REACTIONS.map(r => `<button class="chat-reaction-btn" data-r="${r}">${r}</button>`).join("")}
-      </div>
-      ${state.chatStickerPanelOpen ? `
+      </div>` : ""}
+      ${(state.chatStickerPanelOpen && !hasContent) ? `
         <div class="chat-sticker-panel">
           ${["🎉","🔥","😍","👏","😢","😮","🙌","💯"].map(s => `<button data-s="${s}">${s}</button>`).join("")}
         </div>
@@ -2631,14 +2633,15 @@ function renderChatScreen() {
           <button class="chat-media-remove" id="removeChatMediaBtn">✕</button>
         </div>` : ""}
       <div class="chat-input-row">
+        ${!hasContent ? `
         <label class="chat-image-btn" title="Photo/video from gallery">
           🖼️
           <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
-        </label>
+        </label>` : ""}
         <input id="chatInput" type="text" placeholder="Message..." value="${escapeHtml(state.chatText)}" />
-        <button class="chat-image-btn" id="chatStickerBtn" title="Stickers">😊</button>
-        <button class="chat-image-btn chat-mic-btn ${state.chatRecordingVoice ? "recording" : ""}" id="chatMicBtn" title="Voice message">${state.chatRecordingVoice ? "⏹" : "🎤"}</button>
-        <button class="chat-send-btn" id="chatSendBtn" ${(!state.chatText.trim() && !state.chatMedia) ? "disabled" : ""}>➤</button>
+        ${!hasContent ? `<button class="chat-image-btn" id="chatStickerBtn" title="Stickers">😊</button>` : ""}
+        ${!hasContent ? `<button class="chat-image-btn chat-mic-btn ${state.chatRecordingVoice ? "recording" : ""}" id="chatMicBtn" title="Voice message">${state.chatRecordingVoice ? "⏹" : "🎤"}</button>` : ""}
+        ${hasContent ? `<button class="chat-send-btn" id="chatSendBtn">➤</button>` : ""}
       </div>
     </div>
   `;
@@ -2652,14 +2655,33 @@ function renderChatScreen() {
   };
   const input = document.getElementById("chatInput");
   input.oninput = (e) => {
+    const prevHasContent = !!(state.chatText.trim() || state.chatMedia);
     state.chatText = e.target.value;
-    document.getElementById("chatSendBtn").disabled = !state.chatText.trim() && !state.chatMedia;
+    const nowHasContent = !!(state.chatText.trim() || state.chatMedia);
+    if (prevHasContent !== nowHasContent) {
+      // Layout changes (icons <-> send button) only at this boundary, so re-render here
+      // and restore focus/cursor — re-rendering on every keystroke would steal focus.
+      const caretPos = e.target.selectionStart;
+      render();
+      const newInput = document.getElementById("chatInput");
+      if (newInput) {
+        newInput.focus();
+        newInput.setSelectionRange(caretPos, caretPos);
+      }
+    } else {
+      const sendBtn = document.getElementById("chatSendBtn");
+      if (sendBtn) sendBtn.disabled = !nowHasContent;
+    }
   };
   input.onkeydown = (e) => { if (e.key === "Enter") sendChatMessage(); };
-  document.getElementById("chatSendBtn").onclick = sendChatMessage;
-  document.getElementById("chatGalleryInput").onchange = handleChatMediaSelect;
-  document.getElementById("chatStickerBtn").onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
-  document.getElementById("chatMicBtn").onclick = () => {
+  const sendBtn = document.getElementById("chatSendBtn");
+  if (sendBtn) sendBtn.onclick = sendChatMessage;
+  const galleryInput = document.getElementById("chatGalleryInput");
+  if (galleryInput) galleryInput.onchange = handleChatMediaSelect;
+  const stickerBtn = document.getElementById("chatStickerBtn");
+  if (stickerBtn) stickerBtn.onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
+  const micBtn = document.getElementById("chatMicBtn");
+  if (micBtn) micBtn.onclick = () => {
     if (state.chatRecordingVoice) stopVoiceRecording();
     else startVoiceRecording();
   };

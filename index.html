@@ -647,6 +647,8 @@
   .share-sendto-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 58px; background: none; border: none; cursor: pointer; }
   .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 6px 2px 10px; }
   .share-grid-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: none; font-size: 11px; color: var(--ink); cursor: pointer; }
+  .share-icon-row { display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 14px; -webkit-overflow-scrolling: touch; }
+  .share-icon-row .share-grid-item { min-width: 60px; flex-shrink: 0; }
 
   /* ---------- CHAT: reactions row + expanded input bar ---------- */
   .chat-reaction-row { display: flex; gap: 8px; padding: 2px 2px 4px; overflow-x: auto; }
@@ -1186,6 +1188,7 @@ function renderApp() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
+    ${renderQrSheet()}
     ${renderFsCommentsSheet(visiblePosts)}
     ${renderBottomNav("feed")}
   `;
@@ -1319,13 +1322,21 @@ function renderShareSheet() {
           </button>
         `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
       </div>
-      <div class="share-grid">
-        <button class="share-grid-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
-        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
-        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
+      <div class="share-icon-row">
+        <button class="share-grid-item" id="shareTelegram"><span class="sheet-icon" style="background:#229ED9">✈️</span>Telegram</button>
+        <button class="share-grid-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>Instagram</button>
+        <button class="share-grid-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
+        <button class="share-grid-item" id="shareEmail"><span class="sheet-icon" style="background:#5f6368">📧</span>Email</button>
+        <button class="share-grid-item" id="shareQr"><span class="sheet-icon" style="background:#262420">▦</span>QR code</button>
+        <button class="share-grid-item" id="shareMore"><span class="sheet-icon" style="background:#8e8a80">⋯</span>More</button>
         <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
         <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
         <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
+        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
+      </div>
+      <div class="share-grid" style="margin-top:6px;">
+        <button class="share-grid-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
+        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
         <button class="share-grid-item" id="shareReport"><span class="sheet-icon" style="background:#D85A30">⚑</span>Report</button>
       </div>
     </div>
@@ -1351,15 +1362,22 @@ function renderOwnPostShareSheet() {
           </button>
         `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
       </div>
-      <div class="share-grid">
-        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
-        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
+      <div class="share-icon-row">
+        <button class="share-grid-item" id="shareTelegram"><span class="sheet-icon" style="background:#229ED9">✈️</span>Telegram</button>
+        <button class="share-grid-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>Instagram</button>
+        <button class="share-grid-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
+        <button class="share-grid-item" id="shareEmail"><span class="sheet-icon" style="background:#5f6368">📧</span>Email</button>
+        <button class="share-grid-item" id="shareQr"><span class="sheet-icon" style="background:#262420">▦</span>QR code</button>
+        <button class="share-grid-item" id="shareMore"><span class="sheet-icon" style="background:#8e8a80">⋯</span>More</button>
         <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
         <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
         <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
-        <button class="share-grid-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
+        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
       </div>
       <div class="share-grid" style="margin-top:6px;">
+        <button class="share-grid-item" id="shareAnalytics"><span class="sheet-icon" style="background:#8e44ad">📊</span>Analytics</button>
+        <button class="share-grid-item" id="shareDownload"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Download</button>
+        <button class="share-grid-item" id="shareGroup"><span class="sheet-icon" style="background:#3b82f6">👥</span>Create group</button>
         <button class="share-grid-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
         <button class="share-grid-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
         <button class="share-grid-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
@@ -1393,6 +1411,23 @@ function renderOwnerSheet() {
         </div>
       </div>
       <button class="menu-list-item danger" id="deletePostBtn">🗑️ Delete</button>
+    </div>
+  `;
+}
+
+/* Real QR code for a post's link — generated via a public QR image API (no key needed),
+   pointing straight at the real getPostLink() URL, plus a real PNG download. */
+function renderQrSheet() {
+  return `
+    <div class="sheet-overlay" id="qrOverlay"></div>
+    <div class="bottom-sheet" id="qrSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Scan to open this post</div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding: 6px 4px 18px;">
+        <img id="qrImage" alt="QR code" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--line);" />
+        <div id="qrLinkText" style="font-size:12px;color:var(--ink-soft);word-break:break-all;text-align:center;"></div>
+        <button class="post-btn" id="qrDownloadBtn" style="width:100%;">Download QR code</button>
+      </div>
     </div>
   `;
 }
@@ -2029,6 +2064,7 @@ function renderFriendsVideoFeed() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
+    ${renderQrSheet()}
     ${renderFsCommentsSheet(videos)}
     ${renderBottomNav("friends")}
   `;
@@ -3100,6 +3136,7 @@ function openPostViewer(postId) {
     <button id="postViewerClose" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.4);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;">✕</button>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
+    ${renderQrSheet()}
     ${renderFsCommentsSheet([post])}
   `;
   document.body.appendChild(overlay);
@@ -3559,6 +3596,20 @@ function wireSheetHandlers() {
   if (statusBtn) statusBtn.onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
   const smsBtn = document.getElementById("shareSms");
   if (smsBtn) smsBtn.onclick = () => doShareTo("sms");
+  const telegramBtn = document.getElementById("shareTelegram");
+  if (telegramBtn) telegramBtn.onclick = () => doShareTo("telegram");
+  const instagramBtn = document.getElementById("shareInstagram");
+  if (instagramBtn) instagramBtn.onclick = doShareInstagram;
+  const emailBtn = document.getElementById("shareEmail");
+  if (emailBtn) emailBtn.onclick = doEmailShare;
+  const qrBtn = document.getElementById("shareQr");
+  if (qrBtn) qrBtn.onclick = openQrSheet;
+  const moreBtn = document.getElementById("shareMore");
+  if (moreBtn) moreBtn.onclick = doMoreShare;
+  const qrOverlay = document.getElementById("qrOverlay");
+  if (qrOverlay) qrOverlay.onclick = closeSheets;
+  const qrDownloadBtn = document.getElementById("qrDownloadBtn");
+  if (qrDownloadBtn) qrDownloadBtn.onclick = downloadQr;
 
   // ---- Own-post share sheet actions ----
   const analyticsBtn = document.getElementById("shareAnalytics");
@@ -3742,6 +3793,94 @@ function doShareTo(platform) {
   };
   window.open(urls[platform], "_blank");
   closeSheets();
+}
+
+/* Real mailto share — opens the user's own mail app with subject+body prefilled */
+function doEmailShare() {
+  const link = getPostLink(activePostId);
+  const subject = encodeURIComponent("Check out this post on Milon!");
+  const body = encodeURIComponent(`Check out this post on Milon: ${link}`);
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  closeSheets();
+}
+
+/* Instagram has no public web endpoint for pre-filled posts/captions — that's an Instagram
+   platform limitation, not something any web app can work around. The real, honest options:
+   on mobile, hand the actual media file to the OS share sheet via the Web Share API so the
+   person can pick Instagram themselves (genuinely opens Instagram with the file attached);
+   on desktop, copy the caption+link and open Instagram so they can paste it in. */
+function doShareInstagram() {
+  const link = getPostLink(activePostId);
+  const post = state.posts.find(p => p.id === activePostId);
+  const text = "Check out this post on Milon!";
+  const shareText = `${text} ${link}`;
+
+  const fallbackLinkShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: "Milon", text, url: link }).catch(() => {});
+      closeSheets();
+    } else {
+      navigator.clipboard.writeText(shareText).catch(() => {});
+      window.open("https://www.instagram.com/", "_blank");
+      showToast("Caption & link copied — paste it into Instagram");
+      closeSheets();
+    }
+  };
+
+  if (navigator.share && navigator.canShare && post && post.media && post.media.startsWith("data:")) {
+    fetch(post.media)
+      .then(res => res.blob())
+      .then(blob => {
+        const ext = post.mediaType === "video" ? "mp4" : "jpg";
+        const file = new File([blob], `milon-post.${ext}`, { type: blob.type });
+        if (navigator.canShare({ files: [file] })) {
+          return navigator.share({ files: [file], text: shareText }).then(() => { closeSheets(); });
+        }
+        fallbackLinkShare();
+      })
+      .catch(fallbackLinkShare);
+  } else {
+    fallbackLinkShare();
+  }
+}
+
+/* "More" — the device's real native share sheet (Web Share API), same one every other
+   app on the phone uses; falls back to copying the link on desktop browsers that don't
+   support it. */
+function doMoreShare() {
+  const link = getPostLink(activePostId);
+  const text = "Check out this post on Milon!";
+  if (navigator.share) {
+    navigator.share({ title: "Milon", text, url: link }).catch(() => {});
+    closeSheets();
+  } else {
+    doCopyLink();
+  }
+}
+
+/* Real QR code, generated server-side by a public QR image API, pointing at the actual
+   post link — same link Copy link / every other share option uses. */
+function openQrSheet() {
+  const link = getPostLink(activePostId);
+  const qrImg = document.getElementById("qrImage");
+  if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(link)}`;
+  const qrLinkText = document.getElementById("qrLinkText");
+  if (qrLinkText) qrLinkText.textContent = link;
+  const ov = document.getElementById("qrOverlay");
+  const sh = document.getElementById("qrSheet");
+  if (ov) ov.classList.add("open");
+  if (sh) sh.classList.add("open");
+}
+
+function downloadQr() {
+  const link = getPostLink(activePostId);
+  const a = document.createElement("a");
+  a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(link)}`;
+  a.download = "milon-post-qr.png";
+  a.target = "_blank";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 /* ================= Own post: Edit / Delete / Privacy / Pin ================= */

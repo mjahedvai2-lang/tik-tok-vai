@@ -2551,10 +2551,6 @@ function renderChatScreen() {
           <button class="chat-media-remove" id="removeChatMediaBtn">✕</button>
         </div>` : ""}
       <div class="chat-input-row">
-        <label class="chat-image-btn" title="Camera">
-          📷
-          <input type="file" accept="image/*,video/*" capture="environment" id="chatCameraInput" style="display:none" />
-        </label>
         <label class="chat-image-btn" title="Photo/video from gallery">
           🖼️
           <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
@@ -2581,7 +2577,6 @@ function renderChatScreen() {
   };
   input.onkeydown = (e) => { if (e.key === "Enter") sendChatMessage(); };
   document.getElementById("chatSendBtn").onclick = sendChatMessage;
-  document.getElementById("chatCameraInput").onchange = handleChatMediaSelect;
   document.getElementById("chatGalleryInput").onchange = handleChatMediaSelect;
   document.getElementById("chatStickerBtn").onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
   document.getElementById("chatMicBtn").onclick = () => {
@@ -2627,23 +2622,26 @@ function sendReactionMessage(emoji) {
   const threadId = threadIdFor(myUid, otherUid);
   const threadRef = db.collection("threads").doc(threadId);
   setState({ chatStickerPanelOpen: false });
-  threadRef.collection("messages").add({
-    senderUid: myUid,
-    reaction: emoji,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    return threadRef.set({
-      participants: [myUid, otherUid],
-      participantInfo: {
-        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
-      },
-      lastMessage: emoji,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
-      [`unread.${myUid}`]: 0
-    }, { merge: true });
-  }).catch((err) => console.error(err));
+  threadRef.set({
+    participants: [myUid, otherUid],
+    participantInfo: {
+      [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+      [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+    },
+    lastMessage: emoji,
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+    [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+    [`unread.${myUid}`]: 0
+  }, { merge: true }).then(() => {
+    return threadRef.collection("messages").add({
+      senderUid: myUid,
+      reaction: emoji,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't send");
+  });
 }
 
 /* Voice message recording via the mic button */
@@ -2693,23 +2691,26 @@ function sendVoiceMessage(audioDataUrl) {
   const otherUid = state.chatUid;
   const threadId = threadIdFor(myUid, otherUid);
   const threadRef = db.collection("threads").doc(threadId);
-  threadRef.collection("messages").add({
-    senderUid: myUid,
-    audio: audioDataUrl,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    return threadRef.set({
-      participants: [myUid, otherUid],
-      participantInfo: {
-        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
-      },
-      lastMessage: "🎤 Voice message",
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
-      [`unread.${myUid}`]: 0
-    }, { merge: true });
-  }).catch((err) => console.error(err));
+  threadRef.set({
+    participants: [myUid, otherUid],
+    participantInfo: {
+      [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+      [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+    },
+    lastMessage: "🎤 Voice message",
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+    [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+    [`unread.${myUid}`]: 0
+  }, { merge: true }).then(() => {
+    return threadRef.collection("messages").add({
+      senderUid: myUid,
+      audio: audioDataUrl,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't send the voice message");
+  });
 }
 
 function sendChatMessage() {
@@ -2730,24 +2731,27 @@ function sendChatMessage() {
 
   threadRef.get().then((threadDoc) => {
     const isNewThread = !threadDoc.exists;
-    return threadRef.collection("messages").add({
-      senderUid: myUid,
-      text: text,
-      image: mediaType === "image" ? media : null,
-      video: mediaType === "video" ? media : null,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      return threadRef.set({
-        participants: [myUid, otherUid],
-        participantInfo: {
-          [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-          [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
-        },
-        lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
-        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-        [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
-        [`unread.${myUid}`]: 0
-      }, { merge: true });
+    // Create/update the thread doc FIRST (with participants set), then write the message.
+    // If Firestore rules check the thread's participants before allowing a message write,
+    // doing it in this order means a brand-new conversation's first message won't be blocked.
+    return threadRef.set({
+      participants: [myUid, otherUid],
+      participantInfo: {
+        [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      },
+      lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${myUid}`]: 0
+    }, { merge: true }).then(() => {
+      return threadRef.collection("messages").add({
+        senderUid: myUid,
+        text: text,
+        image: mediaType === "image" ? media : null,
+        video: mediaType === "video" ? media : null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
     }).then(() => {
       if (isNewThread) logActivity(otherUid, "message", `${state.user.name} started a conversation with you`);
     });
@@ -3498,19 +3502,19 @@ function doSendPostToFriend(uid) {
   const myUid = state.user.uid;
   const threadId = threadIdFor(myUid, uid);
   const threadRef = db.collection("threads").doc(threadId);
-  threadRef.collection("messages").add({
-    senderUid: myUid,
-    text: `Shared a post: "${(post.text || "").slice(0, 60)}"`,
-    image: post.media && post.mediaType !== "video" ? post.media : null,
-    sharedPostId: post.id,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    return threadRef.set({
-      participants: [myUid, uid],
-      lastMessage: "Shared a post",
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`unread.${uid}`]: firebase.firestore.FieldValue.increment(1)
-    }, { merge: true });
+  threadRef.set({
+    participants: [myUid, uid],
+    lastMessage: "Shared a post",
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+    [`unread.${uid}`]: firebase.firestore.FieldValue.increment(1)
+  }, { merge: true }).then(() => {
+    return threadRef.collection("messages").add({
+      senderUid: myUid,
+      text: `Shared a post: "${(post.text || "").slice(0, 60)}"`,
+      image: post.media && post.mediaType !== "video" ? post.media : null,
+      sharedPostId: post.id,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
   }).then(() => {
     showToast("Sent!");
     closeSheets();

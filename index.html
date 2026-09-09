@@ -25,6 +25,7 @@
     --teal-deep: #085041;
     --coral: #D85A30;
     --coral-soft: #FAECE7;
+    --tiktok-red: #FE2C55;
   }
   body {
     font-family: -apple-system, "Segoe UI", sans-serif;
@@ -242,7 +243,7 @@
   .profile-action-row { margin-top: 14px; display: flex; justify-content: center; gap: 8px; }
   .profile-action-row .profile-follow-btn { margin-top: 0; }
   .profile-follow-btn {
-    margin-top: 14px; display: inline-block; border: none; background: var(--coral);
+    margin-top: 14px; display: inline-block; border: none; background: var(--tiktok-red);
     color: #fff; font-size: 13px; font-weight: 700; padding: 8px 28px; border-radius: 8px; cursor: pointer;
   }
   .profile-follow-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
@@ -342,7 +343,7 @@
   .nav-icon-wrap { position: relative; display: inline-flex; }
   .nav-badge {
     position: absolute; top: -4px; right: -8px; min-width: 15px; height: 15px; padding: 0 3px;
-    border-radius: 8px; background: var(--coral); color: #fff; font-size: 10px; font-weight: 700;
+    border-radius: 8px; background: var(--tiktok-red); color: #fff; font-size: 10px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; line-height: 1;
   }
 
@@ -375,7 +376,7 @@
   .user-row-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
   .request-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .pill-btn {
-    border: none; background: var(--teal-deep); color: #fff; font-size: 12px; font-weight: 700;
+    border: none; background: var(--tiktok-red); color: #fff; font-size: 12px; font-weight: 700;
     padding: 7px 14px; border-radius: 16px; cursor: pointer; white-space: nowrap;
   }
   .pill-btn.following { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
@@ -432,6 +433,32 @@
   }
   .inbox-section-chevron { color: var(--ink-soft); font-size: 16px; }
   .inbox-suggested-heading { padding: 16px 14px 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+
+  /* New followers / Activity: real avatar + mutuals + follow-back / wave button */
+  .notif-row-avatar {
+    width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center;
+    justify-content: center; background: var(--coral-soft); color: var(--coral); font-weight: 700; font-size: 16px; flex-shrink: 0;
+  }
+  .notif-row-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .notif-row-name { font-weight: 700; font-size: 14px; }
+  .notif-row-sub { font-size: 13px; color: var(--ink-soft); margin-top: 1px; }
+  .notif-mutual-line { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+  .notif-mutual-avatars { display: flex; }
+  .notif-mutual-avatars span {
+    width: 16px; height: 16px; border-radius: 50%; overflow: hidden; margin-left: -6px; border: 1.5px solid var(--card);
+    display: inline-flex; background: var(--coral-soft);
+  }
+  .notif-mutual-avatars span:first-child { margin-left: 0; }
+  .notif-mutual-avatars img { width: 100%; height: 100%; object-fit: cover; }
+  .notif-suggest-tag { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+  .followback-btn {
+    border: none; background: var(--tiktok-red); color: #fff; font-size: 13px; font-weight: 700;
+    padding: 9px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  .wave-btn {
+    border: none; background: var(--line); color: var(--ink); font-size: 13px; font-weight: 700;
+    padding: 9px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
 
   .thread-row {
     display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); cursor: pointer;
@@ -2333,24 +2360,67 @@ function renderInboxSubScreen() {
   let title = "";
   let bodyHtml = "";
 
-  const notifRow = (a, icon, bg) => `
-    <div class="inbox-section-row" id="notif-${a.id}">
-      <div class="inbox-section-icon" style="background:${bg}">${icon}</div>
-      <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
-    </div>
-  `;
+  const followerRow = (a) => {
+    const u = state.allUsers.find(x => x.uid === a.fromUid);
+    const name = (u && u.name) || a.fromName || "User";
+    const avatar = u && u.avatar;
+    const amFollowingBack = u ? (u.followers || []).includes(myUid) : false;
+    const mutuals = a.fromUid ? mutualFriendsWith(a.fromUid) : [];
+    let subLine = "";
+    if (mutuals.length > 0) {
+      const shown = mutuals.slice(0, 3);
+      const extra = mutuals.length - shown.length;
+      subLine = `
+        <div class="notif-mutual-line">
+          <span>Friends with</span>
+          <span class="notif-mutual-avatars">${shown.map(m => `<span>${m.avatar ? `<img src="${m.avatar}" />` : ""}</span>`).join("")}</span>
+          ${extra > 0 ? `<span>+${extra}</span>` : ""}
+        </div>`;
+    } else if (!amFollowingBack) {
+      subLine = `<div class="notif-suggest-tag">👥 People you may know</div>`;
+    }
+    return `
+      <div class="inbox-section-row" data-uid="${a.fromUid || ""}" style="cursor:pointer;">
+        <div class="notif-row-avatar">${avatar ? `<img src="${avatar}" />` : initials(name)}</div>
+        <div class="inbox-section-info">
+          <div class="notif-row-name">${escapeHtml(name)}</div>
+          ${subLine}
+          <div class="notif-row-sub">started following you · ${timeAgoShort(a.createdAt)}</div>
+        </div>
+        ${a.fromUid ? (amFollowingBack
+          ? `<button class="wave-btn" data-wave="${a.fromUid}">Send a 👋</button>`
+          : `<button class="followback-btn" data-followback="${a.fromUid}">Follow back</button>`) : ""}
+      </div>
+    `;
+  };
+
+  const activityRow = (a) => {
+    const u = state.allUsers.find(x => x.uid === a.fromUid);
+    const name = (u && u.name) || a.fromName || "User";
+    const avatar = u && u.avatar;
+    return `
+      <div class="inbox-section-row" data-uid="${a.fromUid || ""}" style="cursor:pointer;">
+        <div class="notif-row-avatar">${avatar ? `<img src="${avatar}" />` : initials(name)}</div>
+        <div class="inbox-section-info">
+          <div class="is-title">${escapeHtml(a.text)}</div>
+          <div class="notif-row-sub">${timeAgoShort(a.createdAt)}</div>
+        </div>
+        <div class="inbox-section-icon" style="width:30px;height:30px;font-size:14px;background:${a.type === "like" ? "var(--tiktok-red)" : "#5352ed"}">${a.type === "like" ? "❤️" : "💬"}</div>
+      </div>
+    `;
+  };
 
   if (section === "followers") {
     title = "New followers";
     const list = state.activity.filter(a => a.type === "follow");
     bodyHtml = list.length
-      ? `<div class="thread-list">${list.map(a => notifRow(a, "👥", "#2f8cf0")).join("")}</div>`
+      ? `<div class="thread-list">${list.map(followerRow).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
   } else if (section === "activity") {
     title = "Activity";
     const list = state.activity.filter(a => a.type === "like" || a.type === "comment");
     bodyHtml = list.length
-      ? `<div class="thread-list">${list.map(a => notifRow(a, a.type === "like" ? "❤️" : "💬", "#e84393")).join("")}</div>`
+      ? `<div class="thread-list">${list.map(activityRow).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
   } else if (section === "requests") {
     title = "Message requests";
@@ -2405,7 +2475,17 @@ function renderInboxSubScreen() {
   `;
   document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
 
-  if (section === "requests") {
+  if (section === "followers" || section === "activity") {
+    document.querySelectorAll(".followback-btn").forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); toggleFollowFromList(btn.dataset.followback); };
+    });
+    document.querySelectorAll(".wave-btn").forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); sendWaveTo(btn.dataset.wave); };
+    });
+    document.querySelectorAll(".inbox-section-row[data-uid]").forEach(row => {
+      if (row.dataset.uid) row.onclick = () => openProfile(row.dataset.uid);
+    });
+  } else if (section === "requests") {
     state.activity.filter(a => a.type === "message").forEach(a => {
       const row = document.getElementById(`msgnotif-${a.id}`);
       if (row) row.onclick = () => openChat(a.fromUid);
@@ -3766,6 +3846,62 @@ function timeAgo(ts) {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+/* Short, TikTok-style relative time with no "ago" — "1d", "2h", "5m", "now" */
+function timeAgoShort(ts) {
+  if (!ts || !ts.toDate) return "now";
+  const diffMs = Date.now() - ts.toDate().getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}d`;
+}
+
+/* Real mutual-friends calculation for the "Friends with ..." line: a "friend" is anyone who
+   both follows and is followed by a given account. Returns the user objects mutual to both
+   me and otherUid, using the same live followers/following arrays used everywhere else. */
+function mutualFriendsWith(otherUid) {
+  const myUid = state.user.uid;
+  const other = state.allUsers.find(u => u.uid === otherUid);
+  if (!other) return [];
+  const otherFollowers = new Set(other.followers || []);
+  const otherFriendUids = new Set((other.following || []).filter(uid => otherFollowers.has(uid)));
+  const myFriends = state.allUsers.filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid));
+  return myFriends.filter(u => otherFriendUids.has(u.uid));
+}
+
+/* "Send a 👋" — a real reaction message into (or starting) a real-time chat thread with that user,
+   then takes you straight into the chat, same as TikTok's wave button. */
+function sendWaveTo(uid) {
+  const myUid = state.user.uid;
+  const threadId = threadIdFor(myUid, uid);
+  const threadRef = db.collection("threads").doc(threadId);
+  const target = state.allUsers.find(u => u.uid === uid);
+  threadRef.set({
+    participants: [myUid, uid],
+    participantInfo: {
+      [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
+      [uid]: { name: (target && target.name) || "User", avatar: (target && target.avatar) || null }
+    },
+    lastMessage: "👋",
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+    [`unread.${uid}`]: firebase.firestore.FieldValue.increment(1),
+    [`unread.${myUid}`]: 0
+  }, { merge: true }).then(() => {
+    return threadRef.collection("messages").add({
+      senderUid: myUid,
+      reaction: "👋",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).then(() => {
+    openChat(uid);
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't send");
+  });
 }
 
 function privacyLabel(level) {

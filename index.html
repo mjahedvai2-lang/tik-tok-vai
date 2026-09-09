@@ -709,7 +709,7 @@ let state = {
 
   allUsers: [],         // cached list of {uid, ...userDoc} for the Friends screen
   allUsersLoaded: false,
-  friendsSubTab: "people", // people | videos  (videos = friends' video feed)
+  friendsSubTab: "videos", // people | videos  (videos = friends' video feed) — Friends now opens straight into the video feed by default
   friendsSearch: "",
   followListSearch: "",   // search text for the Following/Followers/Friends screen
 
@@ -1007,12 +1007,101 @@ function listenToPosts() {
     .orderBy("createdAt", "desc")
     .limit(50)
     .onSnapshot((snapshot) => {
-      state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      render();
+      const newPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const oldPosts = state.posts;
+
+      // Same set of posts in the same order (nothing added/removed/reordered) — only
+      // like/comment/save/repost data changed on one or more of them. If we're sitting
+      // in a full-screen video feed (Home or Friends' Videos tab), patch just the
+      // affected slide(s) in place instead of doing a full render(): a full render
+      // replaces the whole scroll container, which resets scrollTop to the top and
+      // restarts every <video>, kicking the viewer out of whatever they were watching.
+      const sameShape = oldPosts.length === newPosts.length &&
+        oldPosts.every((p, i) => p.id === newPosts[i].id);
+
+      state.posts = newPosts;
+
+      if (sameShape && isFullScreenFeedView()) {
+        newPosts.forEach((np, i) => {
+          const op = oldPosts[i];
+          if (op !== np) patchFsSlideStats(np);
+        });
+        patchFsCommentsSheetIfOpen();
+      } else {
+        render();
+      }
     }, (err) => {
       console.error(err);
       showToast("Couldn't load posts");
     });
+}
+
+/* True while a full-screen swipeable video feed is on screen (Home, or Friends' Videos
+   tab) — the two places real-time like/comment updates must NOT trigger a full render. */
+function isFullScreenFeedView() {
+  return state.view === "feed" || (state.view === "friends" && state.friendsSubTab === "videos");
+}
+
+/* Updates one full-screen slide's like/comment/save/repost UI in place, without touching
+   the scroll container or recreating its <video> element (which would restart playback). */
+function patchFsSlideStats(p) {
+  const myUid = state.user ? state.user.uid : null;
+  const likes = p.likes || [];
+  const comments = p.comments || [];
+  const savedBy = p.savedBy || [];
+  const reposts = p.reposts || [];
+  const liked = !!(myUid && likes.includes(myUid));
+  const saved = !!(myUid && savedBy.includes(myUid));
+  const reposted = !!(myUid && reposts.includes(myUid));
+
+  const likeBtn = document.getElementById(`fslike-${p.id}`);
+  if (likeBtn) {
+    likeBtn.classList.toggle("liked", liked);
+    likeBtn.innerHTML = `${liked ? "❤️" : "🤍"}<span>${likes.length}</span>`;
+  }
+  const commentBtn = document.getElementById(`fscomment-${p.id}`);
+  if (commentBtn) commentBtn.innerHTML = `💬<span>${comments.length}</span>`;
+  const saveBtn = document.getElementById(`fssave-${p.id}`);
+  if (saveBtn) {
+    saveBtn.classList.toggle("saved", saved);
+    saveBtn.innerHTML = `🔖<span>${savedBy.length}</span>`;
+  }
+
+  const slide = document.getElementById(`fsslide-${p.id}`);
+  if (slide) {
+    const overlay = slide.querySelector(".fs-overlay-bottom");
+    const existingTag = slide.querySelector(".fs-reposted-tag");
+    if (reposted && !existingTag && overlay) {
+      overlay.insertAdjacentHTML("afterbegin", `<div class="fs-reposted-tag">↻ You reposted this</div>`);
+    } else if (!reposted && existingTag) {
+      existingTag.remove();
+    }
+  }
+}
+
+/* Keeps the open full-screen comments sheet's list live (new comments appearing in
+   real time) without rebuilding the rest of the feed behind it. */
+function patchFsCommentsSheetIfOpen() {
+  if (!state.openFsComments) return;
+  const post = state.posts.find(p => p.id === state.openFsComments);
+  const sheet = document.getElementById("fsCommentsSheet");
+  if (!sheet || !post) return;
+
+  const comments = post.comments || [];
+  const titleEl = sheet.querySelector(".sheet-title");
+  if (titleEl) titleEl.textContent = `Comments (${comments.length})`;
+
+  sheet.querySelectorAll(".comment-line").forEach(el => el.remove());
+  const linesHtml = comments.map((c, i) => `<div class="comment-line"><span>${c.uid ? `<b class="comment-author-link" id="commentAuthor-${i}" style="cursor:pointer">${escapeHtml(c.name)}</b>` : `<b>${escapeHtml(c.name)}</b>`}: ${escapeHtml(c.text)}</span></div>`).join("") ||
+    `<div class="comment-line" style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`;
+  const inputRow = sheet.querySelector(".comment-input-row");
+  if (inputRow) inputRow.insertAdjacentHTML("beforebegin", linesHtml);
+
+  comments.forEach((c, i) => {
+    if (!c.uid) return;
+    const authorLink = document.getElementById(`commentAuthor-${i}`);
+    if (authorLink) authorLink.onclick = () => openProfile(c.uid);
+  });
 }
 
 /* ================= Render ================= */
@@ -1173,6 +1262,11 @@ function renderApp() {
     visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
   }
 
+  // Safety net for the rarer case a full rebuild does happen here (e.g. a brand new post
+  // just landed at the top) — keep the viewer on the same slide instead of snapping to top.
+  const prevScrollEl = document.getElementById("fsScroll");
+  const savedScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
+
   root.innerHTML = `
     <div class="feed-topbar">
       <button class="feed-tab-btn ${state.homeFeedTab === "following" ? "active" : ""}" id="tabFollowingBtn">Following</button>
@@ -1193,6 +1287,9 @@ function renderApp() {
     ${renderFsCommentsSheet(visiblePosts)}
     ${renderBottomNav("feed")}
   `;
+
+  const newScrollEl = document.getElementById("fsScroll");
+  if (newScrollEl && savedScrollTop) newScrollEl.scrollTop = savedScrollTop;
 
   document.getElementById("tabFollowingBtn").onclick = () => setState({ homeFeedTab: "following" });
   document.getElementById("tabForYouBtn").onclick = () => setState({ homeFeedTab: "forYou" });
@@ -1273,7 +1370,7 @@ function renderFsCommentsSheet(posts) {
     <div class="bottom-sheet fs-comments-sheet ${state.openFsComments ? "open" : ""}" id="fsCommentsSheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">Comments (${comments.length})</div>
-      ${comments.map((c, i) => `<div class="comment-line"><span>${c.uid ? `<b class="comment-author-link" id="commentAuthor-${i}" style="cursor:pointer">${escapeHtml(c.name)}</b>` : `<b>${escapeHtml(c.name)}</b>`}: ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
+      ${comments.map((c, i) => `<div class="comment-line"><span>${c.uid ? `<b class="comment-author-link" id="commentAuthor-${i}" style="cursor:pointer">${escapeHtml(c.name)}</b>` : `<b>${escapeHtml(c.name)}</b>`}: ${escapeHtml(c.text)}</span></div>`).join("") || `<div class="comment-line" style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
       <div class="comment-input-row" style="margin-top:10px;">
         <input id="fsCommentInput" type="text" placeholder="Write a comment..." />
         <button id="fsCommentSubmit">Send</button>
@@ -1936,7 +2033,9 @@ function renderPostComposeScreen() {
 
 /* ---------------- Friends screen ---------------- */
 function openFriendsScreen() {
-  setState({ view: "friends" });
+  // Opening Friends always lands on the TikTok-style video feed first (same feed that
+  // lives under the "Videos" sub-tab) — tap the "Friends" sub-tab to reach the plain list.
+  setState({ view: "friends", friendsSubTab: "videos" });
   // allUsers is kept live by listenToAllUsers() (started at login), so no one-time
   // fetch is needed here anymore — the list is already real-time.
   listenToPresenceForAllUsers();
@@ -2072,6 +2171,9 @@ function renderFriendsVideoFeed() {
     (!p.privacy || p.privacy === "public")
   );
 
+  const prevScrollEl = document.getElementById("fsScrollFriends");
+  const savedScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
+
   root.innerHTML = `
     <div class="feed-topbar on-light">
       <button class="feed-tab-btn" id="friendsToPeopleBtn">Friends</button>
@@ -2092,6 +2194,10 @@ function renderFriendsVideoFeed() {
     ${renderFsCommentsSheet(videos)}
     ${renderBottomNav("friends")}
   `;
+
+  const newScrollEl = document.getElementById("fsScrollFriends");
+  if (newScrollEl && savedScrollTop) newScrollEl.scrollTop = savedScrollTop;
+
   document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
   document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
 

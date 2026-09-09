@@ -2882,6 +2882,10 @@ function renderChatScreen() {
         </div>` : ""}
       <div class="chat-input-row">
         ${!hasContent ? `
+        <label class="chat-image-btn" title="Take photo/video">
+          📷
+          <input type="file" accept="image/*,video/*" capture="environment" id="chatCameraInput" style="display:none" />
+        </label>
         <label class="chat-image-btn" title="Photo/video from gallery">
           🖼️
           <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
@@ -2926,6 +2930,8 @@ function renderChatScreen() {
   if (sendBtn) sendBtn.onclick = sendChatMessage;
   const galleryInput = document.getElementById("chatGalleryInput");
   if (galleryInput) galleryInput.onchange = handleChatMediaSelect;
+  const cameraInput = document.getElementById("chatCameraInput");
+  if (cameraInput) cameraInput.onchange = handleChatMediaSelect;
   const stickerBtn = document.getElementById("chatStickerBtn");
   if (stickerBtn) stickerBtn.onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
   const micBtn = document.getElementById("chatMicBtn");
@@ -3367,10 +3373,15 @@ function renderProfileGrid(posts, pinnedPosts, isOwn) {
         const mediaHtml = p.media
           ? (isVideo ? `<video src="${p.media}" muted></video>` : `<img src="${p.media}" />`)
           : "";
+        // Pinning is video-only, capped at 3: an own video only gets a pin toggle if it's
+        // already one of the pinned 3 (so it can be unpinned) or fewer than 3 are pinned yet.
+        // Photos never show a pin control, and once the cap is hit the button disappears
+        // entirely on remaining unpinned videos instead of just refusing the tap.
+        const showPinToggle = isOwn && isVideo && (isPinned || (pinnedPosts || []).length < 3);
         return `
           <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridopen-${p.id}" style="cursor:pointer">
             ${mediaHtml || escapeHtml((p.text || "").slice(0, 60))}
-            ${isOwn ? `<button class="grid-pin-toggle ${isPinned ? "pinned" : ""}" id="gridpintoggle-${p.id}" title="Pin/unpin">📌</button>` : (isPinned ? `<div class="grid-pin-badge">📌</div>` : "")}
+            ${showPinToggle ? `<button class="grid-pin-toggle ${isPinned ? "pinned" : ""}" id="gridpintoggle-${p.id}" title="Pin/unpin">📌</button>` : (isPinned && isVideo ? `<div class="grid-pin-badge">📌</div>` : "")}
             ${isVideo ? `<div class="grid-video-badge">▶</div>` : ""}
           </div>
         `;
@@ -3383,6 +3394,14 @@ function togglePinPost(postId) {
   const myUid = state.user.uid;
   const pinnedPosts = (state.profile && state.profile.pinnedPosts) || [];
   const isPinned = pinnedPosts.includes(postId);
+  const post = state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
+  const isVideo = post && (post.mediaType === "video" || (post.media && post.media.startsWith("data:video")));
+  // Pinning is video-only and capped at 3 — the grid already hides the button once the cap
+  // is hit, but this guards the owner-sheet "Pin to profile" menu path too.
+  if (!isPinned) {
+    if (!isVideo) { showToast("Only videos can be pinned"); return; }
+    if (pinnedPosts.length >= 3) { showToast("You can pin up to 3 videos — unpin one first"); return; }
+  }
   db.collection("users").doc(myUid).update({
     pinnedPosts: isPinned
       ? firebase.firestore.FieldValue.arrayRemove(postId)

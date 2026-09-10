@@ -773,7 +773,7 @@ let state = {
   followListSearch: "",   // search text for the Following/Followers/Friends screen
 
   threads: [],          // inbox conversations the current user is part of
-  inboxSection: null,   // null | "followers" | "activity" | "requests" | "archive" | "system"
+  inboxSection: null,   // null | "followRequests" | "followers" | "activity" | "requests" | "archive" | "system"
   chatUid: null,        // the other participant's uid while in a chat
   chatProfile: null,    // the other participant's user doc, for the chat header
   chatOtherPresence: null, // real-time presence doc for the other participant {online, lastSeenAt}
@@ -1017,6 +1017,7 @@ function ensureUserProfile(user) {
         followers: [],
         following: [],
         followRequests: [],
+        private: false,
         pinnedPosts: [],
         pinnedFriends: [],
         archivedThreads: [],
@@ -2555,8 +2556,9 @@ function togglePinFriend(uid) {
 
 function renderUserRow(u, myUid, myPinned) {
   const amFollowing = (u.followers || []).includes(myUid);
-  const label = amFollowing ? "Following" : "Follow";
-  const cls = amFollowing ? "following" : "";
+  const isRequested = !amFollowing && (u.followRequests || []).includes(myUid);
+  const label = amFollowing ? "Following" : (isRequested ? "Requested" : "Follow");
+  const cls = amFollowing ? "following" : (isRequested ? "requested" : "");
   const isPinned = (myPinned || []).includes(u.uid);
   const online = isUserOnline(u.uid);
   return `
@@ -2575,20 +2577,27 @@ function renderUserRow(u, myUid, myPinned) {
   `;
 }
 
-/* Follow / unfollow — instant, public-account style (like Instagram's public accounts):
-   tapping Follow immediately adds you to their followers, no request/approval step.
-   "Friend" is simply the case where the follow is mutual in both directions. */
+/* Follow / unfollow / request. Public accounts: tapping Follow immediately adds you to
+   their followers, no approval step. Private accounts: tapping Follow instead adds you to
+   their followRequests (pending) — nothing changes until they Accept. Tapping again while
+   pending cancels the request. "Friend" is simply the case where the follow is mutual. */
 function toggleFollowFromList(targetUid) {
   const myUid = state.user.uid;
   const target = state.allUsers.find(u => u.uid === targetUid) || (state.profileUserDoc && state.profileUserDoc.uid === targetUid ? state.profileUserDoc : null);
   if (!target) return;
   const amFollowing = (target.followers || []).includes(myUid);
+  const isRequested = !amFollowing && (target.followRequests || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
   const batch = db.batch();
+
   if (amFollowing) {
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+  } else if (isRequested) {
+    batch.update(targetRef, { followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  } else if (target.private) {
+    batch.update(targetRef, { followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
   } else {
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
@@ -2598,14 +2607,61 @@ function toggleFollowFromList(targetUid) {
     const updated = state.allUsers.map(u => {
       if (u.uid !== targetUid) return u;
       const followers = new Set(u.followers || []);
-      if (amFollowing) followers.delete(myUid); else followers.add(myUid);
-      return { ...u, followers: Array.from(followers) };
+      const followRequests = new Set(u.followRequests || []);
+      if (amFollowing) {
+        followers.delete(myUid);
+      } else if (isRequested) {
+        followRequests.delete(myUid);
+      } else if (target.private) {
+        followRequests.add(myUid);
+      } else {
+        followers.add(myUid);
+      }
+      return { ...u, followers: Array.from(followers), followRequests: Array.from(followRequests) };
     });
     setState({ allUsers: updated });
-    if (!amFollowing) logActivity(targetUid, "follow", `${state.user.name} started following you`);
+    if (!amFollowing && !isRequested) {
+      if (target.private) {
+        logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+      } else {
+        logActivity(targetUid, "follow", `${state.user.name} started following you`);
+      }
+    }
   }).catch((err) => {
     console.error(err);
     showToast("Couldn't update follow status — check your connection or try again");
+  });
+}
+
+/* Accept a pending follow request: moves the requester into my followers/their following,
+   clears the request, and lets them know it was accepted. */
+function acceptFollowRequest(fromUid) {
+  const myUid = state.user.uid;
+  const myRef = db.collection("users").doc(myUid);
+  const fromRef = db.collection("users").doc(fromUid);
+  const batch = db.batch();
+  batch.update(myRef, {
+    followRequests: firebase.firestore.FieldValue.arrayRemove(fromUid),
+    followers: firebase.firestore.FieldValue.arrayUnion(fromUid)
+  });
+  batch.update(fromRef, { following: firebase.firestore.FieldValue.arrayUnion(myUid) });
+  batch.commit().then(() => {
+    logActivity(fromUid, "follow_accept", `${state.user.name} accepted your follow request`);
+    showToast("Request accepted");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't accept request");
+  });
+}
+
+/* Decline a pending follow request: just removes it, no notification sent. */
+function declineFollowRequest(fromUid) {
+  const myUid = state.user.uid;
+  db.collection("users").doc(myUid).update({
+    followRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't decline request");
   });
 }
 
@@ -2718,7 +2774,7 @@ function renderInboxScreen() {
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
   const activeThreads = state.threads;
 
-  const followNotifs = state.activity.filter(a => a.type === "follow");
+  const followNotifs = state.activity.filter(a => a.type === "follow" || a.type === "follow_accept");
   const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment");
   const messageNotifs = state.activity.filter(a => a.type === "message");
   const followUnread = followNotifs.filter(a => !a.read).length;
@@ -2750,7 +2806,20 @@ function renderInboxScreen() {
   const lastActivityItem = likeCommentNotifs[0];
   const lastMessageNotif = messageNotifs[0];
   const lastSystemNotice = state.systemNotices[0];
+  const pendingFollowRequests = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+  const lastRequester = pendingFollowRequests.length ? (state.allUsers.find(u => u.uid === pendingFollowRequests[pendingFollowRequests.length - 1]) || null) : null;
+  const followRequestsRowHtml = pendingFollowRequests.length ? `
+    <div class="inbox-section-row" id="secFollowRequests">
+      <div class="inbox-section-icon" style="background:#0F6E56">🔒</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Follow requests (${pendingFollowRequests.length})</div>
+        <div class="is-sub">${lastRequester ? `${escapeHtml(lastRequester.name || "Someone")} wants to follow you` : "New requests to follow you"}</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>
+  ` : "";
   const rowsHtml = `
+    ${followRequestsRowHtml}
     <div class="inbox-section-row" id="secFollowers">
       <div class="inbox-section-icon" style="background:#2f8cf0">👥</div>
       <div class="inbox-section-info">
@@ -2788,7 +2857,9 @@ function renderInboxScreen() {
   const suggested = state.allUsers.filter(u => !(u.followers || []).includes(myUid)).slice(0, 6);
   const suggestedHtml = suggested.length ? `
     <div class="inbox-suggested-heading">Suggested accounts</div>
-    ${suggested.map(u => `
+    ${suggested.map(u => {
+      const isRequested = (u.followRequests || []).includes(myUid);
+      return `
       <div class="user-row">
         <div class="avatar" id="sugavatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
         <div class="user-row-info" id="suginfo-${u.uid}">
@@ -2796,11 +2867,12 @@ function renderInboxScreen() {
           <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
         </div>
         <div class="user-row-actions">
-          <button class="pill-btn" id="sugfollow-${u.uid}">Follow</button>
+          <button class="pill-btn ${isRequested ? "requested" : ""}" id="sugfollow-${u.uid}">${isRequested ? "Requested" : "Follow"}</button>
           <button class="pin-icon-btn" id="sugremove-${u.uid}" title="Remove">✕</button>
         </div>
       </div>
-    `).join("")}
+    `;
+    }).join("")}
   ` : "";
 
   const threadsHtml = activeThreads.length
@@ -2824,6 +2896,8 @@ function renderInboxScreen() {
     el.onclick = () => openChat(el.dataset.uid);
   });
 
+  const secFollowRequestsEl = document.getElementById("secFollowRequests");
+  if (secFollowRequestsEl) secFollowRequestsEl.onclick = () => { markNotificationsRead("follow_request"); setState({ inboxSection: "followRequests" }); };
   document.getElementById("secFollowers").onclick = () => { markNotificationsRead("follow"); setState({ inboxSection: "followers" }); };
   document.getElementById("secActivity").onclick = () => { markNotificationsRead("like"); markNotificationsRead("comment"); setState({ inboxSection: "activity" }); };
   document.getElementById("secRequests").onclick = () => { markNotificationsRead("message"); setState({ inboxSection: "requests" }); };
@@ -2883,7 +2957,7 @@ function renderInboxSubScreen() {
         <div class="inbox-section-info">
           <div class="notif-row-name">${escapeHtml(name)}</div>
           ${subLine}
-          <div class="notif-row-sub">started following you · ${timeAgoShort(a.createdAt)}</div>
+          <div class="notif-row-sub">${a.type === "follow_accept" ? "accepted your follow request" : "started following you"} · ${timeAgoShort(a.createdAt)}</div>
         </div>
         ${a.fromUid ? (amFollowingBack
           ? `<button class="wave-btn" data-wave="${a.fromUid}">Send a 👋</button>`
@@ -2908,9 +2982,43 @@ function renderInboxSubScreen() {
     `;
   };
 
-  if (section === "followers") {
+  if (section === "followRequests") {
+    title = "Follow requests";
+    const pendingUids = (state.myUserDoc && state.myUserDoc.followRequests) || [];
+    const requesters = pendingUids.map(uid => state.allUsers.find(u => u.uid === uid)).filter(Boolean);
+    bodyHtml = requesters.length
+      ? `<div class="thread-list">${requesters.map(u => {
+          const mutuals = mutualFriendsWith(u.uid);
+          let subLine = "";
+          if (mutuals.length > 0) {
+            const shown = mutuals.slice(0, 3);
+            const extra = mutuals.length - shown.length;
+            subLine = `
+              <div class="notif-mutual-line">
+                <span>Friends with</span>
+                <span class="notif-mutual-avatars">${shown.map(m => `<span>${m.avatar ? `<img src="${m.avatar}" />` : ""}</span>`).join("")}</span>
+                ${extra > 0 ? `<span>+${extra}</span>` : ""}
+              </div>`;
+          }
+          return `
+          <div class="inbox-section-row" data-uid="${u.uid}">
+            <div class="notif-row-avatar" style="cursor:pointer;" data-open="${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            <div class="inbox-section-info" style="cursor:pointer;" data-open="${u.uid}">
+              <div class="notif-row-name">${escapeHtml(u.name || "User")}</div>
+              ${subLine}
+              <div class="notif-row-sub">wants to follow you</div>
+            </div>
+            <div class="user-row-actions" style="flex-direction:column; gap:6px;">
+              <button class="pill-btn" data-accept="${u.uid}">Accept</button>
+              <button class="pill-btn ghost" data-decline="${u.uid}">Decline</button>
+            </div>
+          </div>
+        `;
+        }).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">No pending requests</div><div class="line2">Requests to follow your private account show up here.</div></div>`;
+  } else if (section === "followers") {
     title = "New followers";
-    const list = state.activity.filter(a => a.type === "follow");
+    const list = state.activity.filter(a => a.type === "follow" || a.type === "follow_accept");
     bodyHtml = list.length
       ? `<div class="thread-list">${list.map(followerRow).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
@@ -2973,7 +3081,17 @@ function renderInboxSubScreen() {
   `;
   document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
 
-  if (section === "followers" || section === "activity") {
+  if (section === "followRequests") {
+    document.querySelectorAll("[data-accept]").forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); acceptFollowRequest(btn.dataset.accept); };
+    });
+    document.querySelectorAll("[data-decline]").forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); declineFollowRequest(btn.dataset.decline); };
+    });
+    document.querySelectorAll("[data-open]").forEach(el => {
+      el.onclick = (e) => { e.stopPropagation(); openProfile(el.dataset.open); };
+    });
+  } else if (section === "followers" || section === "activity") {
     document.querySelectorAll(".followback-btn").forEach(btn => {
       btn.onclick = (e) => { e.stopPropagation(); toggleFollowFromList(btn.dataset.followback); };
     });
@@ -3387,7 +3505,7 @@ function openProfile(targetUid) {
   const ref = db.collection("users").doc(uid);
 
   ref.get().then((doc) => {
-    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], pinnedPosts: [] };
+    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], private: false, pinnedPosts: [] };
 
     if (isOwn) {
       setState({ view: "profile", viewingUid: null, profile: { uid, ...data }, profileTab: "posts" });
@@ -3414,24 +3532,37 @@ function openProfile(targetUid) {
   });
 }
 
-/* Follow / unfollow from the profile screen's follow button — same instant, no-request model */
+/* Follow / unfollow / request from the profile screen's follow button — same
+   private-account-aware model as toggleFollowFromList. */
 function toggleFollow(targetUid) {
   const myUid = state.user.uid;
   const profile = state.profile || {};
   const amFollowing = (profile.followers || []).includes(myUid);
+  const isRequested = !amFollowing && (profile.followRequests || []).includes(myUid);
   const targetRef = db.collection("users").doc(targetUid);
   const myRef = db.collection("users").doc(myUid);
   const batch = db.batch();
+
   if (amFollowing) {
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayRemove(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+  } else if (isRequested) {
+    batch.update(targetRef, { followRequests: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  } else if (profile.private) {
+    batch.update(targetRef, { followRequests: firebase.firestore.FieldValue.arrayUnion(myUid) });
   } else {
     batch.update(targetRef, { followers: firebase.firestore.FieldValue.arrayUnion(myUid) });
     batch.update(myRef, { following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
   }
 
   batch.commit().then(() => {
-    if (!amFollowing) logActivity(targetUid, "follow", `${state.user.name} started following you`);
+    if (!amFollowing && !isRequested) {
+      if (profile.private) {
+        logActivity(targetUid, "follow_request", `${state.user.name} requested to follow you`);
+      } else {
+        logActivity(targetUid, "follow", `${state.user.name} started following you`);
+      }
+    }
     // No need to manually reload — listenToProfileUser's real-time listener will refresh state.profile
   }).catch((err) => {
     console.error(err);
@@ -3479,10 +3610,13 @@ function renderProfileScreen() {
     likes: { list: likedPosts, empty1: "No likes yet", empty2: "Posts you like will show up here.", cta: false }
   };
 
+  const isLockedForMe = !isOwn && profile.private && !amFollowing;
   const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
-  const tabBodyHtml = activeTab.list.length
-    ? renderProfileGrid(activeTab.list, pinnedPosts, isOwn)
-    : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta);
+  const tabBodyHtml = isLockedForMe
+    ? `<div class="empty-state"><div class="big">🔒</div><div>This account is private</div><div style="font-size:13px; margin-top:6px;">${requestedByMe ? "Your follow request is pending." : "Follow this account to see their posts."}</div></div>`
+    : (activeTab.list.length
+      ? renderProfileGrid(activeTab.list, pinnedPosts, isOwn)
+      : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta));
 
   const linksHtml = (profile.youtubeLink || profile.facebookLink) ? `
     <div class="profile-links">
@@ -3513,6 +3647,7 @@ function renderProfileScreen() {
       </div>
       <div class="profile-name-row">
         <div class="profile-name" id="profileNameText">${escapeHtml(profile.name || "User")}</div>
+        ${profile.private ? `<span title="Private account" style="font-size:14px;">🔒</span>` : ""}
         ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="Edit profile">✏️</button>` : ""}
       </div>
       <div class="profile-handle">@${escapeHtml(profile.handle || slugifyHandle(profile.name || "user"))}</div>
@@ -3698,8 +3833,9 @@ function computeFollowListData() {
 function renderFollowListUserRow(u, myUid, isOwn) {
   const amFollowing = (u.followers || []).includes(myUid);
   const theyFollowMe = (u.following || []).includes(myUid);
-  const label = amFollowing ? (theyFollowMe ? "Friends" : "Following") : (theyFollowMe ? "Follow back" : "Follow");
-  const cls = amFollowing ? "following" : "";
+  const isRequested = !amFollowing && (u.followRequests || []).includes(myUid);
+  const label = amFollowing ? (theyFollowMe ? "Friends" : "Following") : (isRequested ? "Requested" : (theyFollowMe ? "Follow back" : "Follow"));
+  const cls = amFollowing ? "following" : (isRequested ? "requested" : "");
   const online = isUserOnline(u.uid);
   return `
     <div class="user-row">
@@ -3740,14 +3876,19 @@ function followListRowsHtml(list, isSearching, myUid, isOwn) {
 function renderFollowListScreen() {
   const myUid = state.user.uid;
   const isOwn = state.followListUid === myUid;
-  const { kind, list, isSearching, counts } = computeFollowListData();
-  const rowsHtml = followListRowsHtml(list, isSearching, myUid, isOwn);
+  const { profile, kind, list, isSearching, counts } = computeFollowListData();
+  const amFollowing = !isOwn && (profile.followers || []).includes(myUid);
+  const isLockedForMe = !isOwn && profile.private && !amFollowing;
+  const rowsHtml = isLockedForMe ? "" : followListRowsHtml(list, isSearching, myUid, isOwn);
 
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="followListBackBtn">←</button>
       <div class="back-title">Connections</div>
     </div>
+    ${isLockedForMe ? `
+    <div class="empty-state"><div class="big">🔒</div><div>This account is private</div><div style="font-size:13px; margin-top:6px;">Follow ${escapeHtml(profile.name || "this account")} to see their connections.</div></div>
+    ` : `
     <div class="friends-sub-tabs">
       <button class="simple-tab ${kind === "following" ? "active" : ""}" id="followListTabFollowing">Following (${counts.following})</button>
       <button class="simple-tab ${kind === "followers" ? "active" : ""}" id="followListTabFollowers">Followers (${counts.followers})</button>
@@ -3757,6 +3898,7 @@ function renderFollowListScreen() {
       <input id="followListSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.followListSearch || "")}" />
     </div>
     <div class="user-list">${rowsHtml}</div>
+    `}
     ${isOwn ? `
     <div class="sheet-overlay" id="removeConnOverlay"></div>
     <div class="bottom-sheet" id="removeConnSheet">
@@ -3765,6 +3907,9 @@ function renderFollowListScreen() {
     </div>` : ""}
   `;
   document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
+
+  if (isLockedForMe) return;
+
   document.getElementById("followListTabFollowing").onclick = () => setState({ followListKind: "following", followListSearch: "" });
   document.getElementById("followListTabFollowers").onclick = () => setState({ followListKind: "followers", followListSearch: "" });
   document.getElementById("followListTabFriends").onclick = () => setState({ followListKind: "friends", followListSearch: "" });
@@ -3938,12 +4083,26 @@ function renderMenuScreen() {
 
 /* ================= SETTINGS screen (Settings and privacy → Log out) ================= */
 function renderSettingsScreen() {
+  const isPrivate = !!(state.myUserDoc && state.myUserDoc.private);
+  const pendingCount = ((state.myUserDoc && state.myUserDoc.followRequests) || []).length;
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="settingsBackBtn">←</button>
       <div class="profile-title">Settings and privacy</div>
       <div style="width:28px"></div>
     </div>
+
+    <div style="font-size:12px; color:var(--ink-soft); padding:14px 14px 0;">Privacy</div>
+    <div class="compose-toggle-row" style="margin:10px 14px 0; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
+      <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
+    </div>
+    ${pendingCount > 0 ? `
+    <button class="menu-item" id="settingsFollowRequestsBtn" style="margin:10px 14px 0; width:calc(100% - 28px);">
+      <span class="menu-item-icon">🔒</span>
+      <span>Follow requests (${pendingCount})</span>
+      <span class="menu-item-arrow">›</span>
+    </button>` : ""}
 
     <div class="menu-list" style="margin-top:14px;">
       <button class="menu-item danger" id="clearDataBtn">
@@ -3958,6 +4117,14 @@ function renderSettingsScreen() {
   `;
 
   document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
+  document.getElementById("privateAccountToggle").onclick = () => {
+    db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't update privacy setting");
+    });
+  };
+  const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
+  if (followReqBtn) followReqBtn.onclick = () => setState({ view: "inbox", inboxSection: "followRequests" });
   document.getElementById("clearDataBtn").onclick = () => {
     if (!confirm("This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?")) return;
     handleClearData();

@@ -835,6 +835,15 @@ let state = {
   chatMedia: null,       // compressed data-url of an image/video staged to send in the current chat
   chatMediaType: null,   // "image" | "video" for chatMedia
 
+  // ---- Message request preview state (view: "requestPreview") ----
+  // A read-only look at a new conversation before it's accepted into full chat —
+  // tapping a "Message requests" row lands here instead of dropping straight into
+  // a composable chat.
+  requestPreviewUid: null,
+  requestPreviewProfile: null,
+  requestPreviewMessages: [],
+  requestPreviewNotifId: null,
+
   // ---- Edit profile page state ----
   editName: "",
   editHandle: "",
@@ -1460,6 +1469,8 @@ function render() {
     renderInboxScreen();
   } else if (state.view === "chat") {
     renderChatScreen();
+  } else if (state.view === "requestPreview") {
+    renderRequestPreviewScreen();
   } else if (state.view === "camera") {
     renderCameraScreen();
   } else if (state.view === "followList") {
@@ -3126,7 +3137,11 @@ function listenToThreads() {
   unsubscribeThreads = db.collection("threads")
     .where("participants", "array-contains", myUid)
     .onSnapshot((snap) => {
-      const threads = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      // serverTimestamps: "estimate" — without this, a just-sent message's lastMessageAt
+      // reads as null in the local echo (before the server confirms it), which sorts the
+      // thread to the bottom for a moment and then jumps it up once the real value lands.
+      // Estimating gives an immediate local clock value so the thread sorts correctly right away.
+      const threads = snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: "estimate" }) }))
         .sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
 
       threads.forEach(t => {
@@ -3220,7 +3235,16 @@ function renderInboxScreen() {
 
   const myUid = state.user.uid;
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
-  const activeThreads = state.threads;
+  // Pinned threads always float to the top of the list (matches TikTok), then within each
+  // group (pinned / not pinned) threads stay in the existing most-recent-first order.
+  const activeThreads = [...state.threads].sort((a, b) => {
+    const otherA = (a.participants || []).find(p => p !== myUid);
+    const otherB = (b.participants || []).find(p => p !== myUid);
+    const pinnedA = myPinned.includes(otherA) ? 1 : 0;
+    const pinnedB = myPinned.includes(otherB) ? 1 : 0;
+    if (pinnedA !== pinnedB) return pinnedB - pinnedA;
+    return (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0);
+  });
 
   const followNotifs = state.activity.filter(a => a.type === "follow");
   const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow_accept");
@@ -3589,7 +3613,7 @@ function renderInboxSubScreen() {
   } else if (section === "requests") {
     state.activity.filter(a => a.type === "message").forEach(a => {
       const row = document.getElementById(`msgnotif-${a.id}`);
-      if (row) row.onclick = () => openChat(a.fromUid);
+      if (row) row.onclick = () => openMessageRequestPreview(a.fromUid, a.id);
     });
   } else if (section === "system" && isOwnerAccount()) {
     const input = document.getElementById("ownerNoticeInput");
@@ -3626,6 +3650,113 @@ function renderThreadRow(t, myUid, myPinned) {
 /* ---------------- Chat screen ---------------- */
 let unsubscribeChat = null;
 let unsubscribeChatPresence = null;
+let unsubscribeRequestPreview = null;
+
+/* Message request preview: shows the incoming conversation read-only, with Accept /
+   Delete actions, instead of tapping a "Message requests" row dropping straight into
+   a full composable chat (matches TikTok's request-preview flow). */
+function openMessageRequestPreview(otherUid, notifId) {
+  if (!otherUid) return;
+  const myUid = state.user.uid;
+  const threadId = threadIdFor(myUid, otherUid);
+
+  db.collection("users").doc(otherUid).get().then((doc) => {
+    const previewProfile = doc.exists ? doc.data() : { name: "User", avatar: null };
+    setState({
+      view: "requestPreview",
+      requestPreviewUid: otherUid,
+      requestPreviewProfile: previewProfile,
+      requestPreviewMessages: [],
+      requestPreviewNotifId: notifId || null
+    });
+
+    if (unsubscribeRequestPreview) unsubscribeRequestPreview();
+    unsubscribeRequestPreview = db.collection("threads").doc(threadId).collection("messages")
+      .orderBy("createdAt", "asc")
+      .limit(200)
+      .onSnapshot((snap) => {
+        state.requestPreviewMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
+      }, (err) => console.error(err));
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't open request");
+  });
+}
+
+function closeRequestPreview(nextView) {
+  if (unsubscribeRequestPreview) unsubscribeRequestPreview();
+  setState({ view: nextView || "inbox", requestPreviewUid: null, requestPreviewProfile: null, requestPreviewMessages: [], requestPreviewNotifId: null });
+}
+
+/* Accept: marks the request notification read and drops into the real, composable chat. */
+function acceptMessageRequest() {
+  const otherUid = state.requestPreviewUid;
+  const notifId = state.requestPreviewNotifId;
+  if (!otherUid) return;
+  if (notifId) {
+    db.collection("users").doc(state.user.uid).collection("notifications").doc(notifId)
+      .update({ read: true }).catch((err) => console.error(err));
+  }
+  if (unsubscribeRequestPreview) unsubscribeRequestPreview();
+  setState({ requestPreviewUid: null, requestPreviewProfile: null, requestPreviewMessages: [], requestPreviewNotifId: null });
+  openChat(otherUid);
+}
+
+/* Decline: removes the thread and its messages so nothing lingers, then dismisses the
+   request notification and returns to the requests list. */
+function declineMessageRequest() {
+  const otherUid = state.requestPreviewUid;
+  const notifId = state.requestPreviewNotifId;
+  const myUid = state.user.uid;
+  if (!otherUid) return;
+  const threadId = threadIdFor(myUid, otherUid);
+  const threadRef = db.collection("threads").doc(threadId);
+
+  threadRef.collection("messages").get().then((snap) => {
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.delete(d.ref));
+    batch.delete(threadRef);
+    if (notifId) batch.delete(db.collection("users").doc(myUid).collection("notifications").doc(notifId));
+    return batch.commit();
+  }).then(() => {
+    closeRequestPreview("inbox");
+    setState({ inboxSection: "requests" });
+    showToast("Request deleted");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't delete request");
+  });
+}
+
+function renderRequestPreviewScreen() {
+  const other = state.requestPreviewProfile || {};
+  const bubblesHtml = state.requestPreviewMessages.map(m => `
+    <div class="chat-bubble ${m.senderUid === state.user.uid ? "mine" : "theirs"}">
+      ${m.image ? `<img src="${m.image}" />` : ""}
+      ${m.video ? `<video src="${m.video}" controls></video>` : ""}
+      ${m.audio ? `<audio src="${m.audio}" controls></audio>` : ""}
+      ${m.text ? `<div class="${(m.image || m.video) ? "bubble-text-with-image" : ""}">${escapeHtml(m.text)}</div>` : ""}
+    </div>
+  `).join("");
+
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="reqPreviewBackBtn">←</button>
+      <div class="back-title">${escapeHtml(other.name || "Message request")}</div>
+    </div>
+    <div class="chat-messages" style="padding-bottom:14px;">
+      ${bubblesHtml || `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No messages yet</div></div>`}
+    </div>
+    <div style="display:flex; gap:10px; padding:14px; border-top:1px solid var(--line);">
+      <button class="btn-primary" id="reqPreviewDeleteBtn" style="flex:1; width:auto; margin-top:0; background:var(--card); color:var(--ink); border:1px solid var(--line);">Delete</button>
+      <button class="btn-primary" id="reqPreviewAcceptBtn" style="flex:1; width:auto; margin-top:0;">Accept</button>
+    </div>
+  `;
+  document.getElementById("reqPreviewBackBtn").onclick = () => closeRequestPreview("inbox");
+  document.getElementById("reqPreviewAcceptBtn").onclick = acceptMessageRequest;
+  document.getElementById("reqPreviewDeleteBtn").onclick = declineMessageRequest;
+}
 function openChat(otherUid) {
   if (!otherUid) return;
   if (isBlockedEitherWay(otherUid)) { showToast("You can't message this account"); return; }

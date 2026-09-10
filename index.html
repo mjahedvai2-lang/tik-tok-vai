@@ -26,14 +26,34 @@
     --coral: #D85A30;
     --coral-soft: #FAECE7;
     --tiktok-red: #FE2C55;
+    --font-scale: 1;
+  }
+  /* Dark theme palette — activated by data-theme="dark" on <html>, set from
+     Settings > Theme (applyUserSettings()). Every color elsewhere in this file
+     is a var(--...) reference, so this single block re-themes the whole app. */
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --card: #1C1C1C;
+    --ink: #F1EFEA;
+    --ink-soft: #9C9A93;
+    --line: #2E2E2C;
+    --coral-soft: #3A2620;
   }
   body {
     font-family: -apple-system, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
+    font-size: calc(1em * var(--font-scale));
   }
   .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; }
+  /* Accessibility: Settings > Accessibility > Reduce motion turns this on by
+     adding the class to <html>, killing transitions/animations app-wide. */
+  html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 
   /* ---------- LOGIN SCREEN ---------- */
   .login-screen {
@@ -223,6 +243,16 @@
   .menu-item .menu-item-icon { width: 20px; text-align: center; flex-shrink: 0; }
   .menu-item .menu-item-arrow { margin-left: auto; color: var(--ink-soft); }
   .menu-item.danger { color: var(--coral); }
+  .menu-item .menu-item-sub { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+  .settings-field { margin: 0 14px 14px; }
+  .settings-field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .settings-field input {
+    width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-size: 15px; background: var(--card); color: var(--ink);
+  }
+  .settings-field input:focus { outline: none; border-color: var(--teal); }
+  .settings-error { color: var(--coral); font-size: 12.5px; margin: -6px 14px 10px; }
+  .settings-hint { color: var(--ink-soft); font-size: 12.5px; margin: -2px 14px 14px; line-height: 1.5; }
   .profile-hero { padding: 28px 20px 18px; text-align: center; }
   .profile-avatar-wrap { position: relative; width: 92px; height: 92px; margin: 0 auto 14px; }
   .profile-avatar {
@@ -835,7 +865,14 @@ let state = {
   // ---- Chat extras ----
   chatStickerPanelOpen: false,
   chatRecordingVoice: false,
-  chatVoiceSeconds: 0
+  chatVoiceSeconds: 0,
+
+  // ---- Settings: Security (change password / delete account) ----
+  pwCurrent: "", pwNew: "", pwConfirm: "", pwError: "", pwSaving: false,
+  delPassword: "", delError: "", delSaving: false,
+
+  // ---- Login screen: forgot password ----
+  forgotEmail: "", forgotError: "", forgotSent: false, forgotSending: false
 };
 
 // Tracks which post the share/owner sheet is currently acting on
@@ -860,6 +897,50 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str || "";
   return div.innerHTML;
+}
+
+/* ================= Theme / Accessibility settings ================= */
+/* Applied to <html> so it works on the login screen too (no user doc yet).
+   A cached copy lives in localStorage for the instant, pre-auth first paint;
+   once signed in, users/{uid}.settings (see ensureUserProfile) is the source
+   of truth and is kept in sync here in real time by listenToOwnUser(). */
+const SETTINGS_CACHE_KEY = "milon_settings_cache";
+const DEFAULT_SETTINGS = { theme: "system", fontSize: "default", reduceMotion: false, autoplayVideos: true };
+
+function getCachedSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+  } catch (e) {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+function applyUserSettings(settings) {
+  const s = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+  try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s)); } catch (e) {}
+
+  const resolvedDark = s.theme === "dark" || (s.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.setAttribute("data-theme", resolvedDark ? "dark" : "light");
+
+  const scale = s.fontSize === "small" ? 0.9 : s.fontSize === "large" ? 1.15 : 1;
+  document.documentElement.style.setProperty("--font-scale", scale);
+
+  document.documentElement.classList.toggle("reduce-motion", !!s.reduceMotion);
+}
+
+function autoplayVideosEnabled() {
+  const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
+  return s.autoplayVideos !== false;
+}
+
+// Paint the cached theme immediately on load, before auth resolves.
+applyUserSettings(getCachedSettings());
+// If following the system, react live if the OS theme changes mid-session.
+if (window.matchMedia) {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (getCachedSettings().theme === "system") applyUserSettings(getCachedSettings());
+  });
 }
 
 function slugifyHandle(base) {
@@ -1026,6 +1107,12 @@ function ensureUserProfile(user) {
         banned: false,
         youtubeLink: "",
         facebookLink: "",
+        settings: {
+          theme: "system",        // light | dark | system
+          fontSize: "default",    // small | default | large
+          reduceMotion: false,
+          autoplayVideos: true
+        },
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -1038,6 +1125,7 @@ function listenToOwnUser(uid) {
   if (unsubscribeOwnUser) unsubscribeOwnUser();
   unsubscribeOwnUser = db.collection("users").doc(uid).onSnapshot((doc) => {
     state.myUserDoc = doc.exists ? { uid, ...doc.data() } : null;
+    if (state.myUserDoc && state.myUserDoc.settings) applyUserSettings(state.myUserDoc.settings);
     render();
   }, (err) => console.error("listenToOwnUser error:", err));
 }
@@ -1097,7 +1185,11 @@ function render() {
     return;
   }
   if (!state.user) {
-    renderLogin();
+    if (state.view === "forgotPassword") {
+      renderForgotPasswordScreen();
+    } else {
+      renderLogin();
+    }
   } else if (state.view === "profile") {
     renderProfileScreen();
   } else if (state.view === "editProfile") {
@@ -1106,6 +1198,22 @@ function render() {
     renderMenuScreen();
   } else if (state.view === "settings") {
     renderSettingsScreen();
+  } else if (state.view === "settingsAccount") {
+    renderSettingsAccountScreen();
+  } else if (state.view === "settingsPrivacy") {
+    renderSettingsPrivacyScreen();
+  } else if (state.view === "settingsSecurity") {
+    renderSettingsSecurityScreen();
+  } else if (state.view === "settingsChangePassword") {
+    renderSettingsChangePasswordScreen();
+  } else if (state.view === "settingsDeleteAccount") {
+    renderSettingsDeleteAccountScreen();
+  } else if (state.view === "settingsContent") {
+    renderSettingsContentScreen();
+  } else if (state.view === "settingsTheme") {
+    renderSettingsThemeScreen();
+  } else if (state.view === "settingsAccessibility") {
+    renderSettingsAccessibilityScreen();
   } else if (state.view === "friends") {
     renderFriendsScreen();
   } else if (state.view === "discover") {
@@ -1148,6 +1256,7 @@ function renderLogin() {
         <label>Password</label>
         <input id="passInput" type="password" placeholder="At least 6 characters" />
       </div>
+      ${!isSignup ? `<button class="link-btn" id="forgotPwBtn" style="margin-top:-6px; text-align:right;">Forgot password?</button>` : ""}
 
       <button class="btn-primary" id="submitAuthBtn">${isSignup ? "Create account" : "Log in"}</button>
       <div class="error-msg" id="authErrorMsg">${escapeHtml(state.authError)}</div>
@@ -1162,6 +1271,51 @@ function renderLogin() {
   document.getElementById("submitAuthBtn").onclick = handleAuthSubmit;
   document.getElementById("toggleModeBtn").onclick = () => setState({ mode: isSignup ? "login" : "signup", authError: "" });
   document.getElementById("googleBtn").onclick = handleGoogleLogin;
+  const forgotBtn = document.getElementById("forgotPwBtn");
+  if (forgotBtn) forgotBtn.onclick = () => setState({ view: "forgotPassword", forgotEmail: "", forgotError: "", forgotSent: false });
+}
+
+/* ================= Forgot password (from the login screen) ================= */
+function renderForgotPasswordScreen() {
+  root.innerHTML = `
+    <div class="login-screen">
+      <div class="brand">Milon</div>
+      <div class="tagline">${state.forgotSent ? "Check your email" : "Reset your password"}</div>
+
+      ${state.forgotSent ? `
+        <div class="settings-hint" style="margin:0 0 20px; padding:0;">We've sent a password reset link to <strong>${escapeHtml(state.forgotEmail)}</strong>. Open it to set a new password, then come back and log in.</div>
+        <button class="btn-primary" id="forgotBackToLoginBtn">Back to log in</button>
+      ` : `
+        <div class="field">
+          <label>Email</label>
+          <input id="forgotEmailInput" type="email" placeholder="you@example.com" value="${escapeHtml(state.forgotEmail)}" />
+        </div>
+        <button class="btn-primary" id="forgotSendBtn" ${state.forgotSending ? "disabled" : ""}>${state.forgotSending ? "Sending..." : "Send reset link"}</button>
+        <div class="error-msg" id="forgotErrorMsg">${escapeHtml(state.forgotError)}</div>
+        <button class="link-btn" id="forgotCancelBtn">Back to log in</button>
+      `}
+    </div>
+  `;
+
+  if (state.forgotSent) {
+    document.getElementById("forgotBackToLoginBtn").onclick = () => setState({ view: "feed", mode: "login" });
+  } else {
+    document.getElementById("forgotEmailInput").oninput = (e) => { state.forgotEmail = e.target.value; };
+    document.getElementById("forgotSendBtn").onclick = handleForgotPassword;
+    document.getElementById("forgotCancelBtn").onclick = () => setState({ view: "feed", mode: "login", forgotError: "" });
+  }
+}
+
+function handleForgotPassword() {
+  const email = state.forgotEmail.trim();
+  if (!email) { setState({ forgotError: "Enter your email address." }); return; }
+  setState({ forgotError: "", forgotSending: true });
+  auth.sendPasswordResetEmail(email)
+    .then(() => setState({ forgotSending: false, forgotSent: true }))
+    .catch((err) => {
+      console.error(err);
+      setState({ forgotSending: false, forgotError: translateAuthError(err.code) });
+    });
 }
 
 function handleAuthSubmit() {
@@ -1295,7 +1449,7 @@ function renderFsSlide(p) {
   const amFollowingAuthor = authorU && (authorU.followers || []).includes(state.user.uid);
 
   const mediaHtml = p.media
-    ? (isVideo ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} playsinline loop muted autoplay></video>` : `<img src="${p.media}" />`)
+    ? (isVideo ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} playsinline loop muted ${autoplayVideosEnabled() ? "autoplay" : ""}></video>` : `<img src="${p.media}" />`)
     : `<div class="fs-textonly">${escapeHtml(p.text || "")}</div>`;
 
   return `
@@ -4121,9 +4275,26 @@ function renderMenuScreen() {
 }
 
 /* ================= SETTINGS screen (Settings and privacy → Log out) ================= */
+/* Small helper so every settings sub-screen gets the same topbar + back button
+   without repeating the markup and wiring in each render function. */
+function settingsTopbar(title, backView) {
+  return `
+    <div class="profile-topbar">
+      <button class="profile-back-btn" id="settingsSubBackBtn">←</button>
+      <div class="profile-title">${escapeHtml(title)}</div>
+      <div style="width:28px"></div>
+    </div>
+  `;
+}
+function wireSettingsBack(backView) {
+  document.getElementById("settingsSubBackBtn").onclick = () => setState({ view: backView, pwError: "", pwCurrent: "", pwNew: "", pwConfirm: "", delError: "", delPassword: "" });
+}
+
+/* ================= SETTINGS hub (Settings and privacy) ================= */
+/* Top-level screen: a set of categories, each opening its own sub-screen —
+   mirrors TikTok's grouped "Settings and privacy" layout. Clear data / Log out
+   stay pinned here since they're account-wide actions, not a category. */
 function renderSettingsScreen() {
-  const isPrivate = !!(state.myUserDoc && state.myUserDoc.private);
-  const pendingCount = ((state.myUserDoc && state.myUserDoc.followRequests) || []).length;
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="settingsBackBtn">←</button>
@@ -4131,17 +4302,19 @@ function renderSettingsScreen() {
       <div style="width:28px"></div>
     </div>
 
-    <div style="font-size:12px; color:var(--ink-soft); padding:14px 14px 0;">Privacy</div>
-    <div class="compose-toggle-row" style="margin:10px 14px 0; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
-      <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
+    <div class="menu-section-label">Account</div>
+    <div class="menu-list">
+      <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>Account</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goPrivacyBtn"><span class="menu-item-icon">🔒</span><span>Privacy</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security</span><span class="menu-item-arrow">›</span></button>
     </div>
-    ${pendingCount > 0 ? `
-    <button class="menu-item" id="settingsFollowRequestsBtn" style="margin:10px 14px 0; width:calc(100% - 28px);">
-      <span class="menu-item-icon">🔒</span>
-      <span>Follow requests (${pendingCount})</span>
-      <span class="menu-item-arrow">›</span>
-    </button>` : ""}
+
+    <div class="menu-section-label">Content &amp; display</div>
+    <div class="menu-list">
+      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎞️</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🎨</span><span>Theme</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>Accessibility</span><span class="menu-item-arrow">›</span></button>
+    </div>
 
     <div class="menu-list" style="margin-top:14px;">
       <button class="menu-item danger" id="clearDataBtn">
@@ -4156,14 +4329,12 @@ function renderSettingsScreen() {
   `;
 
   document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
-  document.getElementById("privateAccountToggle").onclick = () => {
-    db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
-      console.error(err);
-      showToast("Couldn't update privacy setting");
-    });
-  };
-  const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
-  if (followReqBtn) followReqBtn.onclick = () => setState({ view: "inbox", inboxSection: "followRequests" });
+  document.getElementById("goAccountBtn").onclick = () => setState({ view: "settingsAccount" });
+  document.getElementById("goPrivacyBtn").onclick = () => setState({ view: "settingsPrivacy" });
+  document.getElementById("goSecurityBtn").onclick = () => setState({ view: "settingsSecurity" });
+  document.getElementById("goContentBtn").onclick = () => setState({ view: "settingsContent" });
+  document.getElementById("goThemeBtn").onclick = () => setState({ view: "settingsTheme" });
+  document.getElementById("goAccessibilityBtn").onclick = () => setState({ view: "settingsAccessibility" });
   document.getElementById("clearDataBtn").onclick = () => {
     if (!confirm("This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?")) return;
     handleClearData();
@@ -4172,6 +4343,259 @@ function renderSettingsScreen() {
     if (!confirm("Log out of Milon?")) return;
     handleLogout();
   };
+}
+
+/* ================= SETTINGS > Account ================= */
+function renderSettingsAccountScreen() {
+  const email = state.user.email || "—";
+  const handle = (state.profile && state.profile.handle) || (state.myUserDoc && state.myUserDoc.handle) || "";
+  root.innerHTML = `
+    ${settingsTopbar("Account")}
+    <div class="menu-section-label">Account information</div>
+    <div class="menu-list">
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">✉️</span><span>Email</span><span class="menu-item-sub">${escapeHtml(email)}</span></div>
+      ${handle ? `<div class="menu-item" style="cursor:default;"><span class="menu-item-icon">@</span><span>Handle</span><span class="menu-item-sub">@${escapeHtml(handle)}</span></div>` : ""}
+      <button class="menu-item" id="acctEditProfileBtn"><span class="menu-item-icon">✏️</span><span>Edit profile</span><span class="menu-item-arrow">›</span></button>
+    </div>
+    <div class="menu-section-label">Manage account</div>
+    <div class="menu-list">
+      <button class="menu-item" id="acctSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Password &amp; security</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item danger" id="acctDeleteBtn"><span class="menu-item-icon">⚠️</span><span>Delete account</span><span class="menu-item-arrow">›</span></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("acctEditProfileBtn").onclick = () => setState({ view: "editProfile" });
+  document.getElementById("acctSecurityBtn").onclick = () => setState({ view: "settingsSecurity" });
+  document.getElementById("acctDeleteBtn").onclick = () => setState({ view: "settingsDeleteAccount" });
+}
+
+/* ================= SETTINGS > Privacy ================= */
+function renderSettingsPrivacyScreen() {
+  const isPrivate = !!(state.myUserDoc && state.myUserDoc.private);
+  const pendingCount = ((state.myUserDoc && state.myUserDoc.followRequests) || []).length;
+  const blockedCount = ((state.myUserDoc && state.myUserDoc.blockedUsers) || []).length;
+  const restrictedCount = ((state.myUserDoc && state.myUserDoc.restrictedUsers) || []).length;
+  const mutedCount = ((state.myUserDoc && state.myUserDoc.mutedUsers) || []).length;
+  root.innerHTML = `
+    ${settingsTopbar("Privacy")}
+    <div class="menu-section-label">Account privacy</div>
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
+      <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
+    </div>
+
+    <div class="menu-list">
+      ${pendingCount > 0 ? `
+      <button class="menu-item" id="settingsFollowRequestsBtn"><span class="menu-item-icon">🔒</span><span>Follow requests</span><span class="menu-item-sub">${pendingCount}</span><span class="menu-item-arrow">›</span></button>` : ""}
+      <button class="menu-item" id="privBlockedBtn"><span class="menu-item-icon">🚫</span><span>Blocked accounts</span><span class="menu-item-sub">${blockedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>Restricted accounts</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>Muted accounts</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+    </div>
+    <div class="settings-hint">Blocking, restricting and muting people (and reporting posts or comments) live under Safety — coming right after this.</div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("privateAccountToggle").onclick = () => {
+    db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't update privacy setting");
+    });
+  };
+  const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
+  if (followReqBtn) followReqBtn.onclick = () => setState({ view: "inbox", inboxSection: "followRequests" });
+  // Blocked/Restricted/Muted list screens ship with the Safety feature (Block/Restrict/Mute actions
+  // themselves) so the lists always match the actions that populate them — placeholder toast for now.
+  ["privBlockedBtn", "privRestrictedBtn", "privMutedBtn"].forEach((id) => {
+    document.getElementById(id).onclick = () => showToast("Manage this from Safety — coming next");
+  });
+}
+
+/* ================= SETTINGS > Security ================= */
+function renderSettingsSecurityScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Security")}
+    <div class="menu-list">
+      <button class="menu-item" id="secChangePwBtn"><span class="menu-item-icon">🔑</span><span>Change password</span><span class="menu-item-arrow">›</span></button>
+    </div>
+    <div class="menu-list" style="margin-top:14px;">
+      <button class="menu-item danger" id="secDeleteBtn"><span class="menu-item-icon">⚠️</span><span>Delete account</span><span class="menu-item-arrow">›</span></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("secChangePwBtn").onclick = () => setState({ view: "settingsChangePassword" });
+  document.getElementById("secDeleteBtn").onclick = () => setState({ view: "settingsDeleteAccount" });
+}
+
+/* ================= SETTINGS > Security > Change password ================= */
+function renderSettingsChangePasswordScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Change password")}
+    <div class="settings-field">
+      <label>Current password</label>
+      <input type="password" id="pwCurrentInput" value="${escapeHtml(state.pwCurrent)}" autocomplete="current-password" />
+    </div>
+    <div class="settings-field">
+      <label>New password</label>
+      <input type="password" id="pwNewInput" value="${escapeHtml(state.pwNew)}" autocomplete="new-password" />
+    </div>
+    <div class="settings-field">
+      <label>Confirm new password</label>
+      <input type="password" id="pwConfirmInput" value="${escapeHtml(state.pwConfirm)}" autocomplete="new-password" />
+    </div>
+    ${state.pwError ? `<div class="settings-error">${escapeHtml(state.pwError)}</div>` : ""}
+    <div style="padding:0 14px;">
+      <button class="btn-primary" id="pwSaveBtn" ${state.pwSaving ? "disabled" : ""}>${state.pwSaving ? "Updating..." : "Update password"}</button>
+    </div>
+  `;
+  wireSettingsBack("settingsSecurity");
+  document.getElementById("pwCurrentInput").oninput = (e) => { state.pwCurrent = e.target.value; };
+  document.getElementById("pwNewInput").oninput = (e) => { state.pwNew = e.target.value; };
+  document.getElementById("pwConfirmInput").oninput = (e) => { state.pwConfirm = e.target.value; };
+  document.getElementById("pwSaveBtn").onclick = handleChangePassword;
+}
+
+function handleChangePassword() {
+  const { pwCurrent, pwNew, pwConfirm } = state;
+  if (!pwCurrent || !pwNew || !pwConfirm) { setState({ pwError: "Fill in all three fields." }); return; }
+  if (pwNew.length < 6) { setState({ pwError: "New password must be at least 6 characters." }); return; }
+  if (pwNew !== pwConfirm) { setState({ pwError: "New passwords don't match." }); return; }
+
+  setState({ pwError: "", pwSaving: true });
+  const user = auth.currentUser;
+  const credential = firebase.auth.EmailAuthProvider.credential(user.email, pwCurrent);
+  user.reauthenticateWithCredential(credential)
+    .then(() => user.updatePassword(pwNew))
+    .then(() => {
+      setState({ pwSaving: false, pwCurrent: "", pwNew: "", pwConfirm: "", view: "settingsSecurity" });
+      showToast("Password updated");
+    })
+    .catch((err) => {
+      console.error(err);
+      setState({ pwSaving: false, pwError: translateAuthError(err.code) });
+    });
+}
+
+/* ================= SETTINGS > Security > Delete account ================= */
+function renderSettingsDeleteAccountScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Delete account")}
+    <div class="settings-hint" style="color:var(--coral);">This permanently deletes your account and sign-in. Your posts, comments and profile stay in the app tied to your old user ID unless you remove them first — this cannot be undone.</div>
+    <div class="settings-field">
+      <label>Confirm your password</label>
+      <input type="password" id="delPasswordInput" value="${escapeHtml(state.delPassword)}" autocomplete="current-password" />
+    </div>
+    ${state.delError ? `<div class="settings-error">${escapeHtml(state.delError)}</div>` : ""}
+    <div style="padding:0 14px;">
+      <button class="btn-primary" id="delConfirmBtn" style="background:var(--coral);" ${state.delSaving ? "disabled" : ""}>${state.delSaving ? "Deleting..." : "Permanently delete my account"}</button>
+    </div>
+  `;
+  wireSettingsBack("settingsSecurity");
+  document.getElementById("delPasswordInput").oninput = (e) => { state.delPassword = e.target.value; };
+  document.getElementById("delConfirmBtn").onclick = handleDeleteAccount;
+}
+
+function handleDeleteAccount() {
+  if (!state.delPassword) { setState({ delError: "Enter your password to confirm." }); return; }
+  if (!confirm("This will permanently delete your account. Continue?")) return;
+
+  setState({ delError: "", delSaving: true });
+  const user = auth.currentUser;
+  const uid = user.uid;
+  const credential = firebase.auth.EmailAuthProvider.credential(user.email, state.delPassword);
+  user.reauthenticateWithCredential(credential)
+    .then(() => db.collection("users").doc(uid).delete())
+    .then(() => user.delete())
+    .then(() => {
+      showToast("Account deleted");
+      // auth.onAuthStateChanged() handles resetting local state once the sign-out fires.
+    })
+    .catch((err) => {
+      console.error(err);
+      setState({ delSaving: false, delError: translateAuthError(err.code) });
+    });
+}
+
+/* ================= SETTINGS > Content preferences ================= */
+function renderSettingsContentScreen() {
+  const autoplay = !(state.myUserDoc && state.myUserDoc.settings && state.myUserDoc.settings.autoplayVideos === false);
+  root.innerHTML = `
+    ${settingsTopbar("Content preferences")}
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Autoplay videos</div><div class="compose-toggle-sub">Videos start playing automatically as you scroll the feed.</div></div>
+      <button class="toggle-switch ${autoplay ? "on" : ""}" id="autoplayToggle"></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("autoplayToggle").onclick = () => updateMySettings({ autoplayVideos: !autoplay });
+}
+
+/* ================= SETTINGS > Theme ================= */
+function renderSettingsThemeScreen() {
+  const current = (state.myUserDoc && state.myUserDoc.settings && state.myUserDoc.settings.theme) || getCachedSettings().theme;
+  const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-theme-choice="${key}">${label}</button>`;
+  root.innerHTML = `
+    ${settingsTopbar("Theme")}
+    <div class="settings-field">
+      <label>Appearance</label>
+      <div class="privacy-options">
+        ${opt("light", "☀️ Light")}
+        ${opt("dark", "🌙 Dark")}
+        ${opt("system", "📱 System")}
+      </div>
+    </div>
+    <div class="settings-hint">"System" follows your device's light/dark setting automatically.</div>
+  `;
+  wireSettingsBack("settings");
+  document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+    btn.onclick = () => {
+      applyUserSettings({ ...(state.myUserDoc && state.myUserDoc.settings), theme: btn.dataset.themeChoice });
+      updateMySettings({ theme: btn.dataset.themeChoice });
+    };
+  });
+}
+
+/* ================= SETTINGS > Accessibility ================= */
+function renderSettingsAccessibilityScreen() {
+  const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
+  const fontSize = s.fontSize || "default";
+  const reduceMotion = !!s.reduceMotion;
+  const opt = (key, label) => `<button class="privacy-option ${fontSize === key ? "selected" : ""}" data-fontsize-choice="${key}">${label}</button>`;
+  root.innerHTML = `
+    ${settingsTopbar("Accessibility")}
+    <div class="settings-field">
+      <label>Text size</label>
+      <div class="privacy-options">
+        ${opt("small", "Small")}
+        ${opt("default", "Default")}
+        ${opt("large", "Large")}
+      </div>
+    </div>
+    <div class="compose-toggle-row" style="margin:4px 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Reduce motion</div><div class="compose-toggle-sub">Minimizes transitions and animations throughout the app.</div></div>
+      <button class="toggle-switch ${reduceMotion ? "on" : ""}" id="reduceMotionToggle"></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.querySelectorAll("[data-fontsize-choice]").forEach((btn) => {
+    btn.onclick = () => {
+      applyUserSettings({ ...s, fontSize: btn.dataset.fontsizeChoice });
+      updateMySettings({ fontSize: btn.dataset.fontsizeChoice });
+    };
+  });
+  document.getElementById("reduceMotionToggle").onclick = () => {
+    applyUserSettings({ ...s, reduceMotion: !reduceMotion });
+    updateMySettings({ reduceMotion: !reduceMotion });
+  };
+}
+
+/* Merge-writes a single field into users/{uid}.settings so other fields
+   (theme, fontSize, reduceMotion, autoplayVideos) aren't clobbered. Every
+   Content/Theme/Accessibility toggle above goes through this one function. */
+function updateMySettings(patch) {
+  db.collection("users").doc(state.user.uid).set({ settings: patch }, { merge: true })
+    .catch((err) => {
+      console.error(err);
+      showToast("Couldn't save setting");
+    });
 }
 
 function saveEditedProfile() {

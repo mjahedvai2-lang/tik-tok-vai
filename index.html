@@ -3237,14 +3237,19 @@ function renderInboxScreen() {
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
   // Pinned threads always float to the top of the list (matches TikTok), then within each
   // group (pinned / not pinned) threads stay in the existing most-recent-first order.
-  const activeThreads = [...state.threads].sort((a, b) => {
-    const otherA = (a.participants || []).find(p => p !== myUid);
-    const otherB = (b.participants || []).find(p => p !== myUid);
-    const pinnedA = myPinned.includes(otherA) ? 1 : 0;
-    const pinnedB = myPinned.includes(otherB) ? 1 : 0;
-    if (pinnedA !== pinnedB) return pinnedB - pinnedA;
-    return (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0);
-  });
+  // Archived threads (archivedFor[myUid] === true) stay out of the main list — they live
+  // under the "Archived chats" row instead, matching TikTok's archive behavior.
+  const activeThreads = state.threads
+    .filter(t => !(t.archivedFor && t.archivedFor[myUid]))
+    .sort((a, b) => {
+      const otherA = (a.participants || []).find(p => p !== myUid);
+      const otherB = (b.participants || []).find(p => p !== myUid);
+      const pinnedA = myPinned.includes(otherA) ? 1 : 0;
+      const pinnedB = myPinned.includes(otherB) ? 1 : 0;
+      if (pinnedA !== pinnedB) return pinnedB - pinnedA;
+      return (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0);
+    });
+  const archivedThreadsList = state.threads.filter(t => t.archivedFor && t.archivedFor[myUid]);
 
   const followNotifs = state.activity.filter(a => a.type === "follow");
   const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow_accept");
@@ -3324,6 +3329,15 @@ function renderInboxScreen() {
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
+    ${archivedThreadsList.length ? `
+    <div class="inbox-section-row" id="secArchive">
+      <div class="inbox-section-icon" style="background:#636e72">🗄️</div>
+      <div class="inbox-section-info">
+        <div class="is-title">Archived chats (${archivedThreadsList.length})</div>
+        <div class="is-sub">Chats you've hidden from your inbox</div>
+      </div>
+      <div class="inbox-section-chevron">›</div>
+    </div>` : ""}
   `;
 
   const suggested = state.allUsers.filter(u => !(u.followers || []).includes(myUid)).slice(0, 6);
@@ -3378,6 +3392,8 @@ function renderInboxScreen() {
   document.getElementById("secActivity").onclick = () => { markNotificationsRead("like"); markNotificationsRead("comment"); markNotificationsRead("follow_accept"); setState({ inboxSection: "activity" }); };
   document.getElementById("secRequests").onclick = () => { markNotificationsRead("message"); setState({ inboxSection: "requests" }); };
   document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
+  const secArchiveEl = document.getElementById("secArchive");
+  if (secArchiveEl) secArchiveEl.onclick = () => setState({ inboxSection: "archive" });
 
   suggested.forEach(u => {
     const av = document.getElementById(`sugavatar-${u.uid}`);
@@ -3562,6 +3578,27 @@ function renderInboxSubScreen() {
         `).join("")}
       </div>
     `;
+  } else if (section === "archive") {
+    title = "Archived chats";
+    const list = state.threads.filter(t => t.archivedFor && t.archivedFor[myUid]);
+    bodyHtml = list.length
+      ? `<div class="thread-list">${list.map(t => {
+          const otherUid = (t.participants || []).find(p => p !== myUid);
+          const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
+          return `
+          <div class="inbox-section-row" id="archrow-${t.id}" style="cursor:pointer;">
+            <div class="notif-row-avatar" data-open="${otherUid}">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}</div>
+            <div class="inbox-section-info" data-open="${otherUid}">
+              <div class="notif-row-name">${escapeHtml(otherInfo.name)}</div>
+              <div class="notif-row-sub">${escapeHtml(t.lastMessage || "")}</div>
+            </div>
+            <div class="user-row-actions" style="flex-direction:column; gap:6px;">
+              <button class="pill-btn" data-unarchive="${t.id}">Unarchive</button>
+              <button class="pill-btn ghost" data-delete-archived="${t.id}">Delete</button>
+            </div>
+          </div>`;
+        }).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">No archived chats</div><div class="line2">Chats you hide from your inbox show up here.</div></div>`;
   }
 
   const sectionTypeMap = {
@@ -3620,6 +3657,16 @@ function renderInboxSubScreen() {
     if (input) input.oninput = (e) => { state.ownerNoticeText = e.target.value; };
     const sendBtn = document.getElementById("sendOwnerNoticeBtn");
     if (sendBtn) sendBtn.onclick = sendSystemNotice;
+  } else if (section === "archive") {
+    document.querySelectorAll(".inbox-section-row[id^='archrow-'] [data-open]").forEach(el => {
+      el.onclick = (e) => { e.stopPropagation(); openProfile(el.dataset.open); };
+    });
+    document.querySelectorAll("[data-unarchive]").forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); unarchiveThread(btn.dataset.unarchive); };
+    });
+    document.querySelectorAll("[data-delete-archived]").forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); deleteArchivedThread(btn.dataset.deleteArchived); };
+    });
   }
 
   wireBottomNav();
@@ -3703,8 +3750,11 @@ function acceptMessageRequest() {
   openChat(otherUid);
 }
 
-/* Decline: removes the thread and its messages so nothing lingers, then dismisses the
-   request notification and returns to the requests list. */
+/* Delete (from the request preview): matches TikTok — this does NOT permanently wipe the
+   thread. It archives it (archivedFor[myUid] = true), so it drops out of both the main
+   inbox list and the Message requests list, but the conversation itself and its messages
+   are preserved and recoverable from "Archived chats". Only "Delete" inside Archived chats
+   is actually permanent (see deleteArchivedThread below). */
 function declineMessageRequest() {
   const otherUid = state.requestPreviewUid;
   const notifId = state.requestPreviewNotifId;
@@ -3712,20 +3762,43 @@ function declineMessageRequest() {
   if (!otherUid) return;
   const threadId = threadIdFor(myUid, otherUid);
   const threadRef = db.collection("threads").doc(threadId);
+  const batch = db.batch();
+  batch.set(threadRef, { archivedFor: { [myUid]: true } }, { merge: true });
+  if (notifId) batch.delete(db.collection("users").doc(myUid).collection("notifications").doc(notifId));
+  batch.commit().then(() => {
+    closeRequestPreview("inbox");
+    setState({ inboxSection: "requests" });
+    showToast("Request archived");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't archive request");
+  });
+}
 
+/* Restore an archived chat back into the normal inbox list. */
+function unarchiveThread(threadId) {
+  const myUid = state.user.uid;
+  if (!threadId) return;
+  db.collection("threads").doc(threadId).set({ archivedFor: { [myUid]: false } }, { merge: true })
+    .then(() => showToast("Chat unarchived"))
+    .catch((err) => { console.error(err); showToast("Couldn't unarchive chat"); });
+}
+
+/* Permanently deletes an archived thread and its messages — the only place in the app
+   that actually destroys a conversation, matching TikTok's Archived-chats "Delete". */
+function deleteArchivedThread(threadId) {
+  if (!threadId) return;
+  const threadRef = db.collection("threads").doc(threadId);
   threadRef.collection("messages").get().then((snap) => {
     const batch = db.batch();
     snap.docs.forEach(d => batch.delete(d.ref));
     batch.delete(threadRef);
-    if (notifId) batch.delete(db.collection("users").doc(myUid).collection("notifications").doc(notifId));
     return batch.commit();
   }).then(() => {
-    closeRequestPreview("inbox");
-    setState({ inboxSection: "requests" });
-    showToast("Request deleted");
+    showToast("Chat deleted");
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't delete request");
+    showToast("Couldn't delete chat");
   });
 }
 

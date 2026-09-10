@@ -306,6 +306,24 @@
   }
   .grid-pin-toggle.pinned { background: var(--coral); }
 
+  /* ---------- DISCOVER / SEARCH ---------- */
+  .discover-search-wrap { padding: 10px 14px; position: sticky; top: 0; background: var(--bg); z-index: 5; }
+  .discover-search-wrap input {
+    width: 100%; padding: 11px 14px; border-radius: 20px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font-size: 14px;
+  }
+  .discover-section-title { font-size: 13px; font-weight: 700; color: var(--ink-soft); padding: 14px 14px 6px; display: flex; justify-content: space-between; align-items: center; }
+  .discover-section-title button { background: none; border: none; color: var(--coral); font-size: 12px; font-weight: 700; cursor: pointer; }
+  .discover-chip-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 14px 10px; }
+  .discover-chip { background: var(--card); border: 1px solid var(--line); color: var(--ink); font-size: 12.5px; font-weight: 600; padding: 6px 13px; border-radius: 16px; cursor: pointer; }
+  .discover-hashtag-card { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .discover-hashtag-card .tag { font-weight: 700; font-size: 14px; }
+  .discover-hashtag-card .count { font-size: 12px; color: var(--ink-soft); }
+  .discover-tabs { display: flex; gap: 4px; padding: 4px 14px 10px; overflow-x: auto; }
+  .discover-tab-btn { background: none; border: none; font-size: 13px; font-weight: 700; color: var(--ink-soft); padding: 6px 12px; border-radius: 16px; white-space: nowrap; cursor: pointer; }
+  .discover-tab-btn.active { background: var(--coral-soft); color: var(--coral); }
+  .discover-empty { text-align: center; color: var(--ink-soft); padding: 30px 14px; font-size: 13px; }
+
   /* ---------- BOTTOM NAV BAR ---------- */
   .bottom-nav {
     position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 480px;
@@ -807,6 +825,11 @@ let state = {
   composeHashtagText: "",
   composeUploadPct: null,  // 0-100 while a post is being created, null when idle
 
+  // ---- Search / Discover ----
+  discoverQuery: "",
+  discoverTab: "top",       // top | users | videos | hashtags
+  discoverHashtagFeed: null, // hashtag string currently being viewed as its own feed, or null
+
   // ---- Chat extras ----
   chatStickerPanelOpen: false,
   chatRecordingVoice: false,
@@ -1081,6 +1104,10 @@ function render() {
     renderSettingsScreen();
   } else if (state.view === "friends") {
     renderFriendsScreen();
+  } else if (state.view === "discover") {
+    renderDiscoverScreen();
+  } else if (state.view === "hashtagFeed") {
+    renderHashtagFeedScreen();
   } else if (state.view === "inbox") {
     renderInboxScreen();
   } else if (state.view === "chat") {
@@ -1243,7 +1270,7 @@ function renderApp() {
 
   document.getElementById("tabFollowingBtn").onclick = () => setState({ homeFeedTab: "following" });
   document.getElementById("tabForYouBtn").onclick = () => setState({ homeFeedTab: "forYou" });
-  document.getElementById("feedSearchBtn").onclick = openFriendsScreen; // reuse Friends' people search for now
+  document.getElementById("feedSearchBtn").onclick = openDiscoverScreen;
 
   wireFsSlideHandlers(visiblePosts);
   wireSheetHandlers();
@@ -2291,6 +2318,224 @@ function renderFriendsVideoFeed() {
   wireSheetHandlers();
   wireFsCommentsHandlers();
   wireBottomNav();
+}
+
+/* ================================================================
+   SEARCH / DISCOVER
+   Everything here is computed live from real Firestore data already
+   loaded into state.posts / state.allUsers — no fake/sample numbers.
+   Recent search terms are kept locally (this device only), same
+   honest approach as the post draft: real, but not synced/online.
+   ================================================================ */
+function openDiscoverScreen() {
+  setState({ view: "discover", discoverQuery: "", discoverTab: "top" });
+}
+
+function getRecentSearches() {
+  try { return JSON.parse(localStorage.getItem("milon_recent_searches") || "[]"); } catch (e) { return []; }
+}
+function addRecentSearch(q) {
+  if (!q || !q.trim()) return;
+  const trimmed = q.trim();
+  let list = getRecentSearches().filter(s => s.toLowerCase() !== trimmed.toLowerCase());
+  list.unshift(trimmed);
+  list = list.slice(0, 10);
+  try { localStorage.setItem("milon_recent_searches", JSON.stringify(list)); } catch (e) {}
+}
+function clearRecentSearches() {
+  try { localStorage.removeItem("milon_recent_searches"); } catch (e) {}
+  renderDiscoverResultsOnly();
+}
+
+function computeTrendingHashtags(limit) {
+  const counts = {};
+  (state.posts || []).forEach(p => {
+    (p.hashtags || []).forEach(h => { counts[h] = (counts[h] || 0) + 1; });
+  });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, limit || 10);
+}
+function computeTrendingCreators(limit) {
+  return [...(state.allUsers || [])]
+    .sort((a, b) => ((b.followers || []).length) - ((a.followers || []).length))
+    .slice(0, limit || 8);
+}
+
+function discoverSearch(query) {
+  const q = query.trim().toLowerCase();
+  const myUid = state.user ? state.user.uid : null;
+  const visible = (state.posts || []).filter(p => {
+    if (p.hidden && p.authorUid !== myUid) return false;
+    if (p.privacy && p.privacy !== "public" && p.authorUid !== myUid) return false;
+    return true;
+  });
+  if (!q) return { users: [], videos: [], hashtags: [] };
+  const users = (state.allUsers || []).filter(u =>
+    (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
+  );
+  const cleanTag = q.replace(/^#/, "");
+  const videos = visible.filter(p =>
+    (p.text || "").toLowerCase().includes(q) || (p.hashtags || []).some(h => h.includes(cleanTag))
+  );
+  const hashtags = computeTrendingHashtags(200).filter(([tag]) => tag.includes(cleanTag));
+  return { users, videos, hashtags };
+}
+
+function renderDiscoverScreen() {
+  root.innerHTML = `
+    <div class="back-row">
+      <button class="profile-back-btn" id="discoverBackBtn">←</button>
+      <div class="back-title">Discover</div>
+    </div>
+    <div class="discover-search-wrap">
+      <input id="discoverSearchInput" type="text" placeholder="Search people, videos, #hashtags" value="${escapeHtml(state.discoverQuery)}" />
+    </div>
+    <div id="discoverResults"></div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet()}
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+  `;
+
+  document.getElementById("discoverBackBtn").onclick = () => setState({ view: "feed" });
+  const input = document.getElementById("discoverSearchInput");
+  input.oninput = (e) => { state.discoverQuery = e.target.value; renderDiscoverResultsOnly(); };
+  input.onkeydown = (e) => { if (e.key === "Enter") { addRecentSearch(input.value); renderDiscoverResultsOnly(); } };
+  renderDiscoverResultsOnly();
+}
+
+/* Re-renders only the results portion (default trending view, or live search results/tabs)
+   so the search <input> above is never destroyed and never loses focus/keyboard mid-typing. */
+function renderDiscoverResultsOnly() {
+  const box = document.getElementById("discoverResults");
+  if (!box) return;
+  const q = state.discoverQuery;
+  const myUid = state.user ? state.user.uid : null;
+
+  if (!q.trim()) {
+    const recent = getRecentSearches();
+    const trendingTags = computeTrendingHashtags(10);
+    const trendingCreators = computeTrendingCreators(8);
+    box.innerHTML = `
+      ${recent.length ? `
+        <div class="discover-section-title">Recent searches<button id="clearRecentBtn">Clear</button></div>
+        <div class="discover-chip-row">${recent.map(r => `<button class="discover-chip" data-q="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join("")}</div>
+      ` : ""}
+      <div class="discover-section-title">Trending hashtags</div>
+      ${trendingTags.length ? trendingTags.map(([tag, count]) => `
+        <div class="discover-hashtag-card" data-tag="${escapeHtml(tag)}">
+          <span class="tag">#${escapeHtml(tag)}</span>
+          <span class="count">${count} post${count === 1 ? "" : "s"}</span>
+        </div>
+      `).join("") : `<div class="discover-empty">No hashtags yet — be the first to post with one!</div>`}
+      <div class="discover-section-title">Trending creators</div>
+      <div class="user-list">${trendingCreators.length ? trendingCreators.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("") : `<div class="discover-empty">No creators yet</div>`}</div>
+    `;
+    document.querySelectorAll(".discover-chip").forEach(chip => {
+      chip.onclick = () => { state.discoverQuery = chip.dataset.q; renderDiscoverResultsOnly(); const inp = document.getElementById("discoverSearchInput"); if (inp) inp.value = chip.dataset.q; };
+    });
+    document.querySelectorAll(".discover-hashtag-card").forEach(card => {
+      card.onclick = () => openHashtagFeed(card.dataset.tag);
+    });
+    wireFriendsRowHandlers(trendingCreators);
+    const clearBtn = document.getElementById("clearRecentBtn");
+    if (clearBtn) clearBtn.onclick = clearRecentSearches;
+    return;
+  }
+
+  const { users, videos, hashtags } = discoverSearch(q);
+  const tab = state.discoverTab;
+  const tabCounts = { top: users.length + videos.length + hashtags.length, users: users.length, videos: videos.length, hashtags: hashtags.length };
+
+  let bodyHtml = "";
+  if (tab === "users" || (tab === "top" && users.length)) {
+    bodyHtml += `<div class="discover-section-title">Users</div><div class="user-list">${
+      (tab === "top" ? users.slice(0, 4) : users).map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("") || `<div class="discover-empty">No users found</div>`
+    }</div>`;
+  }
+  if (tab === "hashtags" || (tab === "top" && hashtags.length)) {
+    bodyHtml += `<div class="discover-section-title">Hashtags</div>${
+      (tab === "top" ? hashtags.slice(0, 4) : hashtags).map(([tag, count]) => `
+        <div class="discover-hashtag-card" data-tag="${escapeHtml(tag)}">
+          <span class="tag">#${escapeHtml(tag)}</span>
+          <span class="count">${count} post${count === 1 ? "" : "s"}</span>
+        </div>
+      `).join("") || `<div class="discover-empty">No hashtags found</div>`
+    }`;
+  }
+  if (tab === "videos" || (tab === "top" && videos.length)) {
+    const list = tab === "top" ? videos.slice(0, 9) : videos;
+    bodyHtml += `<div class="discover-section-title">Videos & posts</div><div class="profile-grid">${
+      list.map(p => `
+        <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="discovervid-${p.id}">
+          ${p.media
+            ? (p.mediaType === "video" ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>` : `<img src="${p.media}" />`)
+            : escapeHtml((p.text || "").slice(0, 80))}
+        </div>
+      `).join("")
+    }</div>`;
+  }
+  if (!users.length && !videos.length && !hashtags.length) {
+    bodyHtml = `<div class="discover-empty">No results for "${escapeHtml(q)}"</div>`;
+  }
+
+  box.innerHTML = `
+    <div class="discover-tabs">
+      <button class="discover-tab-btn ${tab === "top" ? "active" : ""}" data-tab="top">Top</button>
+      <button class="discover-tab-btn ${tab === "users" ? "active" : ""}" data-tab="users">Users (${tabCounts.users})</button>
+      <button class="discover-tab-btn ${tab === "videos" ? "active" : ""}" data-tab="videos">Videos (${tabCounts.videos})</button>
+      <button class="discover-tab-btn ${tab === "hashtags" ? "active" : ""}" data-tab="hashtags">Hashtags (${tabCounts.hashtags})</button>
+    </div>
+    ${bodyHtml}
+  `;
+  document.querySelectorAll(".discover-tab-btn").forEach(btn => {
+    btn.onclick = () => setState({ discoverTab: btn.dataset.tab });
+  });
+  document.querySelectorAll(".discover-hashtag-card").forEach(card => {
+    card.onclick = () => openHashtagFeed(card.dataset.tag);
+  });
+  (tab === "top" ? videos.slice(0, 9) : videos).forEach(p => {
+    const el = document.getElementById(`discovervid-${p.id}`);
+    if (el) el.onclick = () => { addRecentSearch(q); openPostViewer(p.id); };
+  });
+  wireFriendsRowHandlers(tab === "top" ? users.slice(0, 4) : users);
+}
+
+/* Tapping a hashtag opens a dedicated full-screen swipeable feed of every real post
+   that used it — same viewer as Home/Friends, just filtered by hashtag. */
+function openHashtagFeed(tag) {
+  setState({ view: "hashtagFeed", discoverHashtagFeed: tag });
+}
+
+function renderHashtagFeedScreen() {
+  const tag = state.discoverHashtagFeed;
+  const myUid = state.user ? state.user.uid : null;
+  const hiddenSafe = (p) => !p.hidden || p.authorUid === myUid;
+  const videos = (state.posts || []).filter(p =>
+    (p.hashtags || []).includes(tag) &&
+    hiddenSafe(p) &&
+    (!p.privacy || p.privacy === "public" || p.authorUid === myUid)
+  );
+
+  root.innerHTML = `
+    <div class="feed-topbar on-light">
+      <button class="feed-tab-btn active" style="pointer-events:none;">#${escapeHtml(tag)}</button>
+      <button class="feed-search-btn" id="hashtagBackBtn">✕</button>
+    </div>
+    ${videos.length ? `<div class="fs-scroll" id="fsScrollHashtag">${videos.map(renderFsSlide).join("")}</div>` : `
+      <div class="fs-empty-full" style="position:static; min-height:60vh;">
+        <div style="font-size:40px;margin-bottom:10px;">🔖</div>
+        <div style="font-weight:700;margin-bottom:6px;">No posts with #${escapeHtml(tag)}</div>
+      </div>
+    `}
+    <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
+    ${renderShareSheet()}
+    ${renderOwnerSheet()}
+    ${renderFsCommentsSheet()}
+  `;
+  document.getElementById("hashtagBackBtn").onclick = () => setState({ view: "discover" });
+  wireFsSlideHandlers(videos);
+  wireSheetHandlers();
+  wireFsCommentsHandlers();
 }
 
 function togglePinFriend(uid) {

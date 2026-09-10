@@ -647,8 +647,6 @@
   .share-sendto-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 58px; background: none; border: none; cursor: pointer; }
   .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 6px 2px 10px; }
   .share-grid-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: none; font-size: 11px; color: var(--ink); cursor: pointer; }
-  .share-icon-row { display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 14px; -webkit-overflow-scrolling: touch; }
-  .share-icon-row .share-grid-item { min-width: 60px; flex-shrink: 0; }
 
   /* ---------- CHAT: reactions row + expanded input bar ---------- */
   .chat-reaction-row { display: flex; gap: 8px; padding: 2px 2px 4px; overflow-x: auto; }
@@ -709,7 +707,7 @@ let state = {
 
   allUsers: [],         // cached list of {uid, ...userDoc} for the Friends screen
   allUsersLoaded: false,
-  friendsSubTab: "videos", // people | videos  (videos = friends' video feed) — Friends now opens straight into the video feed by default
+  friendsSubTab: "people", // people | videos  (videos = friends' video feed)
   friendsSearch: "",
   followListSearch: "",   // search text for the Following/Followers/Friends screen
 
@@ -743,7 +741,6 @@ let state = {
   cameraLastGalleryThumb: null,
   cameraFlashOn: false,
   cameraTimerOn: false,       // 3-second countdown before capture
-  cameraSoundOn: true,        // mic audio on/off for video recording
   cameraCountdown: 0,
   cameraSpeed: "1x",          // 0.5x | 1x | 2x | 3x
   cameraFilter: "none",       // none | bw | warm | cool | vivid | soft
@@ -1007,101 +1004,12 @@ function listenToPosts() {
     .orderBy("createdAt", "desc")
     .limit(50)
     .onSnapshot((snapshot) => {
-      const newPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const oldPosts = state.posts;
-
-      // Same set of posts in the same order (nothing added/removed/reordered) — only
-      // like/comment/save/repost data changed on one or more of them. If we're sitting
-      // in a full-screen video feed (Home or Friends' Videos tab), patch just the
-      // affected slide(s) in place instead of doing a full render(): a full render
-      // replaces the whole scroll container, which resets scrollTop to the top and
-      // restarts every <video>, kicking the viewer out of whatever they were watching.
-      const sameShape = oldPosts.length === newPosts.length &&
-        oldPosts.every((p, i) => p.id === newPosts[i].id);
-
-      state.posts = newPosts;
-
-      if (sameShape && isFullScreenFeedView()) {
-        newPosts.forEach((np, i) => {
-          const op = oldPosts[i];
-          if (op !== np) patchFsSlideStats(np);
-        });
-        patchFsCommentsSheetIfOpen();
-      } else {
-        render();
-      }
+      state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      render();
     }, (err) => {
       console.error(err);
       showToast("Couldn't load posts");
     });
-}
-
-/* True while a full-screen swipeable video feed is on screen (Home, or Friends' Videos
-   tab) — the two places real-time like/comment updates must NOT trigger a full render. */
-function isFullScreenFeedView() {
-  return state.view === "feed" || (state.view === "friends" && state.friendsSubTab === "videos");
-}
-
-/* Updates one full-screen slide's like/comment/save/repost UI in place, without touching
-   the scroll container or recreating its <video> element (which would restart playback). */
-function patchFsSlideStats(p) {
-  const myUid = state.user ? state.user.uid : null;
-  const likes = p.likes || [];
-  const comments = p.comments || [];
-  const savedBy = p.savedBy || [];
-  const reposts = p.reposts || [];
-  const liked = !!(myUid && likes.includes(myUid));
-  const saved = !!(myUid && savedBy.includes(myUid));
-  const reposted = !!(myUid && reposts.includes(myUid));
-
-  const likeBtn = document.getElementById(`fslike-${p.id}`);
-  if (likeBtn) {
-    likeBtn.classList.toggle("liked", liked);
-    likeBtn.innerHTML = `${liked ? "❤️" : "🤍"}<span>${likes.length}</span>`;
-  }
-  const commentBtn = document.getElementById(`fscomment-${p.id}`);
-  if (commentBtn) commentBtn.innerHTML = `💬<span>${comments.length}</span>`;
-  const saveBtn = document.getElementById(`fssave-${p.id}`);
-  if (saveBtn) {
-    saveBtn.classList.toggle("saved", saved);
-    saveBtn.innerHTML = `🔖<span>${savedBy.length}</span>`;
-  }
-
-  const slide = document.getElementById(`fsslide-${p.id}`);
-  if (slide) {
-    const overlay = slide.querySelector(".fs-overlay-bottom");
-    const existingTag = slide.querySelector(".fs-reposted-tag");
-    if (reposted && !existingTag && overlay) {
-      overlay.insertAdjacentHTML("afterbegin", `<div class="fs-reposted-tag">↻ You reposted this</div>`);
-    } else if (!reposted && existingTag) {
-      existingTag.remove();
-    }
-  }
-}
-
-/* Keeps the open full-screen comments sheet's list live (new comments appearing in
-   real time) without rebuilding the rest of the feed behind it. */
-function patchFsCommentsSheetIfOpen() {
-  if (!state.openFsComments) return;
-  const post = state.posts.find(p => p.id === state.openFsComments);
-  const sheet = document.getElementById("fsCommentsSheet");
-  if (!sheet || !post) return;
-
-  const comments = post.comments || [];
-  const titleEl = sheet.querySelector(".sheet-title");
-  if (titleEl) titleEl.textContent = `Comments (${comments.length})`;
-
-  sheet.querySelectorAll(".comment-line").forEach(el => el.remove());
-  const linesHtml = comments.map((c, i) => `<div class="comment-line"><span>${c.uid ? `<b class="comment-author-link" id="commentAuthor-${i}" style="cursor:pointer">${escapeHtml(c.name)}</b>` : `<b>${escapeHtml(c.name)}</b>`}: ${escapeHtml(c.text)}</span></div>`).join("") ||
-    `<div class="comment-line" style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`;
-  const inputRow = sheet.querySelector(".comment-input-row");
-  if (inputRow) inputRow.insertAdjacentHTML("beforebegin", linesHtml);
-
-  comments.forEach((c, i) => {
-    if (!c.uid) return;
-    const authorLink = document.getElementById(`commentAuthor-${i}`);
-    if (authorLink) authorLink.onclick = () => openProfile(c.uid);
-  });
 }
 
 /* ================= Render ================= */
@@ -1246,81 +1154,6 @@ function handleClearData() {
   });
 }
 
-/* ================= For You ranking (TikTok-style dynamic reorder) =================
-   The "Following" tab stays pure reverse-chronological — that's a subscription feed,
-   order should just be "what did the people I follow post". "For You" is the one meant
-   to behave like TikTok's algorithmic feed: instead of newest-first, posts are ranked by
-   engagement velocity (how much interaction they're getting relative to how long they've
-   been up), with a small nudge for creators the viewer already follows, a short-lived
-   freshness floor so brand-new posts get a fair first look before any engagement has had
-   time to accumulate, and a final pass that breaks up back-to-back posts from the same
-   author so one prolific creator can't dominate several slides in a row. This only runs
-   inside a full render() (view change, tab switch, new post arriving) — it never runs on
-   the like/comment "patch in place" path from listenToPosts, so it can't undo the
-   scroll-jump fix: order is stable while a like/comment updates on the current slide. */
-function postAgeHours(p) {
-  let ms;
-  if (p.createdAt && typeof p.createdAt.toMillis === "function") ms = p.createdAt.toMillis();
-  else if (p.createdAt) ms = new Date(p.createdAt).getTime();
-  else ms = Date.now();
-  return Math.max((Date.now() - ms) / 3600000, 0.1);
-}
-
-function scoreForYouPost(p, followingUids) {
-  const likes = (p.likes || []).length;
-  const comments = (p.comments || []).length;
-  const reposts = (p.reposts || []).length;
-  const saves = (p.savedBy || []).length;
-  const engagement = likes + comments * 2 + reposts * 3 + saves * 1.5;
-
-  const ageHours = postAgeHours(p);
-  // Engagement per hour-since-posted — a fresh post picking up fast interaction can
-  // outrank an older post with more total (but slower) engagement.
-  const velocity = engagement / Math.pow(ageHours + 2, 1.3);
-
-  // For You is meant to surface content beyond who you follow, so this boost stays small.
-  const followBoost = followingUids.has(p.authorUid) ? 1.15 : 1;
-
-  // Gentle head start for posts under 3 hours old so they aren't buried before anyone's
-  // had a chance to react to them.
-  const freshnessFloor = ageHours < 3 ? (3 - ageHours) * 0.5 : 0;
-
-  return velocity * followBoost + freshnessFloor;
-}
-
-/* Greedy round-robin by author on the already-score-sorted list, so two posts from the
-   same person don't land back to back unless every remaining post is theirs. */
-function applyAuthorDiversity(posts) {
-  const queueByAuthor = new Map();
-  const authorOrder = [];
-  posts.forEach(p => {
-    if (!queueByAuthor.has(p.authorUid)) { queueByAuthor.set(p.authorUid, []); authorOrder.push(p.authorUid); }
-    queueByAuthor.get(p.authorUid).push(p);
-  });
-  const result = [];
-  let lastAuthor = null;
-  while (result.length < posts.length) {
-    let pickedAny = false;
-    for (const author of authorOrder) {
-      const q = queueByAuthor.get(author);
-      if (q.length && author !== lastAuthor) {
-        result.push(q.shift());
-        lastAuthor = author;
-        pickedAny = true;
-        if (result.length >= posts.length) break;
-      }
-    }
-    if (!pickedAny) {
-      // Everything left belongs to lastAuthor (or only one author remains) — drain as-is.
-      for (const author of authorOrder) {
-        const q = queueByAuthor.get(author);
-        while (q.length) { result.push(q.shift()); lastAuthor = author; }
-      }
-    }
-  }
-  return result;
-}
-
 /* ================= HOME: full-screen swipeable video feed (TikTok-style) ================= */
 function renderApp() {
   const myUid = state.user.uid;
@@ -1332,22 +1165,10 @@ function renderApp() {
     return p.authorUid === myUid;
   });
 
-  const followingUidsForRanking = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
-
   if (state.homeFeedTab === "following") {
-    visiblePosts = visiblePosts.filter(p => followingUidsForRanking.has(p.authorUid) || p.authorUid === myUid);
-  } else if (state.homeFeedTab === "forYou") {
-    const scored = visiblePosts
-      .map(p => ({ p, score: scoreForYouPost(p, followingUidsForRanking) }))
-      .sort((a, b) => b.score - a.score)
-      .map(s => s.p);
-    visiblePosts = applyAuthorDiversity(scored);
+    const followingUids = new Set((state.allUsers || []).filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid)).map(u => u.uid));
+    visiblePosts = visiblePosts.filter(p => followingUids.has(p.authorUid) || p.authorUid === myUid);
   }
-
-  // Safety net for the rarer case a full rebuild does happen here (e.g. a brand new post
-  // just landed at the top) — keep the viewer on the same slide instead of snapping to top.
-  const prevScrollEl = document.getElementById("fsScroll");
-  const savedScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
 
   root.innerHTML = `
     <div class="feed-topbar">
@@ -1365,13 +1186,9 @@ function renderApp() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
-    ${renderQrSheet()}
     ${renderFsCommentsSheet(visiblePosts)}
     ${renderBottomNav("feed")}
   `;
-
-  const newScrollEl = document.getElementById("fsScroll");
-  if (newScrollEl && savedScrollTop) newScrollEl.scrollTop = savedScrollTop;
 
   document.getElementById("tabFollowingBtn").onclick = () => setState({ homeFeedTab: "following" });
   document.getElementById("tabForYouBtn").onclick = () => setState({ homeFeedTab: "forYou" });
@@ -1452,7 +1269,7 @@ function renderFsCommentsSheet(posts) {
     <div class="bottom-sheet fs-comments-sheet ${state.openFsComments ? "open" : ""}" id="fsCommentsSheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">Comments (${comments.length})</div>
-      ${comments.map((c, i) => `<div class="comment-line"><span>${c.uid ? `<b class="comment-author-link" id="commentAuthor-${i}" style="cursor:pointer">${escapeHtml(c.name)}</b>` : `<b>${escapeHtml(c.name)}</b>`}: ${escapeHtml(c.text)}</span></div>`).join("") || `<div class="comment-line" style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
+      ${comments.map(c => `<div class="comment-line"><span><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
       <div class="comment-input-row" style="margin-top:10px;">
         <input id="fsCommentInput" type="text" placeholder="Write a comment..." />
         <button id="fsCommentSubmit">Send</button>
@@ -1464,13 +1281,6 @@ function renderFsCommentsSheet(posts) {
 function wireFsCommentsHandlers(posts) {
   const overlay = document.getElementById("fsCommentsOverlay");
   if (overlay) overlay.onclick = () => setState({ openFsComments: null });
-  const post = state.openFsComments ? posts.find(p => p.id === state.openFsComments) : null;
-  const comments = post ? (post.comments || []) : [];
-  comments.forEach((c, i) => {
-    if (!c.uid) return;
-    const authorLink = document.getElementById(`commentAuthor-${i}`);
-    if (authorLink) authorLink.onclick = () => openProfile(c.uid);
-  });
   const submitBtn = document.getElementById("fsCommentSubmit");
   if (submitBtn && state.openFsComments) {
     const doSubmit = () => {
@@ -1509,30 +1319,39 @@ function renderShareSheet() {
           </button>
         `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
       </div>
-      <div class="share-icon-row">
-        <button class="share-grid-item" id="shareTelegram"><span class="sheet-icon" style="background:#229ED9">✈️</span>Telegram</button>
-        <button class="share-grid-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>Instagram</button>
-        <button class="share-grid-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
-        <button class="share-grid-item" id="shareEmail"><span class="sheet-icon" style="background:#5f6368">📧</span>Email</button>
-        <button class="share-grid-item" id="shareQr"><span class="sheet-icon" style="background:#262420">▦</span>QR code</button>
-        <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
-        <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
-        <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
-        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
-        <button class="share-grid-item" id="shareMore"><span class="sheet-icon" style="background:#8e8a80">⋯</span>More</button>
-      </div>
-      <div class="share-grid" style="margin-top:6px;">
-        <button class="share-grid-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
-        <button class="share-grid-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
-        <button class="share-grid-item" id="shareReport"><span class="sheet-icon" style="background:#D85A30">⚑</span>Report</button>
+      ${renderShareAppsRow()}
+      <div class="sheet-row" style="margin-top:2px;">
+        <button class="sheet-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
+        <button class="sheet-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
+        <button class="sheet-item" id="shareReport"><span class="sheet-icon" style="background:#c0392b">⚑</span>Report</button>
       </div>
     </div>
   `;
 }
 
-/* Own-post sheet: friends "Send to" row (real-time chat share) + basic share icons + Edit/Pin/Privacy/Delete.
-   No paid/monetization items here (Analytics, Increase views, Ad settings, Create group, Manage keywords, Add to Story
-   are intentionally left out for now — add back later if needed). */
+/* Single horizontally-scrolling row of real share methods, TikTok-style — one line,
+   swipe to see the rest, in this fixed order: Telegram, Instagram, SMS, Email, QR code,
+   More (native device share sheet), Messenger, WhatsApp, Facebook, Copy link. */
+function renderShareAppsRow() {
+  return `
+      <div class="sheet-row" id="shareAppsRow">
+        <button class="sheet-item" id="shareTelegram"><span class="sheet-icon" style="background:#26A5E4">✈️</span>Telegram</button>
+        <button class="sheet-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>Instagram</button>
+        <button class="sheet-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
+        <button class="sheet-item" id="shareEmail"><span class="sheet-icon" style="background:#6b6860">📧</span>Email</button>
+        <button class="sheet-item" id="shareQr"><span class="sheet-icon" style="background:#111827">▦</span>QR code</button>
+        <button class="sheet-item" id="shareMore"><span class="sheet-icon" style="background:#8e44ad">⋯</span>More</button>
+        <button class="sheet-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
+        <button class="sheet-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
+        <button class="sheet-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
+        <button class="sheet-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
+      </div>`;
+}
+
+/* Own-post sheet: friends "Send to" row (real-time chat share), the real share-apps row,
+   and one single horizontally-scrolling actions row — Analytics, Download, Pin, Create group,
+   Edit post, Privacy settings, Delete. ("Manage keywords" and "Add to Story" are dropped: they
+   were never on the approved feature list and have no real function behind them.) */
 function renderOwnPostShareSheet() {
   const myUid = state.user ? state.user.uid : null;
   const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
@@ -1549,28 +1368,15 @@ function renderOwnPostShareSheet() {
           </button>
         `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
       </div>
-      <div class="share-icon-row">
-        <button class="share-grid-item" id="shareTelegram"><span class="sheet-icon" style="background:#229ED9">✈️</span>Telegram</button>
-        <button class="share-grid-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>Instagram</button>
-        <button class="share-grid-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
-        <button class="share-grid-item" id="shareEmail"><span class="sheet-icon" style="background:#5f6368">📧</span>Email</button>
-        <button class="share-grid-item" id="shareQr"><span class="sheet-icon" style="background:#262420">▦</span>QR code</button>
-        <button class="share-grid-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
-        <button class="share-grid-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
-        <button class="share-grid-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
-        <button class="share-grid-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
-        <button class="share-grid-item" id="shareMore"><span class="sheet-icon" style="background:#8e8a80">⋯</span>More</button>
-      </div>
-      <div class="share-grid" style="margin-top:6px;">
-        <button class="share-grid-item" id="shareAnalytics"><span class="sheet-icon" style="background:#8e44ad">📊</span>Analytics</button>
-        <button class="share-grid-item" id="shareDownload"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Download</button>
-        <button class="share-grid-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
-        <button class="share-grid-item" id="shareGroup"><span class="sheet-icon" style="background:#3b82f6">👥</span>Create group</button>
-        <button class="share-grid-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
-        <button class="share-grid-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
-        <button class="share-grid-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>Delete</button>
-        <button class="share-grid-item" id="shareKeywords"><span class="sheet-icon" style="background:#6b6860">🏷️</span>Manage keywords</button>
-        <button class="share-grid-item" id="shareAddStory"><span class="sheet-icon" style="background:#8e44ad">➕</span>Add to Story</button>
+      ${renderShareAppsRow()}
+      <div class="sheet-row" id="shareActionsRow" style="margin-top:2px;">
+        <button class="sheet-item" id="shareAnalytics"><span class="sheet-icon" style="background:#8e44ad">📊</span>Analytics</button>
+        <button class="sheet-item" id="shareDownload"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Download</button>
+        <button class="sheet-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
+        <button class="sheet-item" id="shareGroup"><span class="sheet-icon" style="background:#3b82f6">👥</span>Create group</button>
+        <button class="sheet-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
+        <button class="sheet-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
+        <button class="sheet-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>Delete</button>
       </div>
       <div id="ownPrivacyPanel" style="display:none; padding: 4px 4px 10px;">
         <div class="sheet-title" style="margin-top:6px;">Who can see this</div>
@@ -1600,23 +1406,6 @@ function renderOwnerSheet() {
         </div>
       </div>
       <button class="menu-list-item danger" id="deletePostBtn">🗑️ Delete</button>
-    </div>
-  `;
-}
-
-/* Real QR code for a post's link — generated via a public QR image API (no key needed),
-   pointing straight at the real getPostLink() URL, plus a real PNG download. */
-function renderQrSheet() {
-  return `
-    <div class="sheet-overlay" id="qrOverlay"></div>
-    <div class="bottom-sheet" id="qrSheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Scan to open this post</div>
-      <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding: 6px 4px 18px;">
-        <img id="qrImage" alt="QR code" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--line);" />
-        <div id="qrLinkText" style="font-size:12px;color:var(--ink-soft);word-break:break-all;text-align:center;"></div>
-        <button class="post-btn" id="qrDownloadBtn" style="width:100%;">Download QR code</button>
-      </div>
     </div>
   `;
 }
@@ -1689,7 +1478,6 @@ function openCameraScreen() {
     cameraError: null,
     cameraFlashOn: false,
     cameraTimerOn: false,
-    cameraSoundOn: true,
     cameraCountdown: 0,
     cameraSpeed: "1x",
     cameraFilter: "none"
@@ -1724,7 +1512,6 @@ function startCameraStream(facing) {
       const videoEl = document.getElementById("liveCameraVideo");
       if (videoEl) { videoEl.srcObject = stream; videoEl.play().catch(() => {}); }
       applyTorch();
-      applyMicMute();
     })
     .catch((err) => {
       console.error(err);
@@ -1742,14 +1529,6 @@ function applyTorch() {
   if (caps && caps.torch) {
     track.applyConstraints({ advanced: [{ torch: !!state.cameraFlashOn }] }).catch(() => {});
   }
-}
-
-/* Enables/disables the mic input track live, based on the "Sound" toggle. Muting this way
-   (rather than removing the track) means MediaRecorder still works normally either way. */
-function applyMicMute() {
-  if (!state.cameraStream) return;
-  const audioTrack = state.cameraStream.getAudioTracks()[0];
-  if (audioTrack) audioTrack.enabled = !!state.cameraSoundOn;
 }
 
 function flipCamera() {
@@ -1820,7 +1599,6 @@ function renderCameraScreen() {
           <div class="camera-top-icons">
             <button class="camera-flash-btn ${state.cameraFlashOn ? "on" : ""}" id="camFlashBtn" title="Flash">${state.cameraFlashOn ? "⚡" : "⚡"}</button>
             <button class="camera-timer-btn ${state.cameraTimerOn ? "on" : ""}" id="camTimerBtn" title="Timer">⏱</button>
-            <button class="camera-timer-btn ${state.cameraSoundOn ? "on" : ""}" id="camSoundBtn" title="Sound">${state.cameraSoundOn ? "🔊" : "🔇"}</button>
             <button class="camera-flip-btn" id="camFlipBtn" title="Flip camera">🔄</button>
           </div>` : `<div></div>`}
         </div>
@@ -1857,8 +1635,6 @@ function renderCameraScreen() {
   if (flashBtn) flashBtn.onclick = () => { state.cameraFlashOn = !state.cameraFlashOn; render(); applyTorch(); };
   const timerBtn = document.getElementById("camTimerBtn");
   if (timerBtn) timerBtn.onclick = () => setState({ cameraTimerOn: !state.cameraTimerOn });
-  const soundBtn = document.getElementById("camSoundBtn");
-  if (soundBtn) soundBtn.onclick = () => { state.cameraSoundOn = !state.cameraSoundOn; applyMicMute(); render(); };
 
   document.querySelectorAll(".camera-filter-btn").forEach(btn => {
     btn.onclick = () => setState({ cameraFilter: btn.dataset.filter });
@@ -1970,7 +1746,6 @@ function maxRecordMs() {
 
 function startVideoRecording() {
   if (!state.cameraStream) return;
-  applyMicMute();
   recordedChunksRef = [];
   const options = {};
   // MediaRecorder audio track is included by default; the "Sound" control mutes/unmutes
@@ -2115,9 +1890,7 @@ function renderPostComposeScreen() {
 
 /* ---------------- Friends screen ---------------- */
 function openFriendsScreen() {
-  // Opening Friends always lands on the TikTok-style video feed first (same feed that
-  // lives under the "Videos" sub-tab) — tap the "Friends" sub-tab to reach the plain list.
-  setState({ view: "friends", friendsSubTab: "videos" });
+  setState({ view: "friends" });
   // allUsers is kept live by listenToAllUsers() (started at login), so no one-time
   // fetch is needed here anymore — the list is already real-time.
   listenToPresenceForAllUsers();
@@ -2253,9 +2026,6 @@ function renderFriendsVideoFeed() {
     (!p.privacy || p.privacy === "public")
   );
 
-  const prevScrollEl = document.getElementById("fsScrollFriends");
-  const savedScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
-
   root.innerHTML = `
     <div class="feed-topbar on-light">
       <button class="feed-tab-btn" id="friendsToPeopleBtn">Friends</button>
@@ -2272,14 +2042,9 @@ function renderFriendsVideoFeed() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
-    ${renderQrSheet()}
     ${renderFsCommentsSheet(videos)}
     ${renderBottomNav("friends")}
   `;
-
-  const newScrollEl = document.getElementById("fsScrollFriends");
-  if (newScrollEl && savedScrollTop) newScrollEl.scrollTop = savedScrollTop;
-
   document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
   document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
 
@@ -2882,10 +2647,6 @@ function renderChatScreen() {
         </div>` : ""}
       <div class="chat-input-row">
         ${!hasContent ? `
-        <label class="chat-image-btn" title="Take photo/video">
-          📷
-          <input type="file" accept="image/*,video/*" capture="environment" id="chatCameraInput" style="display:none" />
-        </label>
         <label class="chat-image-btn" title="Photo/video from gallery">
           🖼️
           <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
@@ -2930,8 +2691,6 @@ function renderChatScreen() {
   if (sendBtn) sendBtn.onclick = sendChatMessage;
   const galleryInput = document.getElementById("chatGalleryInput");
   if (galleryInput) galleryInput.onchange = handleChatMediaSelect;
-  const cameraInput = document.getElementById("chatCameraInput");
-  if (cameraInput) cameraInput.onchange = handleChatMediaSelect;
   const stickerBtn = document.getElementById("chatStickerBtn");
   if (stickerBtn) stickerBtn.onclick = () => setState({ chatStickerPanelOpen: !state.chatStickerPanelOpen });
   const micBtn = document.getElementById("chatMicBtn");
@@ -3354,7 +3113,6 @@ function openPostViewer(postId) {
     <button id="postViewerClose" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.4);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;">✕</button>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
-    ${renderQrSheet()}
     ${renderFsCommentsSheet([post])}
   `;
   document.body.appendChild(overlay);
@@ -3373,15 +3131,10 @@ function renderProfileGrid(posts, pinnedPosts, isOwn) {
         const mediaHtml = p.media
           ? (isVideo ? `<video src="${p.media}" muted></video>` : `<img src="${p.media}" />`)
           : "";
-        // Pinning is video-only, capped at 3: an own video only gets a pin toggle if it's
-        // already one of the pinned 3 (so it can be unpinned) or fewer than 3 are pinned yet.
-        // Photos never show a pin control, and once the cap is hit the button disappears
-        // entirely on remaining unpinned videos instead of just refusing the tap.
-        const showPinToggle = isOwn && isVideo && (isPinned || (pinnedPosts || []).length < 3);
         return `
           <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridopen-${p.id}" style="cursor:pointer">
             ${mediaHtml || escapeHtml((p.text || "").slice(0, 60))}
-            ${showPinToggle ? `<button class="grid-pin-toggle ${isPinned ? "pinned" : ""}" id="gridpintoggle-${p.id}" title="Pin/unpin">📌</button>` : (isPinned && isVideo ? `<div class="grid-pin-badge">📌</div>` : "")}
+            ${isOwn ? `<button class="grid-pin-toggle ${isPinned ? "pinned" : ""}" id="gridpintoggle-${p.id}" title="Pin/unpin">📌</button>` : (isPinned ? `<div class="grid-pin-badge">📌</div>` : "")}
             ${isVideo ? `<div class="grid-video-badge">▶</div>` : ""}
           </div>
         `;
@@ -3394,14 +3147,6 @@ function togglePinPost(postId) {
   const myUid = state.user.uid;
   const pinnedPosts = (state.profile && state.profile.pinnedPosts) || [];
   const isPinned = pinnedPosts.includes(postId);
-  const post = state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
-  const isVideo = post && (post.mediaType === "video" || (post.media && post.media.startsWith("data:video")));
-  // Pinning is video-only and capped at 3 — the grid already hides the button once the cap
-  // is hit, but this guards the owner-sheet "Pin to profile" menu path too.
-  if (!isPinned) {
-    if (!isVideo) { showToast("Only videos can be pinned"); return; }
-    if (pinnedPosts.length >= 3) { showToast("You can pin up to 3 videos — unpin one first"); return; }
-  }
   db.collection("users").doc(myUid).update({
     pinnedPosts: isPinned
       ? firebase.firestore.FieldValue.arrayRemove(postId)
@@ -3813,6 +3558,16 @@ function wireSheetHandlers() {
 
   const copyLinkBtn = document.getElementById("copyLinkBtn");
   if (copyLinkBtn) copyLinkBtn.onclick = doCopyLink;
+  const tgBtn = document.getElementById("shareTelegram");
+  if (tgBtn) tgBtn.onclick = () => doShareTo("telegram");
+  const igBtn = document.getElementById("shareInstagram");
+  if (igBtn) igBtn.onclick = doShareInstagram;
+  const emailBtn = document.getElementById("shareEmail");
+  if (emailBtn) emailBtn.onclick = () => doShareTo("email");
+  const qrBtn = document.getElementById("shareQr");
+  if (qrBtn) qrBtn.onclick = doShowQrCode;
+  const moreBtn = document.getElementById("shareMore");
+  if (moreBtn) moreBtn.onclick = doShareMore;
   const waBtn = document.getElementById("shareWhatsapp");
   if (waBtn) waBtn.onclick = () => doShareTo("whatsapp");
   const msBtn = document.getElementById("shareMessenger");
@@ -3827,20 +3582,6 @@ function wireSheetHandlers() {
   if (statusBtn) statusBtn.onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
   const smsBtn = document.getElementById("shareSms");
   if (smsBtn) smsBtn.onclick = () => doShareTo("sms");
-  const telegramBtn = document.getElementById("shareTelegram");
-  if (telegramBtn) telegramBtn.onclick = () => doShareTo("telegram");
-  const instagramBtn = document.getElementById("shareInstagram");
-  if (instagramBtn) instagramBtn.onclick = doShareInstagram;
-  const emailBtn = document.getElementById("shareEmail");
-  if (emailBtn) emailBtn.onclick = doEmailShare;
-  const qrBtn = document.getElementById("shareQr");
-  if (qrBtn) qrBtn.onclick = openQrSheet;
-  const moreBtn = document.getElementById("shareMore");
-  if (moreBtn) moreBtn.onclick = doMoreShare;
-  const qrOverlay = document.getElementById("qrOverlay");
-  if (qrOverlay) qrOverlay.onclick = closeSheets;
-  const qrDownloadBtn = document.getElementById("qrDownloadBtn");
-  if (qrDownloadBtn) qrDownloadBtn.onclick = downloadQr;
 
   // ---- Own-post share sheet actions ----
   const analyticsBtn = document.getElementById("shareAnalytics");
@@ -3860,10 +3601,6 @@ function wireSheetHandlers() {
   };
   const deleteOwnBtn = document.getElementById("shareDeleteOwn");
   if (deleteOwnBtn) deleteOwnBtn.onclick = doDeletePost;
-  const addStoryBtn = document.getElementById("shareAddStory");
-  if (addStoryBtn) addStoryBtn.onclick = () => { showToast("Added to your Story"); closeSheets(); };
-  const keywordsBtn = document.getElementById("shareKeywords");
-  if (keywordsBtn) keywordsBtn.onclick = () => { showToast("Keyword management isn't available in this build yet"); closeSheets(); };
   document.querySelectorAll("#ownPrivacyOptions .privacy-option").forEach(btn => {
     btn.onclick = () => setPrivacyForActivePost(btn.dataset.level);
   });
@@ -4023,97 +3760,83 @@ function doShareTo(platform) {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${link}`,
     telegram: `https://t.me/share/url?url=${link}&text=${text}`,
     sms: `sms:?body=${text}%20${link}`,
+    email: `mailto:?subject=${encodeURIComponent("Check this out on Milon")}&body=${text}%20${link}`,
   };
   window.open(urls[platform], "_blank");
   closeSheets();
 }
 
-/* Real mailto share — opens the user's own mail app with subject+body prefilled */
-function doEmailShare() {
+/* Instagram has no public web API that accepts a pre-filled link/caption from outside its own
+   app — that's an Instagram platform restriction, not something any web app can bypass. The real,
+   honest version of this button: copy the post link (so it's ready to paste) and open Instagram. */
+function doShareInstagram() {
   const link = getPostLink(activePostId);
-  const subject = encodeURIComponent("Check out this post on Milon!");
-  const body = encodeURIComponent(`Check out this post on Milon: ${link}`);
-  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  navigator.clipboard.writeText(link).catch(() => {});
+  showToast("Link copied — paste it in a Direct Message or Story on Instagram");
+  const fallbackTimer = setTimeout(() => {
+    window.open("https://www.instagram.com/", "_blank");
+  }, 1200);
+  window.location.href = "instagram://app";
+  window.addEventListener("blur", () => clearTimeout(fallbackTimer), { once: true });
   closeSheets();
 }
 
-/* Instagram has no public web endpoint for pre-filled posts/captions — that's an Instagram
-   platform limitation, not something any web app can work around. The real, honest options:
-   on mobile, hand the actual media file to the OS share sheet via the Web Share API so the
-   person can pick Instagram themselves (genuinely opens Instagram with the file attached);
-   on desktop, copy the caption+link and open Instagram so they can paste it in. */
-function doShareInstagram() {
+/* "More" — the device's own native share sheet (Web Share API). Real OS-level share on any
+   phone browser that supports it; falls back to Copy link on desktop browsers that don't. */
+function doShareMore() {
   const link = getPostLink(activePostId);
-  const post = state.posts.find(p => p.id === activePostId);
-  const text = "Check out this post on Milon!";
-  const shareText = `${text} ${link}`;
-
-  const fallbackLinkShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: "Milon", text, url: link }).catch(() => {});
-      closeSheets();
-    } else {
-      navigator.clipboard.writeText(shareText).catch(() => {});
-      window.open("https://www.instagram.com/", "_blank");
-      showToast("Caption & link copied — paste it into Instagram");
-      closeSheets();
-    }
-  };
-
-  if (navigator.share && navigator.canShare && post && post.media && post.media.startsWith("data:")) {
-    fetch(post.media)
-      .then(res => res.blob())
-      .then(blob => {
-        const ext = post.mediaType === "video" ? "mp4" : "jpg";
-        const file = new File([blob], `milon-post.${ext}`, { type: blob.type });
-        if (navigator.canShare({ files: [file] })) {
-          return navigator.share({ files: [file], text: shareText }).then(() => { closeSheets(); });
-        }
-        fallbackLinkShare();
-      })
-      .catch(fallbackLinkShare);
-  } else {
-    fallbackLinkShare();
-  }
-}
-
-/* "More" — the device's real native share sheet (Web Share API), same one every other
-   app on the phone uses; falls back to copying the link on desktop browsers that don't
-   support it. */
-function doMoreShare() {
-  const link = getPostLink(activePostId);
-  const text = "Check out this post on Milon!";
   if (navigator.share) {
-    navigator.share({ title: "Milon", text, url: link }).catch(() => {});
+    navigator.share({ title: "Milon", text: "Check out this post on Milon!", url: link }).catch(() => {});
     closeSheets();
   } else {
     doCopyLink();
   }
 }
 
-/* Real QR code, generated server-side by a public QR image API, pointing at the actual
-   post link — same link Copy link / every other share option uses. */
-function openQrSheet() {
-  const link = getPostLink(activePostId);
-  const qrImg = document.getElementById("qrImage");
-  if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(link)}`;
-  const qrLinkText = document.getElementById("qrLinkText");
-  if (qrLinkText) qrLinkText.textContent = link;
-  const ov = document.getElementById("qrOverlay");
-  const sh = document.getElementById("qrSheet");
-  if (ov) ov.classList.add("open");
-  if (sh) sh.classList.add("open");
+/* Real QR code, generated client-side from the post's actual link (no fake placeholder image). */
+function ensureQrLib() {
+  if (window.QRCode) return Promise.resolve();
+  if (ensureQrLib._pending) return ensureQrLib._pending;
+  ensureQrLib._pending = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+    s.onload = resolve;
+    s.onerror = () => { ensureQrLib._pending = null; showToast("Couldn't load the QR generator — check your connection"); reject(); };
+    document.head.appendChild(s);
+  });
+  return ensureQrLib._pending;
 }
 
-function downloadQr() {
+function doShowQrCode() {
   const link = getPostLink(activePostId);
-  const a = document.createElement("a");
-  a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(link)}`;
-  a.download = "milon-post-qr.png";
-  a.target = "_blank";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  closeSheets();
+  ensureQrLib().then(() => openQrOverlay(link)).catch(() => {});
+}
+
+function openQrOverlay(link) {
+  document.getElementById("qrOverlay")?.remove();
+  document.getElementById("qrSheetEl")?.remove();
+
+  const overlay = document.createElement("div");
+  overlay.className = "sheet-overlay open";
+  overlay.id = "qrOverlay";
+
+  const sheetEl = document.createElement("div");
+  sheetEl.className = "bottom-sheet open";
+  sheetEl.id = "qrSheetEl";
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="text-align:center;">Scan to open this post</div>
+    <div id="qrCodeBox" style="display:flex; justify-content:center; padding:10px 0 6px;"></div>
+    <div style="text-align:center; font-size:12px; color:var(--ink-soft); padding:0 10px 16px; word-break:break-all;">${escapeHtml(link)}</div>
+  `;
+
+  const closeQr = () => { overlay.remove(); sheetEl.remove(); };
+  overlay.onclick = closeQr;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(sheetEl);
+  new QRCode(sheetEl.querySelector("#qrCodeBox"), { text: link, width: 180, height: 180 });
 }
 
 /* ================= Own post: Edit / Delete / Privacy / Pin ================= */
@@ -4210,7 +3933,6 @@ function submitCommentText(postId, text) {
   const ref = db.collection("posts").doc(postId);
   ref.update({
     comments: firebase.firestore.FieldValue.arrayUnion({
-      uid: state.user.uid,
       name: state.user.name,
       text: text.trim()
     })

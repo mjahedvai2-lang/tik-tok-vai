@@ -934,6 +934,176 @@ function autoplayVideosEnabled() {
   return s.autoplayVideos !== false;
 }
 
+/* ================= Safety: Block / Restrict / Mute helpers ================= */
+/* Looks a user doc up from whichever cache already has it (my own live doc, or the
+   allUsers cache kept live by listenToAllUsers()) — avoids an extra Firestore read
+   for checks that run on every feed/comment render. */
+function findCachedUser(uid) {
+  if (!uid) return null;
+  if (state.user && uid === state.user.uid) return state.myUserDoc || { uid };
+  return (state.allUsers || []).find(u => u.uid === uid) || null;
+}
+
+/* Block is mutual and symmetric: hidden if EITHER side blocked the other, checked
+   from both my own doc (blockedUsers/blockedBy) so it still works instantly for me
+   even before the other side's doc finishes syncing into the allUsers cache. */
+function isBlockedEitherWay(otherUid) {
+  if (!state.user || !otherUid || otherUid === state.user.uid) return false;
+  const myBlocked = (state.myUserDoc && state.myUserDoc.blockedUsers) || [];
+  const myBlockedBy = (state.myUserDoc && state.myUserDoc.blockedBy) || [];
+  if (myBlocked.includes(otherUid) || myBlockedBy.includes(otherUid)) return true;
+  const other = findCachedUser(otherUid);
+  return !!(other && ((other.blockedUsers || []).includes(state.user.uid) || (other.blockedBy || []).includes(state.user.uid)));
+}
+
+// Mute and Restrict are one-directional and silent — only I know I've muted/restricted someone.
+function isMutedByMe(otherUid) {
+  return ((state.myUserDoc && state.myUserDoc.mutedUsers) || []).includes(otherUid);
+}
+function isRestrictedByMe(otherUid) {
+  return ((state.myUserDoc && state.myUserDoc.restrictedUsers) || []).includes(otherUid);
+}
+
+/* Block: mutual, both sides find out (can't view each other, no follow, no messages).
+   Also tears down any existing follow relationship in both directions. Written to both
+   docs (like the existing follow feature does for followers/followRequests), so this
+   needs the same kind of Firestore Rules allowance for blockedUsers/blockedBy/following/
+   followers/followRequests on users/{otherUid} that the follow feature already relies on. */
+function toggleBlockUser(targetUid, targetName) {
+  if (!state.user || !targetUid || targetUid === state.user.uid) return;
+  const isBlocked = isBlockedByMe(targetUid);
+  const label = targetName || "this user";
+  const msg = isBlocked
+    ? `Unblock ${label}?`
+    : `Block ${label}? They won't be able to see your profile, follow you, or message you — and you won't see their content either.`;
+  if (!confirm(msg)) return;
+
+  const myUid = state.user.uid;
+  const myRef = db.collection("users").doc(myUid);
+  const targetRef = db.collection("users").doc(targetUid);
+  const batch = db.batch();
+
+  if (isBlocked) {
+    batch.update(myRef, { blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+    batch.update(targetRef, { blockedBy: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  } else {
+    batch.update(myRef, {
+      blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUid),
+      following: firebase.firestore.FieldValue.arrayRemove(targetUid),
+      followRequests: firebase.firestore.FieldValue.arrayRemove(targetUid)
+    });
+    batch.update(targetRef, {
+      blockedBy: firebase.firestore.FieldValue.arrayUnion(myUid),
+      followers: firebase.firestore.FieldValue.arrayRemove(myUid),
+      followRequests: firebase.firestore.FieldValue.arrayRemove(myUid)
+    });
+  }
+
+  batch.commit().then(() => {
+    showToast(isBlocked ? "Unblocked" : "Blocked");
+    closeSheets();
+    if (!isBlocked && state.view === "profile" && state.viewingUid === targetUid) {
+      setState({ view: "friends" });
+    }
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't update — check Firestore Rules allow this");
+  });
+}
+function isBlockedByMe(otherUid) {
+  return ((state.myUserDoc && state.myUserDoc.blockedUsers) || []).includes(otherUid);
+}
+
+/* Restrict: silent, one-directional, written only to my own doc. Their comments on my
+   posts stay visible to only them and me (see commentVisibleToMe); everything else about
+   the relationship (following, messaging) is untouched. */
+function toggleRestrictUser(targetUid, targetName) {
+  if (!state.user || !targetUid || targetUid === state.user.uid) return;
+  const isRestricted = isRestrictedByMe(targetUid);
+  const label = targetName || "this user";
+  const msg = isRestricted
+    ? `Remove restriction from ${label}?`
+    : `Restrict ${label}? Their comments on your posts will only be visible to you and them, and they won't be notified.`;
+  if (!confirm(msg)) return;
+
+  db.collection("users").doc(state.user.uid).update({
+    restrictedUsers: isRestricted
+      ? firebase.firestore.FieldValue.arrayRemove(targetUid)
+      : firebase.firestore.FieldValue.arrayUnion(targetUid)
+  }).then(() => {
+    showToast(isRestricted ? "Restriction removed" : "Restricted");
+    closeSheets();
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't update");
+  });
+}
+
+/* Mute: silent, one-directional, written only to my own doc. Their posts stop showing
+   in MY feed (see renderApp/renderFriendsVideoFeed); the follow relationship, their
+   ability to message me, and everything on their side stays exactly the same. */
+function toggleMuteUser(targetUid, targetName) {
+  if (!state.user || !targetUid || targetUid === state.user.uid) return;
+  const isMuted = isMutedByMe(targetUid);
+  db.collection("users").doc(state.user.uid).update({
+    mutedUsers: isMuted
+      ? firebase.firestore.FieldValue.arrayRemove(targetUid)
+      : firebase.firestore.FieldValue.arrayUnion(targetUid)
+  }).then(() => {
+    showToast(isMuted ? "Unmuted" : `Muted — you won't see ${targetName || "their"} posts in your feed`);
+    closeSheets();
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't update");
+  });
+}
+
+function reportUserAccount(targetUid) {
+  if (!state.user || !targetUid) return;
+  if (!confirm("Report this account to the app owner?")) return;
+  db.collection("userReports").add({
+    reportedUid: targetUid,
+    reportedByUid: state.user.uid,
+    reportedByName: state.user.name,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    showToast("Account reported. Thanks for letting us know.");
+    closeSheets();
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't submit report");
+  });
+}
+
+/* Bottom sheet for another user's profile: Restrict / Mute / Block / Report account.
+   Uses the same .sheet-overlay/.bottom-sheet/.menu-list-item markup as the existing
+   owner (post) sheet, so it opens/closes via the same closeSheets() querySelectorAll. */
+function renderSafetySheet(targetUid) {
+  if (!targetUid) return "";
+  const u = findCachedUser(targetUid) || {};
+  const name = u.name || (state.profile && state.profile.name) || "this user";
+  const isRestricted = isRestrictedByMe(targetUid);
+  const isMuted = isMutedByMe(targetUid);
+  const isBlocked = isBlockedByMe(targetUid);
+  return `
+    <div class="sheet-overlay" id="safetyOverlay"></div>
+    <div class="bottom-sheet" id="safetySheet">
+      <div class="sheet-handle"></div>
+      <button class="menu-list-item" id="safetyRestrictBtn">🧯 ${isRestricted ? "Remove restriction" : "Restrict"}</button>
+      <button class="menu-list-item" id="safetyMuteBtn">🔇 ${isMuted ? "Unmute" : "Mute"}</button>
+      <button class="menu-list-item danger" id="safetyBlockBtn">🚫 ${isBlocked ? "Unblock" : `Block ${escapeHtml((name || "").split(" ")[0])}`}</button>
+      <button class="menu-list-item danger" id="safetyReportBtn">⚑ Report account</button>
+    </div>
+  `;
+}
+
+function openSafetySheet(targetUid) {
+  const ov = document.getElementById("safetyOverlay");
+  const sh = document.getElementById("safetySheet");
+  if (ov) ov.classList.add("open");
+  if (sh) sh.classList.add("open");
+}
+
 // Paint the cached theme immediately on load, before auth resolves.
 applyUserSettings(getCachedSettings());
 // If following the system, react live if the OS theme changes mid-session.
@@ -1107,6 +1277,10 @@ function ensureUserProfile(user) {
         banned: false,
         youtubeLink: "",
         facebookLink: "",
+        blockedUsers: [],
+        blockedBy: [],
+        restrictedUsers: [],
+        mutedUsers: [],
         settings: {
           theme: "system",        // light | dark | system
           fontSize: "default",    // small | default | large
@@ -1214,6 +1388,12 @@ function render() {
     renderSettingsThemeScreen();
   } else if (state.view === "settingsAccessibility") {
     renderSettingsAccessibilityScreen();
+  } else if (state.view === "settingsBlockedList") {
+    renderSafetyListScreen("blocked");
+  } else if (state.view === "settingsRestrictedList") {
+    renderSafetyListScreen("restricted");
+  } else if (state.view === "settingsMutedList") {
+    renderSafetyListScreen("muted");
   } else if (state.view === "friends") {
     renderFriendsScreen();
   } else if (state.view === "discover") {
@@ -1397,6 +1577,8 @@ function renderApp() {
 
   let visiblePosts = state.posts.filter(p => {
     if (!hiddenSafe(p)) return false;
+    if (isBlockedEitherWay(p.authorUid)) return false;   // blocked (either direction): fully hidden
+    if (isMutedByMe(p.authorUid)) return false;           // muted: hidden from my feed only, they aren't notified
     if (!p.privacy || p.privacy === "public") return true;
     return p.authorUid === myUid;
   });
@@ -1557,10 +1739,11 @@ function renderCommentText(text) {
   return escaped.replace(/(^|\s)@(\w+)/g, (m, pre, name) => `${pre}<span class="mention">@${name}</span>`);
 }
 
-function buildCommentTree(flatComments, sort) {
-  const top = flatComments.filter(c => !c.parentId);
+function buildCommentTree(flatComments, sort, postAuthorUid) {
+  const visible = flatComments.filter(c => commentVisibleToMe(c, postAuthorUid));
+  const top = visible.filter(c => !c.parentId);
   const byParent = {};
-  flatComments.filter(c => c.parentId).forEach(c => {
+  visible.filter(c => c.parentId).forEach(c => {
     (byParent[c.parentId] = byParent[c.parentId] || []).push(c);
   });
   const sorter = sort === "top"
@@ -1570,11 +1753,25 @@ function buildCommentTree(flatComments, sort) {
   return topSorted.map(c => ({ ...c, replies: (byParent[c.id] || []) }));
 }
 
+/* A comment is hidden from everyone except the post's own author and the commenter
+   themselves when: (a) I've blocked the commenter or they've blocked me (either
+   direction, hidden from both sides everywhere), or (b) the post's author has
+   Restricted the commenter — Restrict is silent, so the restricted person still
+   sees their own comment and thinks it's public. */
+function commentVisibleToMe(c, postAuthorUid) {
+  const myUid = state.user ? state.user.uid : null;
+  if (isBlockedEitherWay(c.uid)) return false;
+  const author = findCachedUser(postAuthorUid);
+  const restrictedByAuthor = (author && author.restrictedUsers) || [];
+  if (restrictedByAuthor.includes(c.uid) && myUid !== postAuthorUid && myUid !== c.uid) return false;
+  return true;
+}
+
 function renderFsCommentsSheet() {
   const isOpen = !!state.openFsComments;
   const post = isOpen ? state.posts.find(p => p.id === state.openFsComments) : null;
   const myUid = state.user ? state.user.uid : null;
-  const tree = post ? buildCommentTree(state.fsComments, state.commentSort) : [];
+  const tree = post ? buildCommentTree(state.fsComments, state.commentSort, post.authorUid) : [];
 
   const renderOne = (c, isReply) => {
     const liked = myUid && (c.likes || []).includes(myUid);
@@ -2351,6 +2548,7 @@ function computeFriendsList(myUid, myPinned) {
   } else {
     list = state.allUsers.filter(u => (u.followers || []).includes(myUid) && (u.following || []).includes(myUid));
   }
+  list = list.filter(u => !isBlockedEitherWay(u.uid));
   return [...list].sort((a, b) => {
     const ap = myPinned.includes(a.uid) ? 1 : 0;
     const bp = myPinned.includes(b.uid) ? 1 : 0;
@@ -2447,6 +2645,8 @@ function renderFriendsVideoFeed() {
     followingUids.has(p.authorUid) &&
     p.media &&
     hiddenSafe(p) &&
+    !isBlockedEitherWay(p.authorUid) &&
+    !isMutedByMe(p.authorUid) &&
     (!p.privacy || p.privacy === "public")
   );
 
@@ -2524,11 +2724,13 @@ function discoverSearch(query) {
   const visible = (state.posts || []).filter(p => {
     if (p.hidden && p.authorUid !== myUid) return false;
     if (p.privacy && p.privacy !== "public" && p.authorUid !== myUid) return false;
+    if (isBlockedEitherWay(p.authorUid)) return false;
     return true;
   });
   if (!q) return { users: [], videos: [], hashtags: [] };
   const users = (state.allUsers || []).filter(u =>
-    (u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q)
+    !isBlockedEitherWay(u.uid) &&
+    ((u.name || "").toLowerCase().includes(q) || (u.handle || "").toLowerCase().includes(q))
   );
   const cleanTag = q.replace(/^#/, "");
   const videos = visible.filter(p =>
@@ -3336,6 +3538,7 @@ let unsubscribeChat = null;
 let unsubscribeChatPresence = null;
 function openChat(otherUid) {
   if (!otherUid) return;
+  if (isBlockedEitherWay(otherUid)) { showToast("You can't message this account"); return; }
   const myUid = state.user.uid;
   const threadId = threadIdFor(myUid, otherUid);
 
@@ -3630,6 +3833,7 @@ function sendChatMessage() {
   const mediaType = state.chatMediaType;
   if (!text && !media) return;
   if (!state.chatUid) return;
+  if (isBlockedEitherWay(state.chatUid)) { showToast("You can't message this account"); return; }
   const myUid = state.user.uid;
   const otherUid = state.chatUid;
   const threadId = threadIdFor(myUid, otherUid);
@@ -3804,8 +4008,11 @@ function renderProfileScreen() {
   };
 
   const isLockedForMe = !isOwn && profile.private && !amFollowing;
+  const isBlockedRelation = !isOwn && isBlockedEitherWay(targetUid);
   const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
-  const tabBodyHtml = isLockedForMe
+  const tabBodyHtml = isBlockedRelation
+    ? `<div class="empty-state"><div class="big">🚫</div><div>${isBlockedByMe(targetUid) ? "You've blocked this account" : "This account isn't available"}</div></div>`
+    : isLockedForMe
     ? `<div class="empty-state"><div class="big">🔒</div><div>This account is private</div><div style="font-size:13px; margin-top:6px;">${requestedByMe ? "Your follow request is pending." : "Follow this account to see their posts."}</div></div>`
     : (activeTab.list.length
       ? renderProfileGrid(activeTab.list, pinnedPosts, isOwn)
@@ -3825,6 +4032,7 @@ function renderProfileScreen() {
       <div style="display:flex; align-items:center; gap:4px;">
         <button class="profile-menu-btn" id="profileQrBtn" title="Profile QR code">▦</button>
         <button class="profile-menu-btn" id="profileShareBtn" title="Share profile">↗️</button>
+        ${!isOwn ? `<button class="profile-menu-btn" id="profileSafetyBtn" title="Block, restrict, mute">⋯</button>` : ""}
         ${isOwn ? `<button class="profile-menu-btn" id="profileMenuBtn">☰</button>` : ""}
       </div>
     </div>
@@ -3847,7 +4055,7 @@ function renderProfileScreen() {
       ${profile.bio ? `<div class="profile-bio">${escapeHtml(profile.bio)}</div>` : ""}
       ${linksHtml}
 
-      ${!isOwn
+      ${!isOwn && !isBlockedRelation
         ? (amFollowing
             ? `<div class="profile-action-row">
                 <button class="profile-follow-btn following primary" id="profileMsgBtn">➤ Message</button>
@@ -3876,6 +4084,7 @@ function renderProfileScreen() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
 
     ${isOwn ? renderBottomNav("profile") : ""}
+    ${!isOwn ? renderSafetySheet(targetUid) : ""}
   `;
 
   document.getElementById("profileBackBtn").onclick = () => setState({ view: "feed" });
@@ -3892,12 +4101,31 @@ function renderProfileScreen() {
   } else {
     const followBtn = document.getElementById("followBtn");
     const followManageBtn = document.getElementById("followManageBtn");
-    if (followBtn) followBtn.onclick = () => toggleFollow(targetUid);
+    if (followBtn) followBtn.onclick = () => {
+      if (isBlockedEitherWay(targetUid)) { showToast("You can't follow this account"); return; }
+      toggleFollow(targetUid);
+    };
     if (followManageBtn) followManageBtn.onclick = () => {
       if (!confirm(`Unfollow ${profile.name || "this user"}?`)) return;
       toggleFollow(targetUid);
     };
-    document.getElementById("profileMsgBtn").onclick = () => openChat(targetUid);
+    const msgBtn = document.getElementById("profileMsgBtn");
+    if (msgBtn) msgBtn.onclick = () => {
+      if (isBlockedEitherWay(targetUid)) { showToast("You can't message this account"); return; }
+      openChat(targetUid);
+    };
+    const safetyBtn = document.getElementById("profileSafetyBtn");
+    if (safetyBtn) safetyBtn.onclick = () => openSafetySheet(targetUid);
+    const safetyOverlay = document.getElementById("safetyOverlay");
+    if (safetyOverlay) safetyOverlay.onclick = closeSheets;
+    const restrictBtn = document.getElementById("safetyRestrictBtn");
+    if (restrictBtn) restrictBtn.onclick = () => toggleRestrictUser(targetUid, profile.name);
+    const muteBtn = document.getElementById("safetyMuteBtn");
+    if (muteBtn) muteBtn.onclick = () => toggleMuteUser(targetUid, profile.name);
+    const blockBtn = document.getElementById("safetyBlockBtn");
+    if (blockBtn) blockBtn.onclick = () => toggleBlockUser(targetUid, profile.name);
+    const reportAcctBtn = document.getElementById("safetyReportBtn");
+    if (reportAcctBtn) reportAcctBtn.onclick = () => reportUserAccount(targetUid);
   }
 
   document.querySelectorAll(".profile-tab").forEach(btn => {
@@ -4391,7 +4619,7 @@ function renderSettingsPrivacyScreen() {
       <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>Restricted accounts</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>Muted accounts</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
     </div>
-    <div class="settings-hint">Blocking, restricting and muting people (and reporting posts or comments) live under Safety — coming right after this.</div>
+    <div class="settings-hint">Blocking, restricting and muting someone can also be done from their profile — tap ⋯ on their profile page.</div>
   `;
   wireSettingsBack("settings");
   document.getElementById("privateAccountToggle").onclick = () => {
@@ -4402,10 +4630,37 @@ function renderSettingsPrivacyScreen() {
   };
   const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
   if (followReqBtn) followReqBtn.onclick = () => setState({ view: "inbox", inboxSection: "followRequests" });
-  // Blocked/Restricted/Muted list screens ship with the Safety feature (Block/Restrict/Mute actions
-  // themselves) so the lists always match the actions that populate them — placeholder toast for now.
-  ["privBlockedBtn", "privRestrictedBtn", "privMutedBtn"].forEach((id) => {
-    document.getElementById(id).onclick = () => showToast("Manage this from Safety — coming next");
+  document.getElementById("privBlockedBtn").onclick = () => setState({ view: "settingsBlockedList" });
+  document.getElementById("privRestrictedBtn").onclick = () => setState({ view: "settingsRestrictedList" });
+  document.getElementById("privMutedBtn").onclick = () => setState({ view: "settingsMutedList" });
+}
+
+/* ================= SETTINGS > Privacy > Blocked/Restricted/Muted account lists ================= */
+function renderSafetyListScreen(type) {
+  const config = {
+    blocked: { title: "Blocked accounts", field: "blockedUsers", empty: "You haven't blocked anyone.", action: toggleBlockUser, actionLabel: "Unblock" },
+    restricted: { title: "Restricted accounts", field: "restrictedUsers", empty: "You haven't restricted anyone.", action: toggleRestrictUser, actionLabel: "Remove" },
+    muted: { title: "Muted accounts", field: "mutedUsers", empty: "You haven't muted anyone.", action: toggleMuteUser, actionLabel: "Unmute" }
+  }[type];
+  const uids = (state.myUserDoc && state.myUserDoc[config.field]) || [];
+  const users = uids.map(uid => findCachedUser(uid)).filter(Boolean);
+
+  root.innerHTML = `
+    ${settingsTopbar(config.title)}
+    ${users.length ? `<div class="menu-list">${users.map(u => `
+      <div class="menu-item" style="cursor:default;">
+        <div class="avatar" style="width:32px;height:32px;font-size:12px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+        <span>${escapeHtml(u.name || "User")}</span>
+        <button class="menu-item-arrow" data-uid="${u.uid}" style="margin-left:auto; background:none; border:none; color:var(--teal-deep); font-size:13px; font-weight:600; cursor:pointer;">${config.actionLabel}</button>
+      </div>
+    `).join("")}</div>` : `<div class="settings-hint">${config.empty}</div>`}
+  `;
+  wireSettingsBack("settingsPrivacy");
+  document.querySelectorAll("[data-uid]").forEach((btn) => {
+    btn.onclick = () => {
+      const u = users.find(x => x.uid === btn.dataset.uid);
+      config.action(btn.dataset.uid, u && u.name);
+    };
   });
 }
 

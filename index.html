@@ -1080,6 +1080,7 @@ function listenToPosts() {
     .onSnapshot((snapshot) => {
       state.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       render();
+      handleDeepLink();
     }, (err) => {
       console.error(err);
       showToast("Couldn't load posts");
@@ -3494,7 +3495,11 @@ function renderProfileScreen() {
     <div class="profile-topbar">
       <button class="profile-back-btn" id="profileBackBtn">←</button>
       <div class="profile-title">Profile</div>
-      ${isOwn ? `<button class="profile-menu-btn" id="profileMenuBtn">☰</button>` : `<div style="width:28px"></div>`}
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="profile-menu-btn" id="profileQrBtn" title="Profile QR code">▦</button>
+        <button class="profile-menu-btn" id="profileShareBtn" title="Share profile">↗️</button>
+        ${isOwn ? `<button class="profile-menu-btn" id="profileMenuBtn">☰</button>` : ""}
+      </div>
     </div>
 
     <div class="profile-hero">
@@ -3546,6 +3551,8 @@ function renderProfileScreen() {
   `;
 
   document.getElementById("profileBackBtn").onclick = () => setState({ view: "feed" });
+  document.getElementById("profileQrBtn").onclick = () => doShowProfileQr(targetUid);
+  document.getElementById("profileShareBtn").onclick = () => doShareProfile(targetUid);
   document.getElementById("followingStat").onclick = () => openFollowList(targetUid, "following");
   document.getElementById("followersStat").onclick = () => openFollowList(targetUid, "followers");
 
@@ -4330,10 +4337,10 @@ function ensureQrLib() {
 function doShowQrCode() {
   const link = getPostLink(activePostId);
   closeSheets();
-  ensureQrLib().then(() => openQrOverlay(link)).catch(() => {});
+  ensureQrLib().then(() => openQrOverlay(link, "Scan to open this post")).catch(() => {});
 }
 
-function openQrOverlay(link) {
+function openQrOverlay(link, title) {
   document.getElementById("qrOverlay")?.remove();
   document.getElementById("qrSheetEl")?.remove();
 
@@ -4346,7 +4353,7 @@ function openQrOverlay(link) {
   sheetEl.id = "qrSheetEl";
   sheetEl.innerHTML = `
     <div class="sheet-handle"></div>
-    <div class="sheet-title" style="text-align:center;">Scan to open this post</div>
+    <div class="sheet-title" style="text-align:center;">${escapeHtml(title || "Scan this QR code")}</div>
     <div id="qrCodeBox" style="display:flex; justify-content:center; padding:10px 0 6px;"></div>
     <div style="text-align:center; font-size:12px; color:var(--ink-soft); padding:0 10px 16px; word-break:break-all;">${escapeHtml(link)}</div>
   `;
@@ -4357,6 +4364,52 @@ function openQrOverlay(link) {
   document.body.appendChild(overlay);
   document.body.appendChild(sheetEl);
   new QRCode(sheetEl.querySelector("#qrCodeBox"), { text: link, width: 180, height: 180 });
+}
+
+/* ---------------- Profile share / QR / deep links ---------------- */
+function getProfileLink(uid) {
+  return `${window.location.origin}${window.location.pathname}?profile=${uid}`;
+}
+
+function doShowProfileQr(uid) {
+  ensureQrLib().then(() => openQrOverlay(getProfileLink(uid), "Scan to view this profile")).catch(() => {});
+}
+
+function doShareProfile(uid) {
+  const link = getProfileLink(uid);
+  if (navigator.share) {
+    navigator.share({ title: "Milon profile", text: "Check out this profile on Milon", url: link }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(link).then(() => showToast("Profile link copied!")).catch(() => showToast("Couldn't copy the link"));
+  }
+}
+
+/* Opens whatever ?post= or ?profile= is in the URL, once, right after the first real
+   posts snapshot has loaded — so a shared/QR link actually jumps to that content instead
+   of just opening the app fresh. */
+let deepLinkHandled = false;
+function handleDeepLink() {
+  if (deepLinkHandled) return;
+  deepLinkHandled = true;
+  const params = new URLSearchParams(window.location.search);
+  const profileUid = params.get("profile");
+  const postId = params.get("post");
+  if (profileUid) {
+    openProfile(profileUid);
+    return;
+  }
+  if (postId) {
+    const existing = state.posts.find(p => p.id === postId);
+    if (existing) { openPostViewer(postId); return; }
+    db.collection("posts").doc(postId).get().then((doc) => {
+      if (doc.exists) {
+        state.posts = [...state.posts, { id: doc.id, ...doc.data() }];
+        openPostViewer(postId);
+      } else {
+        showToast("That post is no longer available");
+      }
+    }).catch((err) => console.error("deep link post fetch error:", err));
+  }
 }
 
 /* ================= Own post: Edit / Delete / Privacy / Pin ================= */

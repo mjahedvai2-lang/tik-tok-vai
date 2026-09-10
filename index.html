@@ -638,6 +638,12 @@
   .fs-action.liked { color: #FE2C55; }
   .fs-action.saved, .fs-action.reposted { color: #25F4EE; }
   .fs-empty-full { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--ink-soft); text-align: center; padding: 30px; }
+  .fs-insights-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 8px 0 2px; border-top: 1px solid rgba(255,255,255,0.15); }
+  .fs-views-count { display: flex; align-items: center; gap: 6px; color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .fs-insights-btn { background: rgba(0,0,0,0.45); border: none; color: #fff; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 18px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .analytics-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink); }
+  .analytics-row:last-child { border-bottom: none; }
+  .analytics-row b { font-size: 16px; }
 
   /* Comments sheet for full-screen feed */
   .fs-comments-sheet .comment-line { display: flex; justify-content: space-between; align-items: center; }
@@ -1235,6 +1241,12 @@ function renderFsSlide(p) {
         ${reposted ? `<div class="fs-reposted-tag">↻ You reposted this</div>` : ""}
         <div class="fs-author" id="fsauthorname-${p.id}">@${escapeHtml(p.authorName)}</div>
         ${p.media && p.text ? `<div class="fs-caption">${escapeHtml(p.text)}</div>` : ""}
+        ${isOwner ? `
+          <div class="fs-insights-row">
+            <div class="fs-views-count">▶ ${(p.views || 0).toLocaleString()} views</div>
+            <button class="fs-insights-btn" id="fsinsights-${p.id}">📈 More insights</button>
+          </div>
+        ` : ""}
       </div>
     </div>
   `;
@@ -1258,6 +1270,34 @@ function wireFsSlideHandlers(posts) {
     if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
     const ownerBtn = document.getElementById(`fsowner-${p.id}`);
     if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
+    const insightsBtn = document.getElementById(`fsinsights-${p.id}`);
+    if (insightsBtn) insightsBtn.onclick = () => openAnalyticsSheet(p.id);
+  });
+  observeSlideViews(posts);
+}
+
+/* Real view counting: a post's `views` count in Firestore goes up by exactly one, the first
+   time that slide becomes at least half-visible on screen during this session — not on every
+   render, and not more than once per post per page load. */
+const viewedThisSession = new Set();
+let fsViewObserver = null;
+function observeSlideViews(posts) {
+  if (fsViewObserver) fsViewObserver.disconnect();
+  if (!("IntersectionObserver" in window)) return;
+  fsViewObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const postId = entry.target.dataset.postId;
+      if (!postId || viewedThisSession.has(postId)) return;
+      viewedThisSession.add(postId);
+      db.collection("posts").doc(postId).update({
+        views: firebase.firestore.FieldValue.increment(1)
+      }).catch((err) => console.error("view increment error:", err));
+    });
+  }, { threshold: 0.5 });
+  posts.forEach(p => {
+    const el = document.getElementById(`fsslide-${p.id}`);
+    if (el) { el.dataset.postId = p.id; fsViewObserver.observe(el); }
   });
 }
 
@@ -3671,16 +3711,51 @@ function doReportFromSheet() {
   }).catch((err) => { console.error(err); showToast("Couldn't submit report"); });
 }
 
-/* Simple, real (client-computed) analytics summary for one of the user's own posts */
+/* Real, detailed analytics for one of the user's own posts — shown as a proper bottom sheet
+   (not just a toast), and reused by both the share-sheet's Analytics button and the
+   full-screen view's "More insights" shortcut. */
 function doShowAnalytics() {
-  const post = state.posts.find(p => p.id === activePostId);
-  if (!post) { closeSheets(); return; }
+  const postId = activePostId;
+  closeSheets();
+  if (postId) openAnalyticsSheet(postId);
+}
+
+function openAnalyticsSheet(postId) {
+  const post = state.posts.find(p => p.id === postId);
+  if (!post) return;
+  document.getElementById("qrOverlay")?.remove();
+  document.getElementById("qrSheetEl")?.remove();
+  document.getElementById("analyticsOverlay")?.remove();
+  document.getElementById("analyticsSheetEl")?.remove();
+
   const likes = (post.likes || []).length;
   const comments = (post.comments || []).length;
   const reposts = (post.reposts || []).length;
   const saves = (post.savedBy || []).length;
-  showToast(`❤️ ${likes} · 💬 ${comments} · ↻ ${reposts} · 🔖 ${saves}`);
-  closeSheets();
+  const views = post.views || 0;
+
+  const overlay = document.createElement("div");
+  overlay.className = "sheet-overlay open";
+  overlay.id = "analyticsOverlay";
+
+  const sheetEl = document.createElement("div");
+  sheetEl.className = "bottom-sheet open";
+  sheetEl.id = "analyticsSheetEl";
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Post insights</div>
+    <div class="analytics-row"><span>▶ Views</span><b>${views.toLocaleString()}</b></div>
+    <div class="analytics-row"><span>❤️ Likes</span><b>${likes.toLocaleString()}</b></div>
+    <div class="analytics-row"><span>💬 Comments</span><b>${comments.toLocaleString()}</b></div>
+    <div class="analytics-row"><span>↻ Reposts</span><b>${reposts.toLocaleString()}</b></div>
+    <div class="analytics-row"><span>🔖 Saves</span><b>${saves.toLocaleString()}</b></div>
+  `;
+
+  const closeAnalytics = () => { overlay.remove(); sheetEl.remove(); };
+  overlay.onclick = closeAnalytics;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(sheetEl);
 }
 
 function doDownloadFromSheet() {

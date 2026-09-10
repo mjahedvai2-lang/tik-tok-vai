@@ -806,8 +806,9 @@ let state = {
   cameraSpeed: "1x",          // 0.5x | 1x | 2x | 3x
   cameraFilter: "none",       // none | bw | warm | cool | vivid | soft
 
-  activity: [],          // real-time notification docs (type: follow | like | comment | message) written to my own users/{uid}/notifications
+  activity: [],          // real-time notification docs (type: follow | follow_accept | follow_request | like | comment | message) written to my own users/{uid}/notifications
   activityLoaded: false,
+  activityFilter: "all", // "all" | "like" | "comment" | "follow" — filter chips on the Activity sub-screen
   systemNotices: [],      // real-time broadcast messages from the app owner (systemNotices collection)
   ownerNoticeText: "",
 
@@ -3024,10 +3025,29 @@ function renderInboxSubScreen() {
       : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
   } else if (section === "activity") {
     title = "Activity";
-    const list = state.activity.filter(a => a.type === "like" || a.type === "comment");
-    bodyHtml = list.length
-      ? `<div class="thread-list">${list.map(activityRow).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">❤️</div><div class="line1">No activity yet</div><div class="line2">Likes, comments and replies on your posts show up here.</div></div>`;
+    const filter = state.activityFilter || "all";
+    const likeCount = state.activity.filter(a => a.type === "like").length;
+    const commentCount = state.activity.filter(a => a.type === "comment").length;
+    const followCount = state.activity.filter(a => a.type === "follow" || a.type === "follow_accept").length;
+    const filterList = filter === "like" ? state.activity.filter(a => a.type === "like")
+      : filter === "comment" ? state.activity.filter(a => a.type === "comment")
+      : filter === "follow" ? state.activity.filter(a => a.type === "follow" || a.type === "follow_accept")
+      : state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow" || a.type === "follow_accept");
+    const chipsHtml = `
+      <div class="friends-sub-tabs">
+        <button class="simple-tab ${filter === "all" ? "active" : ""}" data-activity-filter="all">All</button>
+        <button class="simple-tab ${filter === "like" ? "active" : ""}" data-activity-filter="like">Likes${likeCount ? ` (${likeCount})` : ""}</button>
+        <button class="simple-tab ${filter === "comment" ? "active" : ""}" data-activity-filter="comment">Comments${commentCount ? ` (${commentCount})` : ""}</button>
+        <button class="simple-tab ${filter === "follow" ? "active" : ""}" data-activity-filter="follow">Follows${followCount ? ` (${followCount})` : ""}</button>
+      </div>
+    `;
+    const emptyText = filter === "like" ? { big: "❤️", l1: "No likes yet", l2: "Likes on your posts show up here." }
+      : filter === "comment" ? { big: "💬", l1: "No comments yet", l2: "Comments and replies on your posts show up here." }
+      : filter === "follow" ? { big: "👥", l1: "No follows yet", l2: "New followers and accepted requests show up here." }
+      : { big: "🔔", l1: "No activity yet", l2: "Likes, comments and follows show up here." };
+    bodyHtml = chipsHtml + (filterList.length
+      ? `<div class="thread-list">${filterList.map(a => (a.type === "follow" || a.type === "follow_accept") ? followerRow(a) : activityRow(a)).join("")}</div>`
+      : `<div class="empty-nav-tab"><div class="big">${emptyText.big}</div><div class="line1">${emptyText.l1}</div><div class="line2">${emptyText.l2}</div></div>`);
   } else if (section === "requests") {
     title = "Message requests";
     const list = state.activity.filter(a => a.type === "message");
@@ -3092,6 +3112,9 @@ function renderInboxSubScreen() {
       el.onclick = (e) => { e.stopPropagation(); openProfile(el.dataset.open); };
     });
   } else if (section === "followers" || section === "activity") {
+    document.querySelectorAll("[data-activity-filter]").forEach(btn => {
+      btn.onclick = () => setState({ activityFilter: btn.dataset.activityFilter });
+    });
     document.querySelectorAll(".followback-btn").forEach(btn => {
       btn.onclick = (e) => { e.stopPropagation(); toggleFollowFromList(btn.dataset.followback); };
     });

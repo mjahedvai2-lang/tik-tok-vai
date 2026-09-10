@@ -4270,7 +4270,16 @@ function renderProfileScreen() {
   const myPosts = isOwn ? state.posts.filter(p => p.authorUid === targetUid) : state.viewingPosts;
 
   let publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
-  publicPosts = [...publicPosts].sort((a, b) => (pinnedPosts.includes(b.id) ? 1 : 0) - (pinnedPosts.includes(a.id) ? 1 : 0));
+  // Pinned posts sort to the top in pin order (most-recently-pinned first, matching
+  // TikTok); everything else keeps its existing relative order (sort is stable).
+  publicPosts = [...publicPosts].sort((a, b) => {
+    const ai = pinnedPosts.indexOf(a.id);
+    const bi = pinnedPosts.indexOf(b.id);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
   const privatePosts = isOwn ? myPosts.filter(p => p.privacy && p.privacy !== "public") : [];
   const repostedPosts = isOwn ? state.posts.filter(p => (p.reposts || []).includes(targetUid)) : [];
   const savedPosts = isOwn ? state.posts.filter(p => (p.savedBy || []).includes(targetUid)) : [];
@@ -4485,16 +4494,28 @@ function renderProfileGrid(posts, pinnedPosts, isOwn) {
   `;
 }
 
+/* TikTok caps pinned posts at 3, and the most-recently-pinned one shows first (top-left) —
+   pinning a 4th automatically drops the oldest pin rather than blocking the action.
+   pinnedPosts is stored as an ORDERED array (index 0 = most recently pinned), so this
+   writes the whole array instead of using arrayUnion/arrayRemove (which don't preserve order). */
+const MAX_PINNED_POSTS = 3;
 function togglePinPost(postId) {
   const myUid = state.user.uid;
   const pinnedPosts = (state.profile && state.profile.pinnedPosts) || [];
   const isPinned = pinnedPosts.includes(postId);
-  db.collection("users").doc(myUid).update({
-    pinnedPosts: isPinned
-      ? firebase.firestore.FieldValue.arrayRemove(postId)
-      : firebase.firestore.FieldValue.arrayUnion(postId)
-  }).then(() => {
-    showToast(isPinned ? "Unpinned" : "Pinned to top");
+  let newPinned;
+  let toastMsg;
+  if (isPinned) {
+    newPinned = pinnedPosts.filter(id => id !== postId);
+    toastMsg = "Unpinned";
+  } else {
+    const withoutThis = pinnedPosts.filter(id => id !== postId);
+    const willBump = withoutThis.length >= MAX_PINNED_POSTS;
+    newPinned = [postId, ...withoutThis].slice(0, MAX_PINNED_POSTS);
+    toastMsg = willBump ? `Pinned — you can only pin ${MAX_PINNED_POSTS}, so the oldest pin was removed` : "Pinned to top";
+  }
+  db.collection("users").doc(myUid).update({ pinnedPosts: newPinned }).then(() => {
+    showToast(toastMsg);
   }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
 }
 
@@ -5612,8 +5633,16 @@ function doPinPostFromSheet() {
 function doDeletePost() {
   if (!activePostId) return;
   if (!confirm("Delete this post? This can't be undone.")) return;
-  db.collection("posts").doc(activePostId).delete()
-    .then(() => showToast("Post deleted"))
+  const deletedId = activePostId;
+  db.collection("posts").doc(deletedId).delete()
+    .then(() => {
+      showToast("Post deleted");
+      // If this delete happened inside the standalone grid post-viewer overlay,
+      // that overlay is a static snapshot and won't reflect the deletion on its own —
+      // close it so the user lands back on their (now updated) profile grid.
+      const overlay = document.getElementById("postViewerOverlay");
+      if (overlay) overlay.remove();
+    })
     .catch((err) => { console.error(err); showToast("Couldn't delete the post"); });
   closeSheets();
 }

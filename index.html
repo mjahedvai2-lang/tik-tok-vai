@@ -81,6 +81,7 @@
   .topbar .brand-sm { font-size: 20px; font-weight: 700; color: var(--teal-deep); cursor: pointer; }
   .topbar-right { display: flex; align-items: center; gap: 10px; }
   .logout-btn { border: none; background: none; color: var(--ink-soft); font-size: 12px; cursor: pointer; }
+  .mark-all-read-btn { border: none; background: none; color: var(--teal-deep); font-size: 13px; font-weight: 600; cursor: pointer; }
   .avatar {
     width: 34px; height: 34px; border-radius: 50%; background: var(--coral-soft);
     color: var(--coral); display: flex; align-items: center; justify-content: center;
@@ -494,7 +495,7 @@
   .thread-row-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
   .back-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-  .back-row .back-title { font-weight: 700; font-size: 16px; }
+  .back-row .back-title { font-weight: 700; font-size: 16px; flex: 1; }
 
   /* ---------- CHAT SCREEN ---------- */
   .chat-header {
@@ -2880,9 +2881,11 @@ function renderInboxScreen() {
     ? activeThreads.map(t => renderThreadRow(t, myUid, myPinned)).join("")
     : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No messages yet</div><div class="line2">Message someone from the Friends tab to start a chat.</div></div>`;
 
+  const anyUnreadNotifs = state.activity.some(a => !a.read);
   root.innerHTML = `
     <div class="topbar">
       <div class="brand-sm" id="brandHomeBtn3">Inbox</div>
+      ${anyUnreadNotifs ? `<button class="mark-all-read-btn" id="markAllReadBtn">Mark all read</button>` : ""}
     </div>
     ${storiesHtml}
     ${rowsHtml}
@@ -2892,6 +2895,8 @@ function renderInboxScreen() {
     ${renderBottomNav("inbox")}
   `;
   document.getElementById("brandHomeBtn3").onclick = () => setState({ view: "feed" });
+  const markAllBtn = document.getElementById("markAllReadBtn");
+  if (markAllBtn) markAllBtn.onclick = () => markNotificationsRead();
   document.getElementById("storyCreateBtn").onclick = openCameraScreen;
   document.querySelectorAll(".inbox-story-item[data-uid]").forEach(el => {
     el.onclick = () => openChat(el.dataset.uid);
@@ -3089,15 +3094,28 @@ function renderInboxSubScreen() {
     `;
   }
 
+  const sectionTypeMap = {
+    followers: ["follow"],
+    activity: ["like", "comment", "follow_accept"],
+    requests: ["message"],
+    followRequests: [],
+    system: []
+  };
+  const sectionMarkTypes = sectionTypeMap[section] || [];
+  const sectionUnread = state.activity.filter(a => sectionMarkTypes.includes(a.type) && !a.read).length;
+
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="inboxSubBackBtn">←</button>
       <div class="back-title">${title}</div>
+      ${sectionUnread > 0 ? `<button class="mark-all-read-btn" id="markSectionReadBtn">Mark all read</button>` : ""}
     </div>
     ${bodyHtml}
     ${renderBottomNav("inbox")}
   `;
   document.getElementById("inboxSubBackBtn").onclick = () => setState({ inboxSection: null });
+  const markSectionBtn = document.getElementById("markSectionReadBtn");
+  if (markSectionBtn) markSectionBtn.onclick = () => sectionMarkTypes.forEach(t => markNotificationsRead(t));
 
   if (section === "followRequests") {
     document.querySelectorAll("[data-accept]").forEach(btn => {

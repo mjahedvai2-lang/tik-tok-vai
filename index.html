@@ -596,6 +596,20 @@
     border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer;
   }
   .compose-privacy-row { display: flex; gap: 8px; margin: 10px 0 18px; flex-wrap: wrap; }
+  .compose-char-count { text-align: right; font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .compose-char-count.over { color: #c0392b; font-weight: 700; }
+  .compose-hashtag-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+  .compose-hashtag-chip { background: var(--coral-soft); color: var(--coral); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; }
+  .compose-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .compose-toggle-row:last-of-type { border-bottom: none; }
+  .compose-toggle-label { font-size: 13.5px; color: var(--ink); }
+  .compose-toggle-sub { font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
+  .toggle-switch { position: relative; width: 42px; height: 24px; border-radius: 12px; border: none; background: var(--line); cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+  .toggle-switch.on { background: var(--coral); }
+  .toggle-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+  .toggle-switch.on::after { left: 20px; }
+  .compose-upload-bar-wrap { width: 100%; height: 6px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 8px 0 14px; }
+  .compose-upload-bar { height: 100%; background: var(--coral); transition: width 0.2s; }
 
   /* ---------- FULL-SCREEN VIDEO FEED (Home / Friends) ---------- */
   .feed-topbar {
@@ -646,7 +660,30 @@
   .analytics-row b { font-size: 16px; }
 
   /* Comments sheet for full-screen feed */
-  .fs-comments-sheet .comment-line { display: flex; justify-content: space-between; align-items: center; }
+  .fs-comments-sheet { max-height: 75vh; display: flex; flex-direction: column; }
+  .comments-sort-row { display: flex; gap: 8px; margin: 2px 0 10px; }
+  .comments-sort-btn { background: none; border: none; font-size: 13px; font-weight: 600; color: var(--ink-soft); padding: 4px 2px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .comments-sort-btn.active { color: var(--ink); border-bottom-color: var(--coral); }
+  .comments-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .comment-item { display: flex; gap: 10px; padding: 8px 0; }
+  .comment-item.is-reply { margin-left: 38px; padding-top: 6px; }
+  .comment-item .avatar { width: 34px; height: 34px; font-size: 12px; flex-shrink: 0; }
+  .comment-body { flex: 1; min-width: 0; }
+  .comment-meta { display: flex; align-items: baseline; gap: 6px; }
+  .comment-meta b { font-size: 13px; }
+  .comment-meta .comment-time { font-size: 11px; color: var(--ink-soft); }
+  .comment-text { font-size: 13.5px; line-height: 1.4; margin-top: 2px; word-break: break-word; }
+  .comment-text .mention { color: var(--coral); font-weight: 600; }
+  .comment-row-actions { display: flex; align-items: center; gap: 14px; margin-top: 5px; }
+  .comment-row-actions button { background: none; border: none; padding: 0; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; gap: 3px; }
+  .comment-like-btn.liked { color: #FE2C55; }
+  .comment-like-col { display: flex; flex-direction: column; align-items: center; gap: 2px; padding-top: 4px; }
+  .comment-like-col button { background: none; border: none; font-size: 15px; cursor: pointer; color: var(--ink-soft); }
+  .comment-like-col button.liked { color: #FE2C55; }
+  .comment-like-col span { font-size: 10px; color: var(--ink-soft); }
+  .comments-empty { text-align: center; color: var(--ink-soft); padding: 30px 0; }
+  .reply-banner { display: flex; align-items: center; justify-content: space-between; background: var(--card2, #f2f0ec); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+  .reply-banner button { background: none; border: none; color: var(--ink-soft); font-size: 15px; cursor: pointer; }
 
   /* ---------- SHARE SHEET (owner vs. non-owner variants) ---------- */
   .share-sendto-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 4px 16px; }
@@ -759,9 +796,16 @@ let state = {
   // ---- Full-screen video feed state (Home / Friends) ----
   homeFeedTab: "forYou",   // forYou | following  (Home)
   openFsComments: null,    // postId whose comments sheet is open in the full-screen feed
+  fsComments: [],          // live comments (top-level + replies, flat) for openFsComments, newest snapshot
+  commentSort: "top",      // "top" (most liked) | "newest"
+  replyingTo: null,        // { id, name } of the comment being replied to, or null
 
   // ---- Post compose screen (caption step after camera capture / gallery pick) ----
   composePrivacy: "public",
+  composeAllowComments: true,
+  composeAllowDownload: true,
+  composeHashtagText: "",
+  composeUploadPct: null,  // 0-100 while a post is being created, null when idle
 
   // ---- Chat extras ----
   chatStickerPanelOpen: false,
@@ -775,6 +819,7 @@ let activeFollowListRemoveUid = null;
 let mediaRecorderRef = null;
 let recordedChunksRef = [];
 let recordTimerRef = null;
+let unsubscribeFsComments = null;
 
 function setState(patch) {
   state = { ...state, ...patch };
@@ -1192,7 +1237,7 @@ function renderApp() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
-    ${renderFsCommentsSheet(visiblePosts)}
+    ${renderFsCommentsSheet()}
     ${renderBottomNav("feed")}
   `;
 
@@ -1202,14 +1247,13 @@ function renderApp() {
 
   wireFsSlideHandlers(visiblePosts);
   wireSheetHandlers();
-  wireFsCommentsHandlers(visiblePosts);
+  wireFsCommentsHandlers();
   wireBottomNav();
 }
 
 function renderFsSlide(p) {
   const isVideo = p.mediaType === "video" || (p.media && p.media.startsWith("data:video"));
   const likes = p.likes || [];
-  const comments = p.comments || [];
   const savedBy = p.savedBy || [];
   const reposts = p.reposts || [];
   const liked = state.user && likes.includes(state.user.uid);
@@ -1220,7 +1264,7 @@ function renderFsSlide(p) {
   const amFollowingAuthor = authorU && (authorU.followers || []).includes(state.user.uid);
 
   const mediaHtml = p.media
-    ? (isVideo ? `<video src="${p.media}" playsinline loop muted autoplay></video>` : `<img src="${p.media}" />`)
+    ? (isVideo ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} playsinline loop muted autoplay></video>` : `<img src="${p.media}" />`)
     : `<div class="fs-textonly">${escapeHtml(p.text || "")}</div>`;
 
   return `
@@ -1232,7 +1276,7 @@ function renderFsSlide(p) {
           ${!isOwner ? `<button class="fs-side-follow-badge" id="fsfollow-${p.id}">${amFollowingAuthor ? "✓" : "+"}</button>` : ""}
         </div>
         <button class="fs-action ${liked ? "liked" : ""}" id="fslike-${p.id}">${liked ? "❤️" : "🤍"}<span>${likes.length}</span></button>
-        <button class="fs-action" id="fscomment-${p.id}">💬<span>${comments.length}</span></button>
+        <button class="fs-action" id="fscomment-${p.id}">💬<span>${p.commentCount || 0}</span></button>
         <button class="fs-action ${saved ? "saved" : ""}" id="fssave-${p.id}">🔖<span>${savedBy.length}</span></button>
         <button class="fs-action" id="fsshare-${p.id}">↗️<span>Share</span></button>
         ${isOwner ? `<button class="fs-action" id="fsowner-${p.id}">⋮</button>` : ""}
@@ -1263,7 +1307,7 @@ function wireFsSlideHandlers(posts) {
     const likeBtn = document.getElementById(`fslike-${p.id}`);
     if (likeBtn) likeBtn.onclick = () => toggleLike(p);
     const commentBtn = document.getElementById(`fscomment-${p.id}`);
-    if (commentBtn) commentBtn.onclick = () => setState({ openFsComments: p.id });
+    if (commentBtn) commentBtn.onclick = () => openCommentsSheet(p.id);
     const saveBtn = document.getElementById(`fssave-${p.id}`);
     if (saveBtn) saveBtn.onclick = () => toggleSave(p);
     const shareBtn = document.getElementById(`fsshare-${p.id}`);
@@ -1301,39 +1345,145 @@ function observeSlideViews(posts) {
   });
 }
 
-function renderFsCommentsSheet(posts) {
-  const post = state.openFsComments ? posts.find(p => p.id === state.openFsComments) : null;
-  const comments = post ? (post.comments || []) : [];
+/* Opens the comments sheet for a post and subscribes to its real comments subcollection
+   (posts/{postId}/comments) live, ordered by creation time. */
+function openCommentsSheet(postId) {
+  if (unsubscribeFsComments) unsubscribeFsComments();
+  state.openFsComments = postId;
+  state.fsComments = [];
+  state.replyingTo = null;
+  render();
+  unsubscribeFsComments = db.collection("posts").doc(postId).collection("comments")
+    .orderBy("createdAt", "asc")
+    .onSnapshot((snap) => {
+      state.fsComments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    }, (err) => console.error("comments listener error:", err));
+}
+
+function closeCommentsSheet() {
+  if (unsubscribeFsComments) { unsubscribeFsComments(); unsubscribeFsComments = null; }
+  setState({ openFsComments: null, fsComments: [], replyingTo: null });
+}
+
+/* Turns @name tokens in a comment into a highlighted mention span (display only). */
+function renderCommentText(text) {
+  const escaped = escapeHtml(text || "");
+  return escaped.replace(/(^|\s)@(\w+)/g, (m, pre, name) => `${pre}<span class="mention">@${name}</span>`);
+}
+
+function buildCommentTree(flatComments, sort) {
+  const top = flatComments.filter(c => !c.parentId);
+  const byParent = {};
+  flatComments.filter(c => c.parentId).forEach(c => {
+    (byParent[c.parentId] = byParent[c.parentId] || []).push(c);
+  });
+  const sorter = sort === "top"
+    ? (a, b) => (((b.likes || []).length) - ((a.likes || []).length))
+    : (a, b) => 0; // already chronological (asc) from the query for "newest" grouping below
+  const topSorted = sort === "newest" ? [...top].reverse() : [...top].sort(sorter);
+  return topSorted.map(c => ({ ...c, replies: (byParent[c.id] || []) }));
+}
+
+function renderFsCommentsSheet() {
+  const isOpen = !!state.openFsComments;
+  const post = isOpen ? state.posts.find(p => p.id === state.openFsComments) : null;
+  const myUid = state.user ? state.user.uid : null;
+  const tree = post ? buildCommentTree(state.fsComments, state.commentSort) : [];
+
+  const renderOne = (c, isReply) => {
+    const liked = myUid && (c.likes || []).includes(myUid);
+    const isMine = myUid && c.uid === myUid;
+    return `
+      <div class="comment-item ${isReply ? "is-reply" : ""}" data-id="${c.id}">
+        <div class="avatar">${c.avatar ? `<img src="${c.avatar}" />` : initials(c.name || "User")}</div>
+        <div class="comment-body">
+          <div class="comment-meta"><b>${escapeHtml(c.name || "User")}</b><span class="comment-time">${timeAgo(c.createdAt)}</span></div>
+          <div class="comment-text">${renderCommentText(c.text)}</div>
+          <div class="comment-row-actions">
+            <button class="comment-reply-btn" data-id="${c.id}" data-name="${escapeHtml(c.name || "User")}">Reply</button>
+            ${isMine ? `<button class="comment-delete-btn" data-id="${c.id}">Delete</button>` : `<button class="comment-report-btn" data-id="${c.id}">Report</button>`}
+          </div>
+        </div>
+        <div class="comment-like-col">
+          <button class="comment-like-btn ${liked ? "liked" : ""}" data-id="${c.id}">${liked ? "❤️" : "🤍"}</button>
+          <span>${(c.likes || []).length || ""}</span>
+        </div>
+      </div>
+    `;
+  };
+
+  const isOwnerOfPost = post && myUid && post.authorUid === myUid;
+  const commentsOff = post && post.allowComments === false;
+
+  const listHtml = tree.length
+    ? tree.map(c => renderOne(c, false) + c.replies.map(r => renderOne(r, true)).join("")).join("")
+    : `<div class="comments-empty">Be the first to comment</div>`;
+
   return `
-    <div class="sheet-overlay ${state.openFsComments ? "open" : ""}" id="fsCommentsOverlay"></div>
-    <div class="bottom-sheet fs-comments-sheet ${state.openFsComments ? "open" : ""}" id="fsCommentsSheet">
+    <div class="sheet-overlay ${isOpen ? "open" : ""}" id="fsCommentsOverlay"></div>
+    <div class="bottom-sheet fs-comments-sheet ${isOpen ? "open" : ""}" id="fsCommentsSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title">Comments (${comments.length})</div>
-      ${comments.map(c => `<div class="comment-line"><span><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</span></div>`).join("") || `<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Be the first to comment</div>`}
-      <div class="comment-input-row" style="margin-top:10px;">
-        <input id="fsCommentInput" type="text" placeholder="Write a comment..." />
+      <div class="sheet-title">Comments (${post ? (post.commentCount || 0) : 0})</div>
+      <div class="comments-sort-row">
+        <button class="comments-sort-btn ${state.commentSort === "top" ? "active" : ""}" id="commentSortTop">Top</button>
+        <button class="comments-sort-btn ${state.commentSort === "newest" ? "active" : ""}" id="commentSortNewest">Newest</button>
+      </div>
+      <div class="comments-scroll">${listHtml}</div>
+      ${commentsOff && !isOwnerOfPost ? `
+        <div class="comments-empty" style="padding:10px 0;">🔒 Comments are turned off for this post</div>
+      ` : `
+      ${state.replyingTo ? `
+        <div class="reply-banner">
+          <span>Replying to @${escapeHtml(state.replyingTo.name)}</span>
+          <button id="cancelReplyBtn">✕</button>
+        </div>
+      ` : ""}
+      <div class="comment-input-row" style="margin-top:6px;">
+        <input id="fsCommentInput" type="text" placeholder="${state.replyingTo ? "Write a reply..." : "Write a comment..."}" />
         <button id="fsCommentSubmit">Send</button>
       </div>
+      `}
     </div>
   `;
 }
 
-function wireFsCommentsHandlers(posts) {
+function wireFsCommentsHandlers() {
   const overlay = document.getElementById("fsCommentsOverlay");
-  if (overlay) overlay.onclick = () => setState({ openFsComments: null });
+  if (overlay) overlay.onclick = closeCommentsSheet;
+  if (!state.openFsComments) return;
+  const postId = state.openFsComments;
+
+  document.getElementById("commentSortTop").onclick = () => setState({ commentSort: "top" });
+  document.getElementById("commentSortNewest").onclick = () => setState({ commentSort: "newest" });
+
   const submitBtn = document.getElementById("fsCommentSubmit");
-  if (submitBtn && state.openFsComments) {
-    const doSubmit = () => {
-      const input = document.getElementById("fsCommentInput");
-      const text = input ? input.value.trim() : "";
-      if (!text) return;
-      submitCommentText(state.openFsComments, text);
-      if (input) input.value = "";
-    };
-    submitBtn.onclick = doSubmit;
+  const doSubmit = () => {
     const input = document.getElementById("fsCommentInput");
-    if (input) input.onkeydown = (e) => { if (e.key === "Enter") doSubmit(); };
-  }
+    const text = input ? input.value.trim() : "";
+    if (!text) return;
+    submitCommentOrReply(postId, text, state.replyingTo ? state.replyingTo.id : null);
+    if (input) input.value = "";
+  };
+  if (submitBtn) submitBtn.onclick = doSubmit;
+  const input = document.getElementById("fsCommentInput");
+  if (input) { input.onkeydown = (e) => { if (e.key === "Enter") doSubmit(); }; input.focus(); }
+
+  const cancelReplyBtn = document.getElementById("cancelReplyBtn");
+  if (cancelReplyBtn) cancelReplyBtn.onclick = () => setState({ replyingTo: null });
+
+  document.querySelectorAll(".comment-reply-btn").forEach(btn => {
+    btn.onclick = () => { setState({ replyingTo: { id: btn.dataset.id, name: btn.dataset.name } }); document.getElementById("fsCommentInput")?.focus(); };
+  });
+  document.querySelectorAll(".comment-like-btn").forEach(btn => {
+    btn.onclick = () => toggleCommentLike(postId, btn.dataset.id);
+  });
+  document.querySelectorAll(".comment-delete-btn").forEach(btn => {
+    btn.onclick = () => deleteOwnComment(postId, btn.dataset.id);
+  });
+  document.querySelectorAll(".comment-report-btn").forEach(btn => {
+    btn.onclick = () => reportComment(postId, btn.dataset.id);
+  });
 }
 
 /* Owner (my own post) vs. non-owner share sheet — TikTok splits these into two very
@@ -1872,42 +2022,82 @@ function useCapturedMedia() {
 
 /* ---------------- Post compose screen: caption, privacy, and final Post button ---------------- */
 function renderPostComposeScreen() {
+  const hashtags = extractHashtags(state.composerText);
+  const charCount = state.composerText.length;
+  const uploading = state.composeUploadPct !== null;
+  let draft = null;
+  if (!state.composerMedia && !state.composerText) {
+    try { draft = JSON.parse(localStorage.getItem("milon_draft") || "null"); } catch (e) { draft = null; }
+  }
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="composeBackBtn">←</button>
       <div class="back-title">New post</div>
     </div>
     <div class="compose-screen">
+      ${draft ? `
+        <div class="reply-banner" style="margin:12px 14px 0;">
+          <span>You have a saved draft</span>
+          <span style="display:flex;gap:10px;">
+            <button id="resumeDraftBtn" style="color:var(--coral);font-weight:700;">Resume</button>
+            <button id="discardDraftBtn">Discard</button>
+          </span>
+        </div>
+      ` : ""}
       ${state.composerMedia ? `
         <div class="compose-media-preview">
           ${state.composerMediaType === "video" ? `<video src="${state.composerMedia}" controls></video>` : `<img src="${state.composerMedia}" />`}
         </div>
       ` : ""}
       <div class="compose-body">
-        <textarea id="composeTextInput" placeholder="Write a caption...">${escapeHtml(state.composerText)}</textarea>
+        ${uploading ? `
+          <div class="compose-upload-bar-wrap"><div class="compose-upload-bar" style="width:${state.composeUploadPct}%"></div></div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">Posting… ${state.composeUploadPct}%</div>
+        ` : ""}
+        <textarea id="composeTextInput" placeholder="Write a caption... use #hashtags and @mentions" maxlength="2200" ${uploading ? "disabled" : ""}>${escapeHtml(state.composerText)}</textarea>
+        <div class="compose-char-count ${charCount > 2200 ? "over" : ""}">${charCount}/2200</div>
+        ${hashtags.length ? `<div class="compose-hashtag-chips">${hashtags.map(h => `<span class="compose-hashtag-chip">#${escapeHtml(h)}</span>`).join("")}</div>` : ""}
         <div class="compose-media-actions">
           <label>🖼️ Photo
-            <input type="file" accept="image/*" id="composePhotoInput" style="display:none" />
+            <input type="file" accept="image/*" id="composePhotoInput" style="display:none" ${uploading ? "disabled" : ""} />
           </label>
           <label>🎬 Video
-            <input type="file" accept="video/*" id="composeVideoInput" style="display:none" />
+            <input type="file" accept="video/*" id="composeVideoInput" style="display:none" ${uploading ? "disabled" : ""} />
           </label>
-          ${state.composerMedia ? `<button id="composeRemoveMediaBtn">✕ Remove media</button>` : ""}
+          ${state.composerMedia ? `<button id="composeRemoveMediaBtn" ${uploading ? "disabled" : ""}>✕ Remove media</button>` : ""}
         </div>
         <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Who can see this</div>
         <div class="compose-privacy-row">
-          <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public">Public</button>
-          <button class="privacy-option ${state.composePrivacy === "friends" ? "selected" : ""}" data-level="friends">Friends</button>
-          <button class="privacy-option ${state.composePrivacy === "private" ? "selected" : ""}" data-level="private">Only me</button>
+          <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public" ${uploading ? "disabled" : ""}>Public</button>
+          <button class="privacy-option ${state.composePrivacy === "friends" ? "selected" : ""}" data-level="friends" ${uploading ? "disabled" : ""}>Friends</button>
+          <button class="privacy-option ${state.composePrivacy === "private" ? "selected" : ""}" data-level="private" ${uploading ? "disabled" : ""}>Only me</button>
         </div>
-        <button class="btn-primary" id="composePostBtn" ${(!state.composerText.trim() && !state.composerMedia) ? "disabled" : ""}>Post</button>
+        <div class="compose-toggle-row">
+          <div><div class="compose-toggle-label">Allow comments</div><div class="compose-toggle-sub">Others can reply to this post</div></div>
+          <button class="toggle-switch ${state.composeAllowComments !== false ? "on" : ""}" id="composeCommentsToggle" ${uploading ? "disabled" : ""}></button>
+        </div>
+        <div class="compose-toggle-row">
+          <div><div class="compose-toggle-label">Allow downloads</div><div class="compose-toggle-sub">Others can download your video/photo</div></div>
+          <button class="toggle-switch ${state.composeAllowDownload !== false ? "on" : ""}" id="composeDownloadToggle" ${uploading ? "disabled" : ""}></button>
+        </div>
+        <button class="btn-primary" id="composePostBtn" style="margin-top:14px;" ${(!state.composerText.trim() && !state.composerMedia) || uploading || charCount > 2200 ? "disabled" : ""}>${uploading ? "Posting..." : "Post"}</button>
       </div>
     </div>
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
   `;
 
-  document.getElementById("composeBackBtn").onclick = () => setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "" });
-  document.getElementById("composeTextInput").oninput = (e) => { state.composerText = e.target.value; };
+  document.getElementById("composeBackBtn").onclick = () => {
+    if (!uploading && (state.composerText.trim() || state.composerMedia)) {
+      try {
+        localStorage.setItem("milon_draft", JSON.stringify({
+          text: state.composerText, media: state.composerMedia, mediaType: state.composerMediaType
+        }));
+        showToast("Draft saved");
+      } catch (e) { /* storage full or unavailable — just discard silently */ }
+    }
+    setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "" });
+  };
+  document.getElementById("composeTextInput").oninput = (e) => { state.composerText = e.target.value; render(); };
   document.getElementById("composePhotoInput").onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1925,7 +2115,16 @@ function renderPostComposeScreen() {
   document.querySelectorAll(".compose-privacy-row .privacy-option").forEach(btn => {
     btn.onclick = () => setState({ composePrivacy: btn.dataset.level });
   });
+  document.getElementById("composeCommentsToggle").onclick = () => setState({ composeAllowComments: state.composeAllowComments === false });
+  document.getElementById("composeDownloadToggle").onclick = () => setState({ composeAllowDownload: state.composeAllowDownload === false });
   document.getElementById("composePostBtn").onclick = submitPost;
+
+  const resumeBtn = document.getElementById("resumeDraftBtn");
+  if (resumeBtn) resumeBtn.onclick = () => {
+    setState({ composerText: draft.text || "", composerMedia: draft.media || null, composerMediaType: draft.mediaType || null });
+  };
+  const discardBtn = document.getElementById("discardDraftBtn");
+  if (discardBtn) discardBtn.onclick = () => { localStorage.removeItem("milon_draft"); render(); };
 }
 
 /* ---------------- Friends screen ---------------- */
@@ -2082,7 +2281,7 @@ function renderFriendsVideoFeed() {
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
-    ${renderFsCommentsSheet(videos)}
+    ${renderFsCommentsSheet()}
     ${renderBottomNav("friends")}
   `;
   document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
@@ -2090,7 +2289,7 @@ function renderFriendsVideoFeed() {
 
   wireFsSlideHandlers(videos);
   wireSheetHandlers();
-  wireFsCommentsHandlers(videos);
+  wireFsCommentsHandlers();
   wireBottomNav();
 }
 
@@ -3143,7 +3342,8 @@ function openPostViewer(postId) {
   const post = state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
   if (!post) return;
   activePostId = postId;
-  setState({ openFsComments: null });
+  if (unsubscribeFsComments) { unsubscribeFsComments(); unsubscribeFsComments = null; }
+  setState({ openFsComments: null, fsComments: [], replyingTo: null });
   // Reuse the full-screen slide viewer: jump Home feed to this single post via a temporary overlay
   const overlay = document.createElement("div");
   overlay.id = "postViewerOverlay";
@@ -3153,13 +3353,13 @@ function openPostViewer(postId) {
     <button id="postViewerClose" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.4);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;">✕</button>
     ${renderShareSheet()}
     ${renderOwnerSheet()}
-    ${renderFsCommentsSheet([post])}
+    ${renderFsCommentsSheet()}
   `;
   document.body.appendChild(overlay);
   document.getElementById("postViewerClose").onclick = () => overlay.remove();
   wireFsSlideHandlers([post]);
   wireSheetHandlers();
-  wireFsCommentsHandlers([post]);
+  wireFsCommentsHandlers();
 }
 
 function renderProfileGrid(posts, pinnedPosts, isOwn) {
@@ -3729,7 +3929,7 @@ function openAnalyticsSheet(postId) {
   document.getElementById("analyticsSheetEl")?.remove();
 
   const likes = (post.likes || []).length;
-  const comments = (post.comments || []).length;
+  const comments = post.commentCount || 0;
   const reposts = (post.reposts || []).length;
   const saves = (post.savedBy || []).length;
   const views = post.views || 0;
@@ -3959,32 +4159,73 @@ function handleImageSelect(e) {
   });
 }
 
+function extractHashtags(text) {
+  return Array.from(new Set(Array.from((text || "").matchAll(/#(\w+)/g)).map(m => m[1].toLowerCase())));
+}
+
 function submitPost() {
   if (!state.composerText.trim() && !state.composerMedia) return;
 
   const postBtn = document.getElementById("composePostBtn");
   if (postBtn) { postBtn.disabled = true; postBtn.textContent = "Posting..."; }
+  setState({ composeUploadPct: 5 });
 
-  db.collection("posts").add({
-    authorUid: state.user.uid,
-    authorName: state.user.name,
-    text: state.composerText.trim(),
-    media: state.composerMedia,
-    mediaType: state.composerMediaType || (state.composerMedia ? "image" : null),
-    privacy: state.composePrivacy || "public",
-    likes: [],
-    comments: [],
-    reports: [],
-    hidden: false,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    setState({ composerText: "", composerMedia: null, composerMediaType: null, composePrivacy: "public", view: "feed" });
-    showToast("Posted!");
-  }).catch((err) => {
-    console.error(err);
-    showToast("Couldn't create the post");
-    render();
-  });
+  const finishPost = (coverDataUrl) => {
+    db.collection("posts").add({
+      authorUid: state.user.uid,
+      authorName: state.user.name,
+      text: state.composerText.trim(),
+      media: state.composerMedia,
+      mediaType: state.composerMediaType || (state.composerMedia ? "image" : null),
+      cover: coverDataUrl || null,
+      hashtags: extractHashtags(state.composerText),
+      privacy: state.composePrivacy || "public",
+      allowComments: state.composeAllowComments !== false,
+      allowDownload: state.composeAllowDownload !== false,
+      likes: [],
+      commentCount: 0,
+      reports: [],
+      views: 0,
+      hidden: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      try { localStorage.removeItem("milon_draft"); } catch (e) {}
+      setState({
+        composerText: "", composerMedia: null, composerMediaType: null,
+        composePrivacy: "public", composeAllowComments: true, composeAllowDownload: true,
+        composeUploadPct: null, view: "feed"
+      });
+      showToast("Posted!");
+    }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't create the post");
+      setState({ composeUploadPct: null });
+    });
+  };
+
+  // For videos, grab a real first-frame thumbnail to use as the poster (so the feed shows
+  // an instant frame instead of a blank box while the video itself loads/decodes).
+  if (state.composerMediaType === "video" && state.composerMedia) {
+    const vid = document.createElement("video");
+    vid.muted = true;
+    vid.src = state.composerMedia;
+    vid.onloadeddata = () => {
+      setState({ composeUploadPct: 60 });
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = vid.videoWidth || 480;
+        canvas.height = vid.videoHeight || 854;
+        canvas.getContext("2d").drawImage(vid, 0, 0, canvas.width, canvas.height);
+        finishPost(canvas.toDataURL("image/jpeg", 0.7));
+      } catch (e) {
+        finishPost(null);
+      }
+    };
+    vid.onerror = () => finishPost(null);
+  } else {
+    setState({ composeUploadPct: 60 });
+    finishPost(null);
+  }
 }
 
 function toggleLike(post) {
@@ -4000,33 +4241,107 @@ function toggleLike(post) {
   }).catch((err) => console.error(err));
 }
 
-/* Shared comment-submission helper used by both the classic feed comment box and the
-   full-screen feed's comments sheet — takes the raw text directly rather than reading
-   from a specific input id, so it works no matter which UI called it. */
-function submitCommentText(postId, text) {
-  if (!text || !text.trim()) return;
-  const ref = db.collection("posts").doc(postId);
-  ref.update({
-    comments: firebase.firestore.FieldValue.arrayUnion({
-      name: state.user.name,
-      text: text.trim()
+/* Real comment/reply creation in the posts/{postId}/comments subcollection.
+   Keeps post.commentCount accurate via a real increment (not a client guess),
+   and detects @mentions against known users for the visual highlight + activity log. */
+function submitCommentOrReply(postId, text, parentId) {
+  if (!text || !text.trim() || !state.user) return;
+  const trimmed = text.trim();
+  const mentionNames = Array.from(trimmed.matchAll(/(?:^|\s)@(\w+)/g)).map(m => m[1].toLowerCase());
+  const mentionUids = (state.allUsers || [])
+    .filter(u => mentionNames.includes((u.name || "").toLowerCase().replace(/\s+/g, "")) || mentionNames.includes((u.handle || "").toLowerCase()))
+    .map(u => u.uid);
+
+  const commentDoc = {
+    uid: state.user.uid,
+    name: state.user.name,
+    avatar: state.user.avatar || null,
+    text: trimmed,
+    parentId: parentId || null,
+    likes: [],
+    mentionUids,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  db.collection("posts").doc(postId).collection("comments").add(commentDoc)
+    .then(() => {
+      return db.collection("posts").doc(postId).update({
+        commentCount: firebase.firestore.FieldValue.increment(1)
+      });
     })
-  }).then(() => {
-    const post = state.posts.find(p => p.id === postId);
-    if (post) logActivity(post.authorUid, "comment", `${state.user.name} commented: "${text.trim().slice(0, 60)}"`);
+    .then(() => {
+      const post = state.posts.find(p => p.id === postId);
+      if (post && post.authorUid !== state.user.uid) {
+        logActivity(post.authorUid, "comment", `${state.user.name} ${parentId ? "replied" : "commented"}: "${trimmed.slice(0, 60)}"`);
+      }
+      mentionUids.forEach(uid => {
+        if (uid !== state.user.uid) logActivity(uid, "mention", `${state.user.name} mentioned you in a comment`);
+      });
+      setState({ replyingTo: null });
+    })
+    .catch((err) => {
+      console.error(err);
+      showToast("Couldn't send comment");
+    });
+}
+
+function toggleCommentLike(postId, commentId) {
+  if (!state.user) return;
+  const myUid = state.user.uid;
+  const comment = state.fsComments.find(c => c.id === commentId);
+  if (!comment) return;
+  const liked = (comment.likes || []).includes(myUid);
+  db.collection("posts").doc(postId).collection("comments").doc(commentId).update({
+    likes: liked
+      ? firebase.firestore.FieldValue.arrayRemove(myUid)
+      : firebase.firestore.FieldValue.arrayUnion(myUid)
+  }).catch((err) => console.error(err));
+}
+
+/* Deletes one of MY OWN comments (and, since it's a thread, any replies under it too),
+   and keeps post.commentCount accurate by the exact number of docs actually removed. */
+function deleteOwnComment(postId, commentId) {
+  if (!state.user) return;
+  const comment = state.fsComments.find(c => c.id === commentId);
+  if (!comment || comment.uid !== state.user.uid) return;
+  if (!confirm("Delete this comment?")) return;
+
+  const colRef = db.collection("posts").doc(postId).collection("comments");
+  const replies = state.fsComments.filter(c => c.parentId === commentId);
+  const batch = db.batch();
+  batch.delete(colRef.doc(commentId));
+  replies.forEach(r => batch.delete(colRef.doc(r.id)));
+
+  batch.commit().then(() => {
+    return db.collection("posts").doc(postId).update({
+      commentCount: firebase.firestore.FieldValue.increment(-(1 + replies.length))
+    });
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't send comment");
+    showToast("Couldn't delete comment");
   });
 }
 
-function submitComment(postId) {
-  const input = document.getElementById(`commentInput-${postId}`);
-  if (!input) return;
-  const text = input.value.trim();
-  if (!text) return;
-  submitCommentText(postId, text);
-  input.value = "";
+/* Real report: written to a top-level reports collection an admin can review, same pattern
+   as post reports, plus a visible confirmation so the person knows it went through. */
+function reportComment(postId, commentId) {
+  if (!state.user) return;
+  const comment = state.fsComments.find(c => c.id === commentId);
+  if (!comment) return;
+  db.collection("commentReports").add({
+    postId,
+    commentId,
+    commentText: comment.text,
+    commentAuthorUid: comment.uid,
+    reportedByUid: state.user.uid,
+    reportedByName: state.user.name,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    showToast("Comment reported");
+  }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't submit report");
+  });
 }
 
 function timeAgo(ts) {

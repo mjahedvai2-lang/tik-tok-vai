@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -696,6 +697,22 @@
   .fs-side-avatar { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: var(--coral-soft); color: var(--coral); font-weight: 700; cursor: pointer; }
   .fs-side-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .fs-side-follow-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: var(--coral); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; cursor: pointer; }
+  /* Double-tap-to-like: an absolutely-positioned tap layer sits over the media so we can
+     detect the second tap without interfering with native video controls, and a big heart
+     briefly pops in the center — same feel as TikTok's double-tap. */
+  .fs-tap-layer { position: absolute; inset: 0; z-index: 1; }
+  .fs-heart-burst {
+    position: absolute; top: 50%; left: 50%; font-size: 90px; z-index: 3;
+    transform: translate(-50%, -50%) scale(0.5); opacity: 0; pointer-events: none;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  }
+  .fs-heart-burst.pop { animation: fsHeartPop 0.7s ease-out; }
+  @keyframes fsHeartPop {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    25% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+    45% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+  }
   .fs-action { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-size: 22px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
   .fs-action span { font-size: 11px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
   .fs-action.liked { color: #FE2C55; }
@@ -768,6 +785,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+/* Real video files go here, NOT into Firestore — a Firestore document has a hard 1MB
+   size limit, so a raw video data-URL saved directly on a post document was failing
+   for any real video. Storage has no such limit, and we save only its download URL
+   on the post. */
+const storage = firebase.storage();
 
 /* The account whose login email matches this constant gets a "Send notice" composer
    inside System notifications, so the app owner can broadcast a message to every user
@@ -1186,6 +1208,40 @@ function fileToDataUrl(file, callback) {
   const reader = new FileReader();
   reader.onload = (ev) => callback(ev.target.result);
   reader.readAsDataURL(file);
+}
+
+/* Turn a data:...;base64,... string back into a real Blob so it can be uploaded to
+   Firebase Storage. Videos are staged as data URLs (for instant local preview / camera
+   recording / draft support) but must never be written into Firestore directly — only
+   the Storage download URL is. */
+function dataUrlToBlob(dataUrl) {
+  const [header, base64] = dataUrl.split(",");
+  const mimeMatch = header.match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : "video/mp4";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+/* Upload a video Blob to Firebase Storage under posts/{uid}/{timestamp}.mp4, reporting
+   real progress (0-100) via onProgress as it goes, and resolving with the public
+   download URL once it's done. */
+function uploadVideoBlob(blob, uid, onProgress) {
+  return new Promise((resolve, reject) => {
+    const ext = blob.type && blob.type.includes("webm") ? "webm" : "mp4";
+    const path = `posts/${uid}/${Date.now()}.${ext}`;
+    const ref = storage.ref().child(path);
+    const task = ref.put(blob, { contentType: blob.type || "video/mp4" });
+    task.on("state_changed", (snapshot) => {
+      const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+      if (onProgress) onProgress(pct);
+    }, (err) => {
+      reject(err);
+    }, () => {
+      task.snapshot.ref.getDownloadURL().then(resolve).catch(reject);
+    });
+  });
 }
 
 /* ================= Auth listener ================= */
@@ -1637,6 +1693,8 @@ function renderFsSlide(p) {
   return `
     <div class="fs-slide" id="fsslide-${p.id}">
       ${mediaHtml}
+      <div class="fs-tap-layer" id="fstap-${p.id}"></div>
+      <div class="fs-heart-burst" id="fsheart-${p.id}">❤️</div>
       <div class="fs-side-rail">
         <div class="fs-side-avatar-wrap">
           <div class="fs-side-avatar" id="fsavatar-${p.id}">${initials(p.authorName)}</div>
@@ -1683,8 +1741,40 @@ function wireFsSlideHandlers(posts) {
     if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
     const insightsBtn = document.getElementById(`fsinsights-${p.id}`);
     if (insightsBtn) insightsBtn.onclick = () => openAnalyticsSheet(p.id);
+    const tapLayer = document.getElementById(`fstap-${p.id}`);
+    if (tapLayer) attachDoubleTapLike(tapLayer, p);
   });
   observeSlideViews(posts);
+}
+
+/* TikTok-style double-tap-to-like: two taps/clicks on the media within ~300ms always LIKE
+   (never unlike, same as TikTok) and show a heart pop animation at the tap point. A single
+   tap does nothing else here, so it never fights with swipe-scrolling the feed. */
+const fsLastTap = {};
+function attachDoubleTapLike(el, post) {
+  const handleTap = () => {
+    const now = Date.now();
+    const last = fsLastTap[post.id] || 0;
+    fsLastTap[post.id] = now;
+    if (now - last < 300) {
+      fsLastTap[post.id] = 0; // reset so a fast triple-tap doesn't chain into another like
+      const likes = post.likes || [];
+      const alreadyLiked = state.user && likes.includes(state.user.uid);
+      if (!alreadyLiked) toggleLike(post);
+      playHeartBurst(post.id);
+    }
+  };
+  el.addEventListener("touchend", (e) => { e.preventDefault(); handleTap(); }, { passive: false });
+  el.addEventListener("click", handleTap);
+}
+
+function playHeartBurst(postId) {
+  const heart = document.getElementById(`fsheart-${postId}`);
+  if (!heart) return;
+  heart.classList.remove("pop");
+  // Force reflow so the animation restarts even on rapid repeated double-taps.
+  void heart.offsetWidth;
+  heart.classList.add("pop");
 }
 
 /* Real view counting: a post's `views` count in Firestore goes up by exactly one, the first
@@ -5353,13 +5443,13 @@ function submitPost() {
   if (postBtn) { postBtn.disabled = true; postBtn.textContent = "Posting..."; }
   setState({ composeUploadPct: 5 });
 
-  const finishPost = (coverDataUrl) => {
+  const finishPost = (mediaUrl, coverDataUrl) => {
     db.collection("posts").add({
       authorUid: state.user.uid,
       authorName: state.user.name,
       text: state.composerText.trim(),
-      media: state.composerMedia,
-      mediaType: state.composerMediaType || (state.composerMedia ? "image" : null),
+      media: mediaUrl,
+      mediaType: state.composerMediaType || (mediaUrl ? "image" : null),
       cover: coverDataUrl || null,
       hashtags: extractHashtags(state.composerText),
       privacy: state.composePrivacy || "public",
@@ -5386,28 +5476,50 @@ function submitPost() {
     });
   };
 
-  // For videos, grab a real first-frame thumbnail to use as the poster (so the feed shows
-  // an instant frame instead of a blank box while the video itself loads/decodes).
+  const failPost = (err) => {
+    console.error(err);
+    showToast("Couldn't upload — check your connection and try again");
+    setState({ composeUploadPct: null });
+    if (postBtn) { postBtn.disabled = false; postBtn.textContent = "Post"; }
+  };
+
   if (state.composerMediaType === "video" && state.composerMedia) {
+    // 1) Grab a real first-frame thumbnail to use as the poster (so the feed shows an
+    //    instant frame instead of a blank box while the video itself loads/decodes).
+    // 2) Upload the actual video bytes to Firebase Storage (NOT Firestore — a Firestore
+    //    document caps out at 1MB, which is why real videos were failing to post before).
     const vid = document.createElement("video");
     vid.muted = true;
     vid.src = state.composerMedia;
     vid.onloadeddata = () => {
-      setState({ composeUploadPct: 60 });
+      let coverDataUrl = null;
       try {
         const canvas = document.createElement("canvas");
         canvas.width = vid.videoWidth || 480;
         canvas.height = vid.videoHeight || 854;
         canvas.getContext("2d").drawImage(vid, 0, 0, canvas.width, canvas.height);
-        finishPost(canvas.toDataURL("image/jpeg", 0.7));
+        coverDataUrl = canvas.toDataURL("image/jpeg", 0.7);
+      } catch (e) { /* thumbnail is best-effort; upload continues either way */ }
+
+      let blob;
+      try {
+        blob = dataUrlToBlob(state.composerMedia);
       } catch (e) {
-        finishPost(null);
+        failPost(e);
+        return;
       }
+      uploadVideoBlob(blob, state.user.uid, (pct) => {
+        // Reserve 0-90% of the bar for the actual upload, last 10% for the Firestore write.
+        setState({ composeUploadPct: Math.max(5, Math.round(pct * 0.9)) });
+      }).then((downloadUrl) => {
+        setState({ composeUploadPct: 95 });
+        finishPost(downloadUrl, coverDataUrl);
+      }).catch(failPost);
     };
-    vid.onerror = () => finishPost(null);
+    vid.onerror = () => failPost(new Error("Could not read the video file"));
   } else {
     setState({ composeUploadPct: 60 });
-    finishPost(null);
+    finishPost(state.composerMedia, null);
   }
 }
 

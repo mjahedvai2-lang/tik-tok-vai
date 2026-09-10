@@ -808,7 +808,7 @@ let state = {
 
   activity: [],          // real-time notification docs (type: follow | follow_accept | follow_request | like | comment | message) written to my own users/{uid}/notifications
   activityLoaded: false,
-  activityFilter: "all", // "all" | "like" | "comment" | "follow" — filter chips on the Activity sub-screen
+  activityFilter: "all", // "all" | "like" | "comment" — filter chips on the Activity sub-screen (matches TikTok: new-follower notices stay in their own section, not here)
   systemNotices: [],      // real-time broadcast messages from the app owner (systemNotices collection)
   ownerNoticeText: "",
 
@@ -2775,8 +2775,8 @@ function renderInboxScreen() {
   const myPinned = (state.myUserDoc && state.myUserDoc.pinnedFriends) || [];
   const activeThreads = state.threads;
 
-  const followNotifs = state.activity.filter(a => a.type === "follow" || a.type === "follow_accept");
-  const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment");
+  const followNotifs = state.activity.filter(a => a.type === "follow");
+  const likeCommentNotifs = state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow_accept");
   const messageNotifs = state.activity.filter(a => a.type === "message");
   const followUnread = followNotifs.filter(a => !a.read).length;
   const activityUnread = likeCommentNotifs.filter(a => !a.read).length;
@@ -2900,7 +2900,7 @@ function renderInboxScreen() {
   const secFollowRequestsEl = document.getElementById("secFollowRequests");
   if (secFollowRequestsEl) secFollowRequestsEl.onclick = () => { markNotificationsRead("follow_request"); setState({ inboxSection: "followRequests" }); };
   document.getElementById("secFollowers").onclick = () => { markNotificationsRead("follow"); setState({ inboxSection: "followers" }); };
-  document.getElementById("secActivity").onclick = () => { markNotificationsRead("like"); markNotificationsRead("comment"); setState({ inboxSection: "activity" }); };
+  document.getElementById("secActivity").onclick = () => { markNotificationsRead("like"); markNotificationsRead("comment"); markNotificationsRead("follow_accept"); setState({ inboxSection: "activity" }); };
   document.getElementById("secRequests").onclick = () => { markNotificationsRead("message"); setState({ inboxSection: "requests" }); };
   document.getElementById("secSystem").onclick = () => setState({ inboxSection: "system" });
 
@@ -3019,7 +3019,7 @@ function renderInboxSubScreen() {
       : `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">No pending requests</div><div class="line2">Requests to follow your private account show up here.</div></div>`;
   } else if (section === "followers") {
     title = "New followers";
-    const list = state.activity.filter(a => a.type === "follow" || a.type === "follow_accept");
+    const list = state.activity.filter(a => a.type === "follow");
     bodyHtml = list.length
       ? `<div class="thread-list">${list.map(followerRow).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
@@ -3028,25 +3028,23 @@ function renderInboxSubScreen() {
     const filter = state.activityFilter || "all";
     const likeCount = state.activity.filter(a => a.type === "like").length;
     const commentCount = state.activity.filter(a => a.type === "comment").length;
-    const followCount = state.activity.filter(a => a.type === "follow" || a.type === "follow_accept").length;
+    // "follow_accept" (someone approved a request you sent) shows only under All, matching
+    // TikTok: request approvals land in Activity, but new-follower notices stay in their own section.
     const filterList = filter === "like" ? state.activity.filter(a => a.type === "like")
       : filter === "comment" ? state.activity.filter(a => a.type === "comment")
-      : filter === "follow" ? state.activity.filter(a => a.type === "follow" || a.type === "follow_accept")
-      : state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow" || a.type === "follow_accept");
+      : state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow_accept");
     const chipsHtml = `
       <div class="friends-sub-tabs">
         <button class="simple-tab ${filter === "all" ? "active" : ""}" data-activity-filter="all">All</button>
         <button class="simple-tab ${filter === "like" ? "active" : ""}" data-activity-filter="like">Likes${likeCount ? ` (${likeCount})` : ""}</button>
         <button class="simple-tab ${filter === "comment" ? "active" : ""}" data-activity-filter="comment">Comments${commentCount ? ` (${commentCount})` : ""}</button>
-        <button class="simple-tab ${filter === "follow" ? "active" : ""}" data-activity-filter="follow">Follows${followCount ? ` (${followCount})` : ""}</button>
       </div>
     `;
     const emptyText = filter === "like" ? { big: "❤️", l1: "No likes yet", l2: "Likes on your posts show up here." }
       : filter === "comment" ? { big: "💬", l1: "No comments yet", l2: "Comments and replies on your posts show up here." }
-      : filter === "follow" ? { big: "👥", l1: "No follows yet", l2: "New followers and accepted requests show up here." }
-      : { big: "🔔", l1: "No activity yet", l2: "Likes, comments and follows show up here." };
+      : { big: "🔔", l1: "No activity yet", l2: "Likes, comments and approved follow requests show up here." };
     bodyHtml = chipsHtml + (filterList.length
-      ? `<div class="thread-list">${filterList.map(a => (a.type === "follow" || a.type === "follow_accept") ? followerRow(a) : activityRow(a)).join("")}</div>`
+      ? `<div class="thread-list">${filterList.map(a => a.type === "follow_accept" ? followerRow(a) : activityRow(a)).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">${emptyText.big}</div><div class="line1">${emptyText.l1}</div><div class="line2">${emptyText.l2}</div></div>`);
   } else if (section === "requests") {
     title = "Message requests";

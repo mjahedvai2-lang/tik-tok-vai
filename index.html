@@ -714,23 +714,6 @@
     45% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
   }
-  /* Floating auto-cycling real-comment bubbles over the video, TikTok-style. */
-  .fs-comment-bubbles { position: absolute; left: 12px; right: 78px; bottom: 150px; z-index: 2;
-    display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
-  .fs-cbubble { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4);
-    border-radius: 16px; padding: 5px 10px 5px 5px; max-width: 100%; animation: fsCbubbleFade 3.4s ease-in-out forwards; }
-  .fs-cbubble-avatar { width: 20px; height: 20px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
-    background: var(--coral-soft); color: var(--coral); font-size: 9px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; }
-  .fs-cbubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .fs-cbubble-text { color: #fff; font-size: 12.5px; line-height: 1.35; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  @keyframes fsCbubbleFade {
-    0% { opacity: 0; transform: translateY(8px); }
-    14% { opacity: 1; transform: translateY(0); }
-    78% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-6px); }
-  }
   .fs-action { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-size: 22px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
   .fs-action span { font-size: 11px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
   .fs-action.liked { color: #FE2C55; }
@@ -1724,7 +1707,6 @@ function renderFsSlide(p) {
       ${mediaHtml}
       <div class="fs-tap-layer" id="fstap-${p.id}"></div>
       <div class="fs-heart-burst" id="fsheart-${p.id}">❤️</div>
-      <div class="fs-comment-bubbles" id="fsbubbles-${p.id}"></div>
       <div class="fs-side-rail">
         <div class="fs-side-avatar-wrap">
           <div class="fs-side-avatar" id="fsavatar-${p.id}">${initials(p.authorName)}</div>
@@ -1804,48 +1786,6 @@ function playHeartBurst(postId) {
   heart.classList.add("pop");
 }
 
-/* Floating comment bubbles: while a slide is on screen, cycle its real comments (newest
-   first) as small avatar+text bubbles that fade in, hold, and fade out over the video —
-   the same social-proof effect TikTok shows on the left side of a playing video. Only
-   real comments are ever shown; a post with none shows no bubbles. */
-const fsBubbleCache = {};   // postId -> array of {authorName, authorAvatar, text}
-const fsBubbleTimers = {};  // postId -> pending setTimeout id, so we don't double-start
-function startCommentBubbles(postId) {
-  if (fsBubbleTimers[postId] !== undefined) return; // already running for this slide
-  fsBubbleTimers[postId] = null; // reserve the slot immediately so re-entrant calls no-op
-  const useCache = (comments) => {
-    fsBubbleCache[postId] = comments;
-    if (comments.length) runBubbleCycle(postId, 0);
-  };
-  if (fsBubbleCache[postId]) { useCache(fsBubbleCache[postId]); return; }
-  db.collection("posts").doc(postId).collection("comments")
-    .orderBy("createdAt", "desc").limit(8).get()
-    .then(snap => useCache(snap.docs.map(d => d.data()).filter(c => c.text && c.text.trim() && !c.parentId)))
-    .catch(() => {});
-}
-function stopCommentBubbles(postId) {
-  if (fsBubbleTimers[postId]) clearTimeout(fsBubbleTimers[postId]);
-  delete fsBubbleTimers[postId];
-  const container = document.getElementById(`fsbubbles-${postId}`);
-  if (container) container.innerHTML = "";
-}
-function runBubbleCycle(postId, idx) {
-  const container = document.getElementById(`fsbubbles-${postId}`);
-  const comments = fsBubbleCache[postId];
-  if (!container || !comments || !comments.length || !(postId in fsBubbleTimers)) return;
-  const c = comments[idx % comments.length];
-  const bubble = document.createElement("div");
-  bubble.className = "fs-cbubble";
-  bubble.innerHTML = `
-    <span class="fs-cbubble-avatar">${c.avatar ? `<img src="${c.avatar}" />` : initials(c.name || "User")}</span>
-    <span class="fs-cbubble-text"><b>${escapeHtml(c.name || "User")}</b> ${escapeHtml(c.text)}</span>
-  `;
-  container.appendChild(bubble);
-  while (container.children.length > 2) container.removeChild(container.firstChild);
-  setTimeout(() => { if (bubble.parentNode) bubble.parentNode.removeChild(bubble); }, 3400);
-  fsBubbleTimers[postId] = setTimeout(() => runBubbleCycle(postId, idx + 1), 2200);
-}
-
 /* Real view counting: a post's `views` count in Firestore goes up by exactly one, the first
    time that slide becomes at least half-visible on screen during this session — not on every
    render, and not more than once per post per page load. */
@@ -1853,23 +1793,16 @@ const viewedThisSession = new Set();
 let fsViewObserver = null;
 function observeSlideViews(posts) {
   if (fsViewObserver) fsViewObserver.disconnect();
-  Object.keys(fsBubbleTimers).forEach(stopCommentBubbles);
   if (!("IntersectionObserver" in window)) return;
   fsViewObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
       const postId = entry.target.dataset.postId;
-      if (!postId) return;
-      if (entry.isIntersecting) {
-        startCommentBubbles(postId);
-        if (!viewedThisSession.has(postId)) {
-          viewedThisSession.add(postId);
-          db.collection("posts").doc(postId).update({
-            views: firebase.firestore.FieldValue.increment(1)
-          }).catch((err) => console.error("view increment error:", err));
-        }
-      } else {
-        stopCommentBubbles(postId);
-      }
+      if (!postId || viewedThisSession.has(postId)) return;
+      viewedThisSession.add(postId);
+      db.collection("posts").doc(postId).update({
+        views: firebase.firestore.FieldValue.increment(1)
+      }).catch((err) => console.error("view increment error:", err));
     });
   }, { threshold: 0.5 });
   posts.forEach(p => {

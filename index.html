@@ -1430,6 +1430,17 @@ function listenToPosts() {
 
 /* ================= Render ================= */
 function render() {
+  // Any live Firestore update (a view-count tick, someone else's like, a presence change) calls
+  // render(), which rebuilds the whole screen from scratch — including the TikTok-style video
+  // feed's scroll container. Without this, that constant background traffic was silently
+  // snapping the feed back to its first video mid-scroll, looking like it "moved on its own."
+  // Capturing/restoring scrollTop here (keyed by the container's own id) means the feed only
+  // ever moves from an actual swipe; a real navigation to a different screen still starts at
+  // the top, since that new screen's scroll container has a different id (or doesn't exist).
+  const prevScrollEl = document.querySelector(".fs-scroll");
+  const prevScrollId = prevScrollEl ? prevScrollEl.id : null;
+  const prevScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
+
   if (!state.authReady) {
     root.innerHTML = `<div class="loading-screen">Loading...</div>`;
     return;
@@ -1490,6 +1501,11 @@ function render() {
     renderPostComposeScreen();
   } else {
     renderApp();
+  }
+
+  if (prevScrollId) {
+    const newScrollEl = document.getElementById(prevScrollId);
+    if (newScrollEl) newScrollEl.scrollTop = prevScrollTop;
   }
 }
 
@@ -2625,7 +2641,10 @@ function renderPostComposeScreen() {
 
 /* ---------------- Friends screen ---------------- */
 function openFriendsScreen() {
-  setState({ view: "friends" });
+  // TikTok's "Friends" bottom-nav tab opens straight into the swipeable video feed of your
+  // friends' posts — the people list (search/follow/message) is one tap away via its own
+  // "Friends" sub-tab, not the default landing view.
+  setState({ view: "friends", friendsSubTab: "videos" });
   // allUsers is kept live by listenToAllUsers() (started at login), so no one-time
   // fetch is needed here anymore — the list is already real-time.
   listenToPresenceForAllUsers();
@@ -2766,8 +2785,7 @@ function renderFriendsVideoFeed() {
 
   root.innerHTML = `
     <div class="feed-topbar on-light">
-      <button class="feed-tab-btn" id="friendsToPeopleBtn">Friends</button>
-      <button class="feed-tab-btn active" style="pointer-events:none;">Videos</button>
+      <div class="feed-tab-btn active" style="pointer-events:none;">Friends</div>
       <button class="feed-search-btn" id="friendsFeedSearchBtn">🔍</button>
     </div>
     ${videos.length ? `<div class="fs-scroll" id="fsScrollFriends">${videos.map(renderFsSlide).join("")}</div>` : `
@@ -2784,7 +2802,6 @@ function renderFriendsVideoFeed() {
     ${renderBottomNav("friends")}
   `;
   document.getElementById("friendsFeedSearchBtn").onclick = () => setState({ friendsSubTab: "people" });
-  document.getElementById("friendsToPeopleBtn").onclick = () => setState({ friendsSubTab: "people" });
 
   wireFsSlideHandlers(videos);
   wireSheetHandlers();

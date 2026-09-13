@@ -908,7 +908,7 @@ let state = {
   // ---- Post compose screen (caption step after camera capture / gallery pick) ----
   composePrivacy: "public",
   composeAllowComments: true,
-  composeAllowDownload: true,
+  composeAllowDownload: null, // null = not touched yet this session -> falls back to account's Downloads default
   composeHashtagText: "",
   composeUploadPct: null,  // 0-100 while a post is being created, null when idle
 
@@ -1057,6 +1057,56 @@ function isMutedByMe(otherUid) {
 }
 function isRestrictedByMe(otherUid) {
   return ((state.myUserDoc && state.myUserDoc.restrictedUsers) || []).includes(otherUid);
+}
+
+/* "Friends" for every privacy tier below (Comments/Mentions/DMs/Liked videos) means the
+   TikTok definition: a mutual follow — each of the two people follows the other back. */
+function isMutualFollow(uidA, uidB) {
+  if (!uidA || !uidB || uidA === uidB) return false;
+  const a = findCachedUser(uidA);
+  const b = findCachedUser(uidB);
+  if (!a || !b) return false;
+  const aFollowsB = (b.followers || []).includes(uidA);
+  const bFollowsA = (a.followers || []).includes(uidB);
+  return aFollowsB && bFollowsA;
+}
+
+/* Generic checker for the three "everyone / friends / noone" privacy tiers used by
+   Comments, Mentions and Direct messages. `ownerUid` is whoever set the privacy level
+   (post author, mentioned user, message recipient); `actorUid` is the person trying to act. */
+function isAllowedByTier(ownerUid, actorUid, tier) {
+  if (!actorUid || actorUid === ownerUid) return true; // you can always interact with your own stuff
+  const level = tier || "everyone";
+  if (level === "noone") return false;
+  if (level === "friends") return isMutualFollow(ownerUid, actorUid);
+  return true; // "everyone"
+}
+function canCommentOn(post, actorUid) {
+  if (!post) return false;
+  if (post.allowComments === false) return false;
+  const author = findCachedUser(post.authorUid);
+  return isAllowedByTier(post.authorUid, actorUid, author && author.commentPrivacy);
+}
+function canMention(mentionedUid, actorUid) {
+  const mentioned = findCachedUser(mentionedUid);
+  return isAllowedByTier(mentionedUid, actorUid, mentioned && mentioned.mentionPrivacy);
+}
+function canMessage(recipientUid, actorUid) {
+  const recipient = findCachedUser(recipientUid);
+  return isAllowedByTier(recipientUid, actorUid, recipient && recipient.dmPrivacy);
+}
+function canSeeFollowingList(ownerUid, viewerUid) {
+  if (!viewerUid || viewerUid === ownerUid) return true;
+  const owner = findCachedUser(ownerUid);
+  return !owner || (owner.followingListPrivacy || "onlyMe") !== "onlyMe";
+}
+function canSeeLikedVideos(ownerUid, viewerUid) {
+  if (!viewerUid || viewerUid === ownerUid) return true;
+  const owner = findCachedUser(ownerUid);
+  const level = (owner && owner.likedVideosPrivacy) || "onlyMe";
+  if (level === "everyone") return true;
+  if (level === "friends") return isMutualFollow(ownerUid, viewerUid);
+  return false;
 }
 
 /* Block: mutual, both sides find out (can't view each other, no follow, no messages).
@@ -1411,6 +1461,15 @@ function ensureUserProfile(user) {
         blockedBy: [],
         restrictedUsers: [],
         mutedUsers: [],
+        commentPrivacy: "everyone",     // everyone | friends | noone — who can comment on my posts
+        mentionPrivacy: "everyone",     // everyone | friends | noone — who can @mention me
+        dmPrivacy: "everyone",          // everyone | friends | noone — who can message me
+        allowReuse: true,               // others can repost my posts
+        showProfileOnShare: true,       // shared profile links open my profile for non-followers
+        allowDownloadsDefault: true,    // default for new posts' "allow downloads" toggle
+        followingListPrivacy: "onlyMe", // everyone | onlyMe — who can see who I follow
+        likedVideosPrivacy: "onlyMe",   // everyone | friends | onlyMe — who can see my Likes tab
+        viewersEnabled: true,           // opt-in mutual "who viewed your videos"
         settings: {
           theme: "system",        // light | dark | system
           fontSize: "default",    // small | default | large
@@ -1529,6 +1588,24 @@ function render() {
     renderSettingsAccountScreen();
   } else if (state.view === "settingsPrivacy") {
     renderSettingsPrivacyScreen();
+  } else if (state.view === "settingsPrivacyComments") {
+    renderSettingsPrivacyCommentsScreen();
+  } else if (state.view === "settingsPrivacyMentions") {
+    renderSettingsPrivacyMentionsScreen();
+  } else if (state.view === "settingsPrivacyDm") {
+    renderSettingsPrivacyDmScreen();
+  } else if (state.view === "settingsPrivacyReuse") {
+    renderSettingsPrivacyReuseScreen();
+  } else if (state.view === "settingsPrivacyShareLink") {
+    renderSettingsPrivacyShareLinkScreen();
+  } else if (state.view === "settingsPrivacyDownloads") {
+    renderSettingsPrivacyDownloadsScreen();
+  } else if (state.view === "settingsPrivacyFollowingList") {
+    renderSettingsPrivacyFollowingListScreen();
+  } else if (state.view === "settingsPrivacyLikedVideos") {
+    renderSettingsPrivacyLikedVideosScreen();
+  } else if (state.view === "settingsPrivacyViewers") {
+    renderSettingsPrivacyViewersScreen();
   } else if (state.view === "settingsSecurity") {
     renderSettingsSecurityScreen();
   } else if (state.view === "settingsChangePassword") {
@@ -1906,9 +1983,15 @@ function observeSlideViews(posts) {
       const postId = entry.target.dataset.postId;
       if (!postId || viewedThisSession.has(postId)) return;
       viewedThisSession.add(postId);
-      db.collection("posts").doc(postId).update({
-        views: firebase.firestore.FieldValue.increment(1)
-      }).catch((err) => console.error("view increment error:", err));
+      const patch = { views: firebase.firestore.FieldValue.increment(1) };
+      // "Viewers" is a mutual opt-in, TikTok-style: recording who watched only happens
+      // if the watcher themself has turned Viewers on in Settings > Privacy > Viewers.
+      const post = state.posts.find(p => p.id === postId);
+      const iOptedIn = !(state.myUserDoc && state.myUserDoc.viewersEnabled === false);
+      if (iOptedIn && state.user && post && post.authorUid !== state.user.uid) {
+        patch.viewedBy = firebase.firestore.FieldValue.arrayUnion(state.user.uid);
+      }
+      db.collection("posts").doc(postId).update(patch).catch((err) => console.error("view increment error:", err));
     });
   }, { threshold: 0.5 });
   posts.forEach(p => {
@@ -2001,7 +2084,7 @@ function renderFsCommentsSheet() {
   };
 
   const isOwnerOfPost = post && myUid && post.authorUid === myUid;
-  const commentsOff = post && post.allowComments === false;
+  const commentsOff = post && (post.allowComments === false || !canCommentOn(post, myUid));
 
   const listHtml = tree.length
     ? tree.map(c => renderOne(c, false) + c.replies.map(r => renderOne(r, true)).join("")).join("")
@@ -2082,6 +2165,9 @@ function renderShareSheet() {
 
   if (isOwner) return renderOwnPostShareSheet();
 
+  const author = post ? findCachedUser(post.authorUid) : null;
+  const reuseAllowed = !author || author.allowReuse !== false;
+  const downloadAllowed = post && post.allowDownload !== false;
   const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
   return `
     <div class="sheet-overlay" id="shareOverlay"></div>
@@ -2098,8 +2184,8 @@ function renderShareSheet() {
       </div>
       ${renderShareAppsRow()}
       <div class="sheet-row" style="margin-top:2px;">
-        <button class="sheet-item" id="shareSaveVideo"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Save video</button>
-        <button class="sheet-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
+        ${downloadAllowed ? `<button class="sheet-item" id="shareSaveVideo"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Save video</button>` : ""}
+        ${reuseAllowed ? `<button class="sheet-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>` : ""}
         <button class="sheet-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
         <button class="sheet-item" id="shareReport"><span class="sheet-icon" style="background:#c0392b">⚑</span>Report</button>
       </div>
@@ -2669,7 +2755,7 @@ function renderPostComposeScreen() {
         </div>
         <div class="compose-toggle-row">
           <div><div class="compose-toggle-label">Allow downloads</div><div class="compose-toggle-sub">Others can download your video/photo</div></div>
-          <button class="toggle-switch ${state.composeAllowDownload !== false ? "on" : ""}" id="composeDownloadToggle" ${uploading ? "disabled" : ""}></button>
+          <button class="toggle-switch ${composeAllowDownloadEffective() ? "on" : ""}" id="composeDownloadToggle" ${uploading ? "disabled" : ""}></button>
         </div>
         <button class="btn-primary" id="composePostBtn" style="margin-top:14px;" ${(!state.composerText.trim() && !state.composerMedia) || uploading || charCount > 2200 ? "disabled" : ""}>${uploading ? "Posting..." : "Post"}</button>
       </div>
@@ -2708,7 +2794,7 @@ function renderPostComposeScreen() {
     btn.onclick = () => setState({ composePrivacy: btn.dataset.level });
   });
   document.getElementById("composeCommentsToggle").onclick = () => setState({ composeAllowComments: state.composeAllowComments === false });
-  document.getElementById("composeDownloadToggle").onclick = () => setState({ composeAllowDownload: state.composeAllowDownload === false });
+  document.getElementById("composeDownloadToggle").onclick = () => setState({ composeAllowDownload: !composeAllowDownloadEffective() });
   document.getElementById("composePostBtn").onclick = submitPost;
 
   const resumeBtn = document.getElementById("resumeDraftBtn");
@@ -3973,6 +4059,12 @@ function renderRequestPreviewScreen() {
 function openChat(otherUid) {
   if (!otherUid) return;
   if (isBlockedEitherWay(otherUid)) { showToast("You can't message this account"); return; }
+  if (!canMessage(otherUid, state.user.uid)) {
+    const other = findCachedUser(otherUid);
+    const tier = other && other.dmPrivacy;
+    showToast(tier === "noone" ? "This account isn't accepting direct messages" : "This account only accepts messages from friends they follow back");
+    return;
+  }
   const myUid = state.user.uid;
   const threadId = threadIdFor(myUid, otherUid);
 
@@ -4423,7 +4515,8 @@ function renderProfileScreen() {
   const privatePosts = isOwn ? myPosts.filter(p => p.privacy && p.privacy !== "public") : [];
   const repostedPosts = isOwn ? state.posts.filter(p => (p.reposts || []).includes(targetUid)) : [];
   const savedPosts = isOwn ? state.posts.filter(p => (p.savedBy || []).includes(targetUid)) : [];
-  const likedPosts = isOwn ? state.posts.filter(p => (p.likes || []).includes(targetUid)) : [];
+  const canViewLikes = isOwn || canSeeLikedVideos(targetUid, state.user.uid);
+  const likedPosts = canViewLikes ? state.posts.filter(p => (p.likes || []).includes(targetUid)) : [];
 
   const totalLikesReceived = publicPosts.concat(privatePosts).reduce((sum, p) => sum + ((p.likes || []).length), 0);
   const followers = (profile.followers || []).length;
@@ -4437,6 +4530,9 @@ function renderProfileScreen() {
     { key: "private", icon: lockIconSvg() },
     { key: "reposts", icon: repostIconSvg() },
     { key: "saved", icon: bookmarkIconSvg() },
+    { key: "likes", icon: heartIconSvg() }
+  ] : canViewLikes ? [
+    { key: "posts", icon: gridIconSvg() },
     { key: "likes", icon: heartIconSvg() }
   ] : [
     { key: "posts", icon: gridIconSvg() }
@@ -4784,7 +4880,12 @@ function renderFollowListScreen() {
   const { profile, kind, list, isSearching, counts } = computeFollowListData();
   const amFollowing = !isOwn && (profile.followers || []).includes(myUid);
   const isLockedForMe = !isOwn && profile.private && !amFollowing;
-  const rowsHtml = isLockedForMe ? "" : followListRowsHtml(list, isSearching, myUid, isOwn);
+  const followingListLocked = !isOwn && kind === "following" && !canSeeFollowingList(state.followListUid, myUid);
+  const rowsHtml = isLockedForMe
+    ? ""
+    : followingListLocked
+    ? `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">This list is private</div><div class="line2">${escapeHtml(profile.name || "This account")} has chosen to keep who they follow visible to only themself.</div></div>`
+    : followListRowsHtml(list, isSearching, myUid, isOwn);
 
   root.innerHTML = `
     <div class="back-row">
@@ -5128,26 +5229,47 @@ function renderSettingsAccountScreen() {
 }
 
 /* ================= SETTINGS > Privacy ================= */
+/* Mirrors TikTok's real "Settings and privacy" layout: a "Visibility" section (private
+   account + blocked accounts) and an "Interactions" section covering comments, mentions,
+   DMs, content reuse, share-link behavior, downloads, following list, liked videos and
+   viewers — every row here is backed by a real field on the user doc and actually
+   enforced elsewhere in the app (see canCommentOn/canMention/canMessage/etc.). */
 function renderSettingsPrivacyScreen() {
-  const isPrivate = !!(state.myUserDoc && state.myUserDoc.private);
-  const pendingCount = ((state.myUserDoc && state.myUserDoc.followRequests) || []).length;
-  const blockedCount = ((state.myUserDoc && state.myUserDoc.blockedUsers) || []).length;
-  const restrictedCount = ((state.myUserDoc && state.myUserDoc.restrictedUsers) || []).length;
-  const mutedCount = ((state.myUserDoc && state.myUserDoc.mutedUsers) || []).length;
+  const d = state.myUserDoc || {};
+  const isPrivate = !!d.private;
+  const pendingCount = (d.followRequests || []).length;
+  const blockedCount = (d.blockedUsers || []).length;
+  const restrictedCount = (d.restrictedUsers || []).length;
+  const mutedCount = (d.mutedUsers || []).length;
+  const tierLabel = (v) => v === "friends" ? "Friends" : v === "noone" ? "No one" : "Everyone";
+  const onOff = (v) => v === false ? "Off" : "On";
+
   root.innerHTML = `
     ${settingsTopbar("Privacy")}
-    <div class="menu-section-label">Account privacy</div>
+    <div class="menu-section-label">Visibility</div>
     <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
       <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
       <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
     </div>
-
     <div class="menu-list">
       ${pendingCount > 0 ? `
       <button class="menu-item" id="settingsFollowRequestsBtn"><span class="menu-item-icon">🔒</span><span>Follow requests</span><span class="menu-item-sub">${pendingCount}</span><span class="menu-item-arrow">›</span></button>` : ""}
       <button class="menu-item" id="privBlockedBtn"><span class="menu-item-icon">🚫</span><span>Blocked accounts</span><span class="menu-item-sub">${blockedCount || ""}</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>Restricted accounts</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>Muted accounts</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
+    <div class="menu-section-label">Interactions</div>
+    <div class="menu-list">
+      <button class="menu-item" id="privCommentsBtn"><span class="menu-item-icon">💬</span><span>Comments</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privMentionsBtn"><span class="menu-item-icon">@</span><span>Mentions</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privDmBtn"><span class="menu-item-icon">📩</span><span>Direct messages</span><span class="menu-item-sub">${tierLabel(d.dmPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privReuseBtn"><span class="menu-item-icon">🔁</span><span>Reuse of content</span><span class="menu-item-sub">${onOff(d.allowReuse)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privShareLinkBtn"><span class="menu-item-icon">🔗</span><span>Display profile when sharing links</span><span class="menu-item-sub">${onOff(d.showProfileOnShare)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privDownloadsBtn"><span class="menu-item-icon">⬇️</span><span>Downloads</span><span class="menu-item-sub">${onOff(d.allowDownloadsDefault)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privFollowingListBtn"><span class="menu-item-icon">👥</span><span>Following list</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? "Everyone" : "Only you"}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privLikedVideosBtn"><span class="menu-item-icon">❤️</span><span>Liked videos</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? "Everyone" : (d.likedVideosPrivacy === "friends" ? "Friends" : "Only you")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privViewersBtn"><span class="menu-item-icon">👣</span><span>Viewers</span><span class="menu-item-sub">${onOff(d.viewersEnabled)}</span><span class="menu-item-arrow">›</span></button>
     </div>
     <div class="settings-hint">Blocking, restricting and muting someone can also be done from their profile — tap ⋯ on their profile page.</div>
   `;
@@ -5163,6 +5285,123 @@ function renderSettingsPrivacyScreen() {
   document.getElementById("privBlockedBtn").onclick = () => setState({ view: "settingsBlockedList" });
   document.getElementById("privRestrictedBtn").onclick = () => setState({ view: "settingsRestrictedList" });
   document.getElementById("privMutedBtn").onclick = () => setState({ view: "settingsMutedList" });
+  document.getElementById("privCommentsBtn").onclick = () => setState({ view: "settingsPrivacyComments" });
+  document.getElementById("privMentionsBtn").onclick = () => setState({ view: "settingsPrivacyMentions" });
+  document.getElementById("privDmBtn").onclick = () => setState({ view: "settingsPrivacyDm" });
+  document.getElementById("privReuseBtn").onclick = () => setState({ view: "settingsPrivacyReuse" });
+  document.getElementById("privShareLinkBtn").onclick = () => setState({ view: "settingsPrivacyShareLink" });
+  document.getElementById("privDownloadsBtn").onclick = () => setState({ view: "settingsPrivacyDownloads" });
+  document.getElementById("privFollowingListBtn").onclick = () => setState({ view: "settingsPrivacyFollowingList" });
+  document.getElementById("privLikedVideosBtn").onclick = () => setState({ view: "settingsPrivacyLikedVideos" });
+  document.getElementById("privViewersBtn").onclick = () => setState({ view: "settingsPrivacyViewers" });
+}
+
+/* Merge-writes one top-level field on my own user doc (private, commentPrivacy, dmPrivacy,
+   etc.) — every row on the Privacy screen below funnels through this one function so the
+   change is saved to Firestore and reflected everywhere in real time via listenToOwnUser. */
+function updateMyPrivacyField(field, value) {
+  db.collection("users").doc(state.user.uid).update({ [field]: value }).catch((err) => {
+    console.error(err);
+    showToast("Couldn't save setting");
+  });
+}
+
+/* Generic "who can do X" chooser (Everyone / Friends / No one) — used by Comments,
+   Mentions and Direct messages. Reuses the same .privacy-option pill styling as Theme. */
+function renderPrivacyTierScreen(field, title, subtitleFor) {
+  const current = (state.myUserDoc && state.myUserDoc[field]) || "everyone";
+  const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-tier-choice="${key}">${label}</button>`;
+  root.innerHTML = `
+    ${settingsTopbar(title)}
+    <div class="settings-field">
+      <label>Who can ${subtitleFor}</label>
+      <div class="privacy-options">
+        ${opt("everyone", "Everyone")}
+        ${opt("friends", "Friends")}
+        ${opt("noone", "No one")}
+      </div>
+    </div>
+    <div class="settings-hint">"Friends" means people who follow you and who you follow back. This applies going forward — it doesn't change anything already posted.</div>
+  `;
+  wireSettingsBack("settingsPrivacy");
+  document.querySelectorAll("[data-tier-choice]").forEach((btn) => {
+    btn.onclick = () => updateMyPrivacyField(field, btn.dataset.tierChoice);
+  });
+}
+function renderSettingsPrivacyCommentsScreen() { renderPrivacyTierScreen("commentPrivacy", "Comments", "comment on your posts"); }
+function renderSettingsPrivacyMentionsScreen() { renderPrivacyTierScreen("mentionPrivacy", "Mentions", "@mention you"); }
+function renderSettingsPrivacyDmScreen() { renderPrivacyTierScreen("dmPrivacy", "Direct messages", "send you direct messages"); }
+
+/* Generic on/off toggle screen — used by Reuse of content, Display profile when sharing
+   links, Downloads and Viewers. */
+function renderPrivacyToggleScreen(field, title, label, sub, defaultOn) {
+  const val = state.myUserDoc && field in state.myUserDoc ? state.myUserDoc[field] : defaultOn;
+  root.innerHTML = `
+    ${settingsTopbar(title)}
+    <div class="compose-toggle-row" style="margin:4px 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">${label}</div><div class="compose-toggle-sub">${sub}</div></div>
+      <button class="toggle-switch ${val ? "on" : ""}" id="privToggleSwitch"></button>
+    </div>
+  `;
+  wireSettingsBack("settingsPrivacy");
+  document.getElementById("privToggleSwitch").onclick = () => updateMyPrivacyField(field, !val);
+}
+function renderSettingsPrivacyReuseScreen() {
+  renderPrivacyToggleScreen("allowReuse", "Reuse of content", "Allow content reuse",
+    "When on, other people can repost your public posts to their own followers. When off, the Repost option is hidden on your posts.", true);
+}
+function renderSettingsPrivacyShareLinkScreen() {
+  renderPrivacyToggleScreen("showProfileOnShare", "Display profile when sharing links", "Show profile via shared links",
+    "When on, anyone who opens a link to your profile can view it. When off, shared links to your profile only open for people you already allow to see it.", true);
+}
+function renderSettingsPrivacyDownloadsScreen() {
+  renderPrivacyToggleScreen("allowDownloadsDefault", "Downloads", "Allow downloads by default",
+    "Sets the starting value of \"Allow downloads\" each time you create a new post. You can still override it per post when you post it.", true);
+}
+function renderSettingsPrivacyViewersScreen() {
+  renderPrivacyToggleScreen("viewersEnabled", "Viewers", "See who viewed your videos",
+    "Turn this on to see which accounts viewed your videos. It only works both ways — you'll only appear in someone else's viewer list, and see viewers on your own videos, if you both have this turned on.", true);
+}
+
+/* Following list: Everyone / Only you. */
+function renderSettingsPrivacyFollowingListScreen() {
+  const current = (state.myUserDoc && state.myUserDoc.followingListPrivacy) || "onlyMe";
+  const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-follow-list-choice="${key}">${label}</button>`;
+  root.innerHTML = `
+    ${settingsTopbar("Following list")}
+    <div class="settings-field">
+      <label>Who can see the accounts you follow</label>
+      <div class="privacy-options">
+        ${opt("everyone", "Everyone")}
+        ${opt("onlyMe", "Only you")}
+      </div>
+    </div>
+  `;
+  wireSettingsBack("settingsPrivacy");
+  document.querySelectorAll("[data-follow-list-choice]").forEach((btn) => {
+    btn.onclick = () => updateMyPrivacyField("followingListPrivacy", btn.dataset.followListChoice);
+  });
+}
+
+/* Liked videos: Everyone / Friends / Only you. */
+function renderSettingsPrivacyLikedVideosScreen() {
+  const current = (state.myUserDoc && state.myUserDoc.likedVideosPrivacy) || "onlyMe";
+  const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-liked-choice="${key}">${label}</button>`;
+  root.innerHTML = `
+    ${settingsTopbar("Liked videos")}
+    <div class="settings-field">
+      <label>Who can see your Likes tab</label>
+      <div class="privacy-options">
+        ${opt("everyone", "Everyone")}
+        ${opt("friends", "Friends")}
+        ${opt("onlyMe", "Only you")}
+      </div>
+    </div>
+  `;
+  wireSettingsBack("settingsPrivacy");
+  document.querySelectorAll("[data-liked-choice]").forEach((btn) => {
+    btn.onclick = () => updateMyPrivacyField("likedVideosPrivacy", btn.dataset.likedChoice);
+  });
 }
 
 /* ================= SETTINGS > Privacy > Blocked/Restricted/Muted account lists ================= */
@@ -5699,7 +5938,15 @@ function doSendPostToFriend(uid) {
 
 function doRepostFromSheet() {
   const post = state.posts.find(p => p.id === activePostId);
-  if (post) toggleRepost(post);
+  if (post) {
+    const author = findCachedUser(post.authorUid);
+    if (author && author.allowReuse === false && post.authorUid !== state.user.uid) {
+      showToast("This creator doesn't allow their posts to be reposted");
+      closeSheets();
+      return;
+    }
+    toggleRepost(post);
+  }
   closeSheets();
 }
 
@@ -5746,6 +5993,8 @@ function openAnalyticsSheet(postId) {
   const reposts = (post.reposts || []).length;
   const saves = (post.savedBy || []).length;
   const views = post.views || 0;
+  const viewersOn = !(state.myUserDoc && state.myUserDoc.viewersEnabled === false);
+  const viewerCount = (post.viewedBy || []).length;
 
   const overlay = document.createElement("div");
   overlay.className = "sheet-overlay open";
@@ -5762,10 +6011,56 @@ function openAnalyticsSheet(postId) {
     <div class="analytics-row"><span>💬 Comments</span><b>${comments.toLocaleString()}</b></div>
     <div class="analytics-row"><span>↻ Reposts</span><b>${reposts.toLocaleString()}</b></div>
     <div class="analytics-row"><span>🔖 Saves</span><b>${saves.toLocaleString()}</b></div>
+    ${viewersOn
+      ? `<button class="analytics-row" id="analyticsViewersBtn" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;"><span>👣 Viewers</span><b>${viewerCount.toLocaleString()} ›</b></button>`
+      : `<div class="settings-hint" style="margin:8px 14px 0;">Turn on Viewers in Settings &gt; Privacy to see who watched your videos.</div>`}
   `;
 
   const closeAnalytics = () => { overlay.remove(); sheetEl.remove(); };
   overlay.onclick = closeAnalytics;
+  const viewersBtn = sheetEl.querySelector("#analyticsViewersBtn");
+  if (viewersBtn) viewersBtn.onclick = () => { closeAnalytics(); openViewersListSheet(post); };
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(sheetEl);
+}
+
+/* Lists the accounts that watched this video — only ever populated with people who had
+   Viewers turned on themselves when they watched, and re-filtered live here in case any
+   of them have since turned it back off. */
+function openViewersListSheet(post) {
+  document.getElementById("viewersOverlay")?.remove();
+  document.getElementById("viewersSheetEl")?.remove();
+
+  const viewers = (post.viewedBy || [])
+    .map(uid => findCachedUser(uid))
+    .filter(u => u && u.viewersEnabled !== false);
+
+  const overlay = document.createElement("div");
+  overlay.className = "sheet-overlay open";
+  overlay.id = "viewersOverlay";
+
+  const sheetEl = document.createElement("div");
+  sheetEl.className = "bottom-sheet open";
+  sheetEl.id = "viewersSheetEl";
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Viewers</div>
+    <div class="user-list" style="max-height:50vh; overflow-y:auto;">
+      ${viewers.length ? viewers.map(u => `
+        <div class="user-row" id="viewerrow-${u.uid}">
+          <div class="avatar">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+          <div class="user-row-info"><div class="u-name">${escapeHtml(u.name || "User")}</div><div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div></div>
+        </div>
+      `).join("") : `<div class="empty-nav-tab"><div class="big">👣</div><div class="line1">No viewers yet</div><div class="line2">Only accounts with Viewers turned on will show up here.</div></div>`}
+    </div>
+  `;
+  const close = () => { overlay.remove(); sheetEl.remove(); };
+  overlay.onclick = close;
+  viewers.forEach(u => {
+    const row = sheetEl.querySelector(`#viewerrow-${u.uid}`);
+    if (row) row.onclick = () => { close(); openProfile(u.uid); };
+  });
 
   document.body.appendChild(overlay);
   document.body.appendChild(sheetEl);
@@ -5803,7 +6098,12 @@ function saveVideoOffline(post) {
   closeSheets();
 }
 function doSaveVideoFromSheet() {
-  saveVideoOffline(state.posts.find(p => p.id === activePostId));
+  const post = state.posts.find(p => p.id === activePostId);
+  if (post && post.allowDownload === false && post.authorUid !== state.user.uid) {
+    showToast("The creator has turned off downloads for this post");
+    return;
+  }
+  saveVideoOffline(post);
 }
 function removeOfflineVideo(id) {
   localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(getOfflineVideos().filter(v => v.id !== id)));
@@ -6243,6 +6543,14 @@ function handleDeepLink() {
   const profileUid = params.get("profile");
   const postId = params.get("post");
   if (profileUid) {
+    if (state.user && profileUid !== state.user.uid) {
+      const target = findCachedUser(profileUid);
+      const amFollowing = target && (target.followers || []).includes(state.user.uid);
+      if (target && target.showProfileOnShare === false && !amFollowing) {
+        showToast("This profile isn't available via shared links");
+        return;
+      }
+    }
     openProfile(profileUid);
     return;
   }
@@ -6309,6 +6617,14 @@ function extractHashtags(text) {
   return Array.from(new Set(Array.from((text || "").matchAll(/#(\w+)/g)).map(m => m[1].toLowerCase())));
 }
 
+/* Resolves the compose screen's "Allow downloads" toggle: whatever the user has explicitly
+   set this session, falling back to their account-level Downloads default (Settings >
+   Privacy > Downloads) the first time they open the composer. */
+function composeAllowDownloadEffective() {
+  if (state.composeAllowDownload !== null && state.composeAllowDownload !== undefined) return state.composeAllowDownload !== false;
+  return !(state.myUserDoc && state.myUserDoc.allowDownloadsDefault === false);
+}
+
 function submitPost() {
   if (!state.composerText.trim() && !state.composerMedia) return;
 
@@ -6328,7 +6644,7 @@ function submitPost() {
       soundName: (state.composerSoundName || "").trim() || null,
       privacy: state.composePrivacy || "public",
       allowComments: state.composeAllowComments !== false,
-      allowDownload: state.composeAllowDownload !== false,
+      allowDownload: composeAllowDownloadEffective(),
       likes: [],
       commentCount: 0,
       reports: [],
@@ -6339,7 +6655,7 @@ function submitPost() {
       try { localStorage.removeItem("milon_draft"); } catch (e) {}
       setState({
         composerText: "", composerMedia: null, composerMediaType: null, composerSoundName: "",
-        composePrivacy: "public", composeAllowComments: true, composeAllowDownload: true,
+        composePrivacy: "public", composeAllowComments: true, composeAllowDownload: null,
         composeUploadPct: null, view: "feed"
       });
       showToast("Posted!");
@@ -6444,7 +6760,7 @@ function submitCommentOrReply(postId, text, parentId) {
         logActivity(post.authorUid, "comment", `${state.user.name} ${parentId ? "replied" : "commented"}: "${trimmed.slice(0, 60)}"`, { postId, thumb: getPostThumb(post) });
       }
       mentionUids.forEach(uid => {
-        if (uid !== state.user.uid) logActivity(uid, "mention", `${state.user.name} mentioned you in a comment`, { postId, thumb: getPostThumb(post) });
+        if (uid !== state.user.uid && canMention(uid, state.user.uid)) logActivity(uid, "mention", `${state.user.name} mentioned you in a comment`, { postId, thumb: getPostThumb(post) });
       });
       setState({ replyingTo: null });
     })

@@ -962,7 +962,14 @@ function escapeHtml(str) {
    once signed in, users/{uid}.settings (see ensureUserProfile) is the source
    of truth and is kept in sync here in real time by listenToOwnUser(). */
 const SETTINGS_CACHE_KEY = "milon_settings_cache";
-const DEFAULT_SETTINGS = { theme: "system", fontSize: "default", reduceMotion: false, autoplayVideos: true, dataSaver: false };
+const DEFAULT_SETTINGS = { theme: "system", fontSize: "default", reduceMotion: false, autoplayVideos: true, dataSaver: false, chatWallpaper: "default" };
+const CHAT_WALLPAPERS = {
+  default: { label: "Default", css: "" },
+  teal:    { label: "Teal",    css: "linear-gradient(160deg, #0f6e56, #123b32)" },
+  sunset:  { label: "Sunset",  css: "linear-gradient(160deg, #ff8a5c, #c94b4b)" },
+  ocean:   { label: "Ocean",   css: "linear-gradient(160deg, #2b6cb0, #1a365d)" },
+  dark:    { label: "Charcoal", css: "linear-gradient(160deg, #2c2c2c, #111111)" }
+};
 
 function getCachedSettings() {
   try {
@@ -1478,7 +1485,8 @@ function ensureUserProfile(user) {
           fontSize: "default",    // small | default | large
           reduceMotion: false,
           autoplayVideos: true,
-          dataSaver: false
+          dataSaver: false,
+          chatWallpaper: "default"
         },
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -1652,6 +1660,14 @@ function render() {
     renderSettingsFreeUpSpaceScreen();
   } else if (state.view === "settingsDataSaver") {
     renderSettingsDataSaverScreen();
+  } else if (state.view === "settingsWallpaper") {
+    renderSettingsWallpaperScreen();
+  } else if (state.view === "settingsHelpCenter") {
+    renderSettingsHelpCenterScreen();
+  } else if (state.view === "settingsPrivacyCenter") {
+    renderSettingsPrivacyCenterScreen();
+  } else if (state.view === "settingsTerms") {
+    renderSettingsTermsScreen();
   } else if (state.view === "settingsBlockedList") {
     renderSafetyListScreen("blocked");
   } else if (state.view === "settingsRestrictedList") {
@@ -4168,6 +4184,8 @@ function renderChatScreen() {
 
   const presenceLabel = chatPresenceLabel();
   const hasContent = !!(state.chatText.trim() || state.chatMedia);
+  const wallpaperKey = ((state.myUserDoc && state.myUserDoc.settings) || getCachedSettings()).chatWallpaper || "default";
+  const wallpaperCss = (CHAT_WALLPAPERS[wallpaperKey] || CHAT_WALLPAPERS.default).css;
 
   root.innerHTML = `
     <div class="chat-header">
@@ -4178,7 +4196,7 @@ function renderChatScreen() {
         ${presenceLabel ? `<div class="c-status">${escapeHtml(presenceLabel)}</div>` : ""}
       </div>
     </div>
-    <div class="chat-messages" id="chatMessagesBox">${bubblesHtml}</div>
+    <div class="chat-messages" id="chatMessagesBox" style="${wallpaperCss ? `background:${wallpaperCss};` : ""}">${bubblesHtml}</div>
     <div class="chat-input-bar">
       ${!hasContent ? `
       <div class="chat-reaction-row">
@@ -5160,6 +5178,7 @@ function wireSettingsBack(backView) {
    mirrors TikTok's grouped "Settings and privacy" layout. Clear data / Log out
    stay pinned here since they're account-wide actions, not a category. */
 function renderSettingsScreen() {
+  const myAvatarThumb = (state.profile && state.profile.avatar) || (state.myUserDoc && state.myUserDoc.avatar) || "";
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="settingsBackBtn">←</button>
@@ -5193,6 +5212,7 @@ function renderSettingsScreen() {
       <button class="menu-item" id="goOfflineVideosBtn"><span class="menu-item-icon">⬇️</span><span>Offline videos</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goFreeUpSpaceBtn"><span class="menu-item-icon">🗑️</span><span>Free up space</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goDataSaverBtn"><span class="menu-item-icon">📶</span><span>Data Saver</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goWallpaperBtn"><span class="menu-item-icon">🖼️</span><span>Wallpaper</span><span class="menu-item-arrow">›</span></button>
     </div>
 
     <div class="menu-list" style="margin-top:14px;">
@@ -5201,16 +5221,33 @@ function renderSettingsScreen() {
       <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
     </div>
 
+    <div class="menu-section-label">Support &amp; About</div>
+    <div class="menu-list">
+      <button class="menu-item" id="goHelpCenterBtn"><span class="menu-item-icon">🎧</span><span>Help Center</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goPrivacyCenterBtn"><span class="menu-item-icon">🔏</span><span>Privacy Center</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goTermsBtn"><span class="menu-item-icon">ℹ️</span><span>Terms and Policies</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
     <div class="menu-list" style="margin-top:14px;">
       <button class="menu-item danger" id="clearDataBtn">
         <span class="menu-item-icon">🧹</span>
         <span>Clear data</span>
+      </button>
+    </div>
+
+    <div class="menu-section-label">Login</div>
+    <div class="menu-list">
+      <button class="menu-item" id="switchAccountBtn">
+        <span class="menu-item-icon">⇄</span><span>Switch account</span>
+        <span class="avatar" style="width:26px;height:26px;font-size:11px;margin-left:auto;">${myAvatarThumb ? `<img src="${myAvatarThumb}" />` : initials((state.profile && state.profile.name) || "U")}</span>
+        <span class="menu-item-arrow">›</span>
       </button>
       <button class="menu-item danger" id="logoutBtn">
         <span class="menu-item-icon">⎋</span>
         <span>Log out</span>
       </button>
     </div>
+    <div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:18px 0 8px;">Milon v1.0.0</div>
   `;
 
   document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
@@ -5235,12 +5272,20 @@ function renderSettingsScreen() {
   document.getElementById("goOfflineVideosBtn").onclick = () => setState({ view: "settingsOfflineVideos" });
   document.getElementById("goFreeUpSpaceBtn").onclick = () => setState({ view: "settingsFreeUpSpace" });
   document.getElementById("goDataSaverBtn").onclick = () => setState({ view: "settingsDataSaver" });
+  document.getElementById("goWallpaperBtn").onclick = () => setState({ view: "settingsWallpaper" });
   document.getElementById("goManagePostsBtn").onclick = () => setState({ view: "settingsManagePosts" });
   document.getElementById("goAnalyticsBtn").onclick = () => setState({ view: "creatorStudio" });
   document.getElementById("goShareProfileBtn").onclick = () => doShareProfile(state.user.uid);
+  document.getElementById("goHelpCenterBtn").onclick = () => setState({ view: "settingsHelpCenter" });
+  document.getElementById("goPrivacyCenterBtn").onclick = () => setState({ view: "settingsPrivacyCenter" });
+  document.getElementById("goTermsBtn").onclick = () => setState({ view: "settingsTerms" });
   document.getElementById("clearDataBtn").onclick = () => {
     if (!confirm("This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?")) return;
     handleClearData();
+  };
+  document.getElementById("switchAccountBtn").onclick = () => {
+    if (!confirm("Log out of this account so you can sign in with a different one?")) return;
+    handleLogout();
   };
   document.getElementById("logoutBtn").onclick = () => {
     if (!confirm("Log out of Milon?")) return;
@@ -6023,6 +6068,94 @@ function renderSettingsDataSaverScreen() {
     applyUserSettings({ ...s, dataSaver: !dataSaver });
     updateMySettings({ dataSaver: !dataSaver });
   };
+}
+
+/* ================= SETTINGS > Cache & Cellular > Wallpaper ================= */
+/* Real, functional: picks the chat background (applied in renderChatScreen via
+   settings.chatWallpaper) — this is the one item on the previous screenshot that
+   maps to something the app can actually back with real state. */
+function renderSettingsWallpaperScreen() {
+  const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
+  const current = s.chatWallpaper || "default";
+  const swatch = (key) => {
+    const w = CHAT_WALLPAPERS[key];
+    return `
+      <button class="wallpaper-swatch ${current === key ? "selected" : ""}" data-wallpaper-choice="${key}"
+        style="background:${w.css || "var(--card)"}; border:1px solid var(--line); border-radius:12px; height:74px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; cursor:pointer;">
+        <span style="font-size:12px; font-weight:600; color:${w.css ? "#fff" : "var(--ink)"}; text-shadow:${w.css ? "0 1px 3px rgba(0,0,0,0.4)" : "none"};">${w.label}${current === key ? " ✓" : ""}</span>
+      </button>`;
+  };
+  root.innerHTML = `
+    ${settingsTopbar("Wallpaper")}
+    <div class="settings-hint" style="margin-top:10px;">Applies to the background behind your chat messages.</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:6px 14px 14px;">
+      ${Object.keys(CHAT_WALLPAPERS).map(swatch).join("")}
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.querySelectorAll("[data-wallpaper-choice]").forEach((btn) => {
+    btn.onclick = () => updateMySettings({ chatWallpaper: btn.dataset.wallpaperChoice });
+  });
+}
+
+/* ================= SETTINGS > Support & About ================= */
+/* Static informational content — same as any app's own Help/Privacy/Terms
+   pages; not tied to live data, so there's nothing to fake here. */
+function renderSettingsHelpCenterScreen() {
+  const faq = [
+    ["How do I post something?", "Tap the + button in the bottom navigation, add a photo or video, then tap Post."],
+    ["How do I make my account private?", "Go to Settings and privacy → Privacy (or Audience control) and turn on Private account."],
+    ["How do I stop someone from contacting me?", "Open their profile, tap ⋯, and choose Block, Restrict, or Mute depending on how much you want to limit them."],
+    ["How do I delete my account?", "Go to Settings and privacy → Account → Delete account. This is permanent."],
+    ["How do I report a problem or bug?", "Milon doesn't have a live support inbox yet — for now, describe the issue to whoever manages your copy of the app."]
+  ];
+  root.innerHTML = `
+    ${settingsTopbar("Help Center")}
+    <div class="menu-section-label">Frequently asked questions</div>
+    <div class="menu-list" style="padding:6px 4px;">
+      ${faq.map(([q, a]) => `
+        <div style="padding:12px 14px; ${a === faq[faq.length - 1][1] ? "" : "border-bottom:1px solid var(--line);"}">
+          <div style="font-weight:600; margin-bottom:4px;">${escapeHtml(q)}</div>
+          <div style="font-size:13px; color:var(--ink-soft); line-height:1.5;">${escapeHtml(a)}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+function renderSettingsPrivacyCenterScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Privacy Center")}
+    <div style="padding:14px 18px 4px; font-size:13px; color:var(--ink-soft); line-height:1.6;">
+      This is a plain-language summary of what Milon actually stores about you. For the controls themselves, see Privacy or Audience control.
+    </div>
+    <div class="menu-section-label">What's stored</div>
+    <div class="menu-list">
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">👤</span><span>Profile info</span><span class="menu-item-sub">name, handle, bio, avatar</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📝</span><span>Your posts</span><span class="menu-item-sub">media, captions, privacy setting</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">👥</span><span>Social graph</span><span class="menu-item-sub">followers, following, likes, comments</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">💬</span><span>Messages</span><span class="menu-item-sub">DMs you send/receive in-app</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">⚙️</span><span>App settings</span><span class="menu-item-sub">theme, accessibility, notification prefs</span></div>
+    </div>
+    <div class="menu-list" style="margin-top:14px;">
+      <button class="menu-item" id="privacyCenterGoPrivacyBtn"><span class="menu-item-icon">🔒</span><span>Go to Privacy settings</span><span class="menu-item-arrow">›</span></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("privacyCenterGoPrivacyBtn").onclick = () => setState({ view: "settingsPrivacy" });
+}
+function renderSettingsTermsScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Terms and Policies")}
+    <div style="padding:14px 18px 24px; font-size:13.5px; color:var(--ink); line-height:1.7;">
+      <p style="color:var(--ink-soft); font-size:12.5px;">This is a basic placeholder, not reviewed legal terms — swap in real Terms of Service and a Privacy Policy before this app is used by people outside your own testing.</p>
+      <p><strong>Using Milon:</strong> Don't post anything illegal, harassing, or that you don't have the rights to share. You're responsible for what you post under your account.</p>
+      <p><strong>Your content:</strong> You keep ownership of what you post. Posting it here just lets other users on Milon view it according to the privacy setting you chose for it.</p>
+      <p><strong>Account safety:</strong> Keep your password private. You're responsible for activity that happens under your account.</p>
+      <p><strong>Changes:</strong> These terms may change as the app changes — there's no formal notice process yet.</p>
+    </div>
+  `;
+  wireSettingsBack("settings");
 }
 
 /* Merge-writes a single field into users/{uid}.settings so other fields

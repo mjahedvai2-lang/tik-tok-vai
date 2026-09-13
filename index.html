@@ -821,6 +821,182 @@ const storage = firebase.storage();
    without touching Firebase Console. Change this to your own login email. */
 const OWNER_EMAIL = "owner@milon.app";
 
+/* ================= Language / i18n ================= */
+/* Full list of 50 languages for the picker. Only "bn" and "en" have a real
+   translation table below (TRANSLATIONS) — every other entry shows its native
+   name with a "coming soon" tag and falls back to English text until someone
+   fills in its translations object. Add a language by giving it a full entry
+   in TRANSLATIONS and removing it from COMING_SOON_LANGS. */
+const LANGUAGES = [
+  { code: "bn", native: "বাংলা" },
+  { code: "en", native: "English" },
+  { code: "hi", native: "हिन्दी" },
+  { code: "ur", native: "اردو" },
+  { code: "ar", native: "العربية" },
+  { code: "es", native: "Español" },
+  { code: "pt", native: "Português" },
+  { code: "fr", native: "Français" },
+  { code: "de", native: "Deutsch" },
+  { code: "ru", native: "Русский" },
+  { code: "zh", native: "中文" },
+  { code: "ja", native: "日本語" },
+  { code: "ko", native: "한국어" },
+  { code: "id", native: "Bahasa Indonesia" },
+  { code: "ms", native: "Bahasa Melayu" },
+  { code: "vi", native: "Tiếng Việt" },
+  { code: "th", native: "ภาษาไทย" },
+  { code: "tr", native: "Türkçe" },
+  { code: "it", native: "Italiano" },
+  { code: "nl", native: "Nederlands" },
+  { code: "pl", native: "Polski" },
+  { code: "uk", native: "Українська" },
+  { code: "fa", native: "فارسی" },
+  { code: "te", native: "తెలుగు" },
+  { code: "ta", native: "தமிழ்" },
+  { code: "mr", native: "मराठी" },
+  { code: "gu", native: "ગુજરાતી" },
+  { code: "pa", native: "ਪੰਜਾਬੀ" },
+  { code: "kn", native: "ಕನ್ನಡ" },
+  { code: "ml", native: "മലയാളം" },
+  { code: "sw", native: "Kiswahili" },
+  { code: "ha", native: "Hausa" },
+  { code: "yo", native: "Yorùbá" },
+  { code: "am", native: "አማርኛ" },
+  { code: "he", native: "עברית" },
+  { code: "el", native: "Ελληνικά" },
+  { code: "sv", native: "Svenska" },
+  { code: "no", native: "Norsk" },
+  { code: "da", native: "Dansk" },
+  { code: "fi", native: "Suomi" },
+  { code: "cs", native: "Čeština" },
+  { code: "hu", native: "Magyar" },
+  { code: "ro", native: "Română" },
+  { code: "bg", native: "Български" },
+  { code: "hr", native: "Hrvatski" },
+  { code: "sr", native: "Српски" },
+  { code: "sk", native: "Slovenčina" },
+  { code: "tl", native: "Filipino" },
+  { code: "ne", native: "नेपाली" },
+  { code: "si", native: "සිංහල" }
+];
+const FULLY_SUPPORTED_LANGS = ["bn", "en"];
+
+const TRANSLATIONS = {
+  en: {
+    appName: "Milon",
+    tagline: "Stay connected with friends and family",
+    yourName: "Your name",
+    emailPlaceholder: "you@example.com",
+    atLeast6Chars: "At least 6 characters",
+    forgotPassword: "Forgot password?",
+    createAccount: "Create account",
+    logIn: "Log in",
+    alreadyHaveAccount: "Already have an account? Log in",
+    newHereCreateAccount: "New here? Create an account",
+    checkYourEmail: "Check your email",
+    resetYourPassword: "Reset your password",
+    backToLogIn: "Back to log in",
+    sending: "Sending...",
+    sendResetLink: "Send reset link",
+    like: "Like",
+    comment: "Comment",
+    repost: "Repost",
+    save: "Save",
+    share: "Share",
+    send: "Send",
+    writeAComment: "Write a comment...",
+    writeAReply: "Write a reply...",
+    likesCount: "likes",
+    commentsCount: "comments",
+    settingsTitleLanguage: "Language",
+    appLanguage: "App language",
+    comingSoon: "Coming soon",
+    languageHint: "Bangla and English are fully translated. The other languages are listed so you can switch to them later, once their translations are added.",
+    menuAssets: "Assets",
+    menuPersonalTools: "Personal tools",
+    menuCreationBusinessTools: "Creation & business tools",
+    settingsActivity: "Activity",
+    settingsAccount: "Account",
+    settingsVisibility: "Visibility",
+    settingsInteractions: "Interactions",
+    settingsContentDisplay: "Content & Display",
+    settingsLanguageMenuItem: "Language",
+    settingsCacheCellular: "Cache & Cellular",
+    settingsSupportAbout: "Support & About",
+    settingsLogin: "Login",
+    post: "Post",
+    posting: "Posting...",
+    clearCache: "Clear cache"
+  },
+  bn: {
+    appName: "মিলন",
+    tagline: "বন্ধু ও পরিবারের সাথে যুক্ত থাকুন",
+    yourName: "আপনার নাম",
+    emailPlaceholder: "you@example.com",
+    atLeast6Chars: "কমপক্ষে ৬টি অক্ষর",
+    forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
+    createAccount: "অ্যাকাউন্ট তৈরি করুন",
+    logIn: "লগ ইন",
+    alreadyHaveAccount: "আগে থেকেই অ্যাকাউন্ট আছে? লগ ইন করুন",
+    newHereCreateAccount: "নতুন এসেছেন? অ্যাকাউন্ট তৈরি করুন",
+    checkYourEmail: "আপনার ইমেইল দেখুন",
+    resetYourPassword: "পাসওয়ার্ড রিসেট করুন",
+    backToLogIn: "লগ ইন-এ ফিরে যান",
+    sending: "পাঠানো হচ্ছে...",
+    sendResetLink: "রিসেট লিংক পাঠান",
+    like: "লাইক",
+    comment: "কমেন্ট",
+    repost: "রিপোস্ট",
+    save: "সেভ",
+    share: "শেয়ার",
+    send: "পাঠান",
+    writeAComment: "একটি কমেন্ট লিখুন...",
+    writeAReply: "একটি রিপ্লাই লিখুন...",
+    likesCount: "লাইক",
+    commentsCount: "কমেন্ট",
+    settingsTitleLanguage: "ভাষা",
+    appLanguage: "অ্যাপের ভাষা",
+    comingSoon: "শীঘ্রই আসছে",
+    languageHint: "বাংলা এবং ইংরেজি সম্পূর্ণভাবে অনুবাদ করা আছে। বাকি ভাষাগুলো লিস্টে রাখা হয়েছে, অনুবাদ যোগ হলে পরে সেগুলোতেও পাল্টানো যাবে।",
+    menuAssets: "অ্যাসেট",
+    menuPersonalTools: "ব্যক্তিগত টুলস",
+    menuCreationBusinessTools: "কনটেন্ট তৈরি ও ব্যবসার টুলস",
+    settingsActivity: "কার্যক্রম",
+    settingsAccount: "অ্যাকাউন্ট",
+    settingsVisibility: "দৃশ্যমানতা",
+    settingsInteractions: "ইন্টারঅ্যাকশন",
+    settingsContentDisplay: "কনটেন্ট ও ডিসপ্লে",
+    settingsLanguageMenuItem: "ভাষা",
+    settingsCacheCellular: "ক্যাশ ও সেলুলার",
+    settingsSupportAbout: "সাপোর্ট ও অ্যাপ সম্পর্কে",
+    settingsLogin: "লগইন",
+    post: "পোস্ট",
+    posting: "পোস্ট করা হচ্ছে...",
+    clearCache: "ক্যাশ পরিষ্কার করুন"
+  }
+};
+
+function getInitialLang() {
+  try {
+    const saved = localStorage.getItem("milon_lang");
+    if (saved && LANGUAGES.some(l => l.code === saved)) return saved;
+  } catch (e) {}
+  return "bn";
+}
+
+/* Translation lookup: falls back to English, then to the key itself, so a
+   missing string never breaks rendering. */
+function t(key) {
+  const lang = (typeof state !== "undefined" && state.lang) || "bn";
+  const table = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  return table[key] || TRANSLATIONS.en[key] || key;
+}
+
+function setLang(code) {
+  try { localStorage.setItem("milon_lang", code); } catch (e) {}
+  setState({ lang: code });
+}
+
 /* ================= App state ================= */
 const root = document.getElementById("root");
 
@@ -931,7 +1107,10 @@ let state = {
   delPassword: "", delError: "", delSaving: false,
 
   // ---- Login screen: forgot password ----
-  forgotEmail: "", forgotError: "", forgotSent: false, forgotSending: false
+  forgotEmail: "", forgotError: "", forgotSent: false, forgotSending: false,
+
+  // ---- App language ----
+  lang: getInitialLang()
 };
 
 // Tracks which post the share/owner sheet is currently acting on
@@ -1706,29 +1885,29 @@ function renderLogin() {
   const isSignup = state.mode === "signup";
   root.innerHTML = `
     <div class="login-screen">
-      <div class="brand">Milon</div>
-      <div class="tagline">Stay connected with friends and family</div>
+      <div class="brand">${t("appName")}</div>
+      <div class="tagline">${t("tagline")}</div>
 
       ${isSignup ? `
       <div class="field">
         <label>Name</label>
-        <input id="nameInput" type="text" placeholder="Your name" />
+        <input id="nameInput" type="text" placeholder="${t("yourName")}" />
       </div>` : ""}
 
       <div class="field">
         <label>Email</label>
-        <input id="emailInput" type="email" placeholder="you@example.com" />
+        <input id="emailInput" type="email" placeholder="${t("emailPlaceholder")}" />
       </div>
       <div class="field">
         <label>Password</label>
-        <input id="passInput" type="password" placeholder="At least 6 characters" />
+        <input id="passInput" type="password" placeholder="${t("atLeast6Chars")}" />
       </div>
-      ${!isSignup ? `<button class="link-btn" id="forgotPwBtn" style="margin-top:-6px; text-align:right;">Forgot password?</button>` : ""}
+      ${!isSignup ? `<button class="link-btn" id="forgotPwBtn" style="margin-top:-6px; text-align:right;">${t("forgotPassword")}</button>` : ""}
 
-      <button class="btn-primary" id="submitAuthBtn">${isSignup ? "Create account" : "Log in"}</button>
+      <button class="btn-primary" id="submitAuthBtn">${isSignup ? t("createAccount") : t("logIn")}</button>
       <div class="error-msg" id="authErrorMsg">${escapeHtml(state.authError)}</div>
 
-      <button class="link-btn" id="toggleModeBtn">${isSignup ? "Already have an account? Log in" : "New here? Create an account"}</button>
+      <button class="link-btn" id="toggleModeBtn">${isSignup ? t("alreadyHaveAccount") : t("newHereCreateAccount")}</button>
 
       <div class="divider">or</div>
       <button class="btn-social" id="googleBtn"><span style="width:18px;height:18px;border-radius:50%;background:#EA4335;display:inline-block;"></span> Continue with Google</button>
@@ -1746,20 +1925,20 @@ function renderLogin() {
 function renderForgotPasswordScreen() {
   root.innerHTML = `
     <div class="login-screen">
-      <div class="brand">Milon</div>
-      <div class="tagline">${state.forgotSent ? "Check your email" : "Reset your password"}</div>
+      <div class="brand">${t("appName")}</div>
+      <div class="tagline">${state.forgotSent ? t("checkYourEmail") : t("resetYourPassword")}</div>
 
       ${state.forgotSent ? `
         <div class="settings-hint" style="margin:0 0 20px; padding:0;">We've sent a password reset link to <strong>${escapeHtml(state.forgotEmail)}</strong>. Open it to set a new password, then come back and log in.</div>
-        <button class="btn-primary" id="forgotBackToLoginBtn">Back to log in</button>
+        <button class="btn-primary" id="forgotBackToLoginBtn">${t("backToLogIn")}</button>
       ` : `
         <div class="field">
           <label>Email</label>
-          <input id="forgotEmailInput" type="email" placeholder="you@example.com" value="${escapeHtml(state.forgotEmail)}" />
+          <input id="forgotEmailInput" type="email" placeholder="${t("emailPlaceholder")}" value="${escapeHtml(state.forgotEmail)}" />
         </div>
-        <button class="btn-primary" id="forgotSendBtn" ${state.forgotSending ? "disabled" : ""}>${state.forgotSending ? "Sending..." : "Send reset link"}</button>
+        <button class="btn-primary" id="forgotSendBtn" ${state.forgotSending ? "disabled" : ""}>${state.forgotSending ? t("sending") : t("sendResetLink")}</button>
         <div class="error-msg" id="forgotErrorMsg">${escapeHtml(state.forgotError)}</div>
-        <button class="link-btn" id="forgotCancelBtn">Back to log in</button>
+        <button class="link-btn" id="forgotCancelBtn">${t("backToLogIn")}</button>
       `}
     </div>
   `;
@@ -5245,7 +5424,7 @@ function renderSettingsScreen() {
       <button class="menu-item" id="goAdsBtn"><span class="menu-item-icon">📢</span><span>Ads</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goPlaybackBtn"><span class="menu-item-icon">▶️</span><span>Playback</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🌙</span><span>Display</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goLanguageBtn"><span class="menu-item-icon">🔤</span><span>Language</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goLanguageBtn"><span class="menu-item-icon">🔤</span><span>${t("settingsLanguageMenuItem")}</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>Accessibility</span><span class="menu-item-dot"></span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goContactsLocationBtn"><span class="menu-item-icon">📍</span><span>Contacts and location</span><span class="menu-item-arrow">›</span></button>
     </div>
@@ -6068,21 +6247,31 @@ function renderSettingsPlaybackScreen() {
   if (!dataSaver) btn.onclick = () => updateMySettings({ autoplayVideos: !autoplay });
 }
 
-/* ================= SETTINGS > Language (placeholder) ================= */
-/* Honest placeholder — the interface only exists in English right now; there's
-   no translation layer to actually switch strings, so nothing here is wired
-   to a real toggle. */
+/* ================= SETTINGS > Language ================= */
+/* Bangla and English are fully wired to the TRANSLATIONS table (t()). The
+   other 48 languages show up in the list (so the picker matches the full
+   set the app targets) but are disabled with a "Coming soon" tag until
+   someone fills in their entry in TRANSLATIONS — flipping them on later is
+   just adding the object and removing the `disabled` condition below. */
 function renderSettingsLanguageScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Language")}
+    ${settingsTopbar(t("settingsTitleLanguage"))}
     <div class="settings-field">
-      <label>App language</label>
+      <label>${t("appLanguage")}</label>
       <div class="privacy-options">
-        <button class="privacy-option selected" disabled>English</button>
+        ${LANGUAGES.map(l => {
+          const supported = FULLY_SUPPORTED_LANGS.includes(l.code);
+          const selected = state.lang === l.code;
+          return `<button class="privacy-option ${selected ? "selected" : ""}" data-lang="${l.code}" ${supported ? "" : "disabled"}>${l.native}${supported ? "" : ` · ${t("comingSoon")}`}</button>`;
+        }).join("")}
       </div>
     </div>
-    <div class="settings-hint">This app's interface only exists in English right now — there's no translation system yet to offer other languages.</div>
+    <div class="settings-hint">${t("languageHint")}</div>
   `;
+  root.querySelectorAll("[data-lang]").forEach(btn => {
+    if (btn.disabled) return;
+    btn.onclick = () => setLang(btn.getAttribute("data-lang"));
+  });
   wireSettingsBack("settings");
 }
 
@@ -7550,8 +7739,8 @@ function renderPost(p) {
     <div class="comments-box">
       ${comments.map(c => `<div class="comment-line"><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.text)}</div>`).join("")}
       <div class="comment-input-row">
-        <input id="commentInput-${p.id}" type="text" placeholder="Write a comment..." />
-        <button id="commentSubmit-${p.id}">Send</button>
+        <input id="commentInput-${p.id}" type="text" placeholder="${t("writeAComment")}" />
+        <button id="commentSubmit-${p.id}">${t("send")}</button>
       </div>
     </div>
   ` : "";
@@ -7569,15 +7758,15 @@ function renderPost(p) {
       ${p.text ? `<div class="post-text">${escapeHtml(p.text)}</div>` : ""}
       ${mediaHtml}
       <div class="post-stats">
-        <span>${likes.length} likes</span>
-        <span>${comments.length} comments</span>
+        <span>${likes.length} ${t("likesCount")}</span>
+        <span>${comments.length} ${t("commentsCount")}</span>
       </div>
       <div class="post-actions">
-        <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} Like</button>
-        <button class="action-btn" id="comment-${p.id}">💬 Comment</button>
-        <button class="action-btn ${reposted ? "reposted" : ""}" id="repost-${p.id}">↻ Repost</button>
-        <button class="action-btn ${saved ? "saved" : ""}" id="save-${p.id}">${saved ? "🔖" : "📑"} Save</button>
-        <button class="action-btn" id="share-${p.id}">↗️ Share</button>
+        <button class="action-btn ${liked ? "liked" : ""}" id="like-${p.id}">${liked ? "❤️" : "🤍"} ${t("like")}</button>
+        <button class="action-btn" id="comment-${p.id}">💬 ${t("comment")}</button>
+        <button class="action-btn ${reposted ? "reposted" : ""}" id="repost-${p.id}">↻ ${t("repost")}</button>
+        <button class="action-btn ${saved ? "saved" : ""}" id="save-${p.id}">${saved ? "🔖" : "📑"} ${t("save")}</button>
+        <button class="action-btn" id="share-${p.id}">↗️ ${t("share")}</button>
       </div>
       ${commentsHtml}
     </div>

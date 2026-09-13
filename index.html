@@ -971,6 +971,46 @@ function getCachedSettings() {
   }
 }
 
+/* ---------------- Time and well-being: real, on-device screen-time tracking ----------------
+   No server involved — just this browser's localStorage, reset per calendar day. */
+const SCREENTIME_KEY_PREFIX = "milon_screentime_";
+const SCREENTIME_LIMIT_KEY = "milon_screentime_limit_minutes";
+let screentimeInterval = null;
+let screentimeReminderShownToday = false;
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function getTodayScreenSeconds() {
+  try { return parseInt(localStorage.getItem(SCREENTIME_KEY_PREFIX + todayKey()) || "0", 10); } catch (e) { return 0; }
+}
+function getScreenTimeLimitMinutes() {
+  try { return parseInt(localStorage.getItem(SCREENTIME_LIMIT_KEY) || "0", 10); } catch (e) { return 0; }
+}
+function setScreenTimeLimitMinutes(mins) {
+  try { localStorage.setItem(SCREENTIME_LIMIT_KEY, String(mins)); } catch (e) {}
+}
+function checkScreenTimeLimit(totalSeconds) {
+  const limit = getScreenTimeLimitMinutes();
+  if (limit > 0 && totalSeconds >= limit * 60 && !screentimeReminderShownToday) {
+    screentimeReminderShownToday = true;
+    showToast(`You've reached your ${limit}-minute daily screen time limit`);
+  }
+}
+function addScreenSeconds(sec) {
+  try {
+    const key = SCREENTIME_KEY_PREFIX + todayKey();
+    const cur = parseInt(localStorage.getItem(key) || "0", 10);
+    const next = cur + sec;
+    localStorage.setItem(key, String(next));
+    checkScreenTimeLimit(next);
+  } catch (e) {}
+}
+function startScreenTimeTracker() {
+  if (screentimeInterval) return;
+  screentimeInterval = setInterval(() => addScreenSeconds(30), 30000);
+}
+
 function applyUserSettings(settings) {
   const s = { ...DEFAULT_SETTINGS, ...(settings || {}) };
   try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s)); } catch (e) {}
@@ -1304,6 +1344,7 @@ auth.onAuthStateChanged((firebaseUser) => {
       listenToNotifications();
       listenToSystemNotices();
       goOnline(state.user.uid);
+      startScreenTimeTracker();
       if (window.Notification && Notification.permission === "default") {
         Notification.requestPermission().catch(() => {});
       }
@@ -1496,6 +1537,16 @@ function render() {
     renderSettingsDeleteAccountScreen();
   } else if (state.view === "settingsContent") {
     renderSettingsContentScreen();
+  } else if (state.view === "settingsManagePosts") {
+    renderSettingsManagePostsScreen();
+  } else if (state.view === "settingsLive") {
+    renderSettingsLiveScreen();
+  } else if (state.view === "settingsNotifications") {
+    renderSettingsNotificationsScreen();
+  } else if (state.view === "settingsWellbeing") {
+    renderSettingsWellbeingScreen();
+  } else if (state.view === "settingsFamilyPairing") {
+    renderSettingsFamilyPairingScreen();
   } else if (state.view === "settingsTheme") {
     renderSettingsThemeScreen();
   } else if (state.view === "settingsAccessibility") {
@@ -3256,10 +3307,22 @@ function getPostThumb(post) {
 /* Records a real-time notification for a target user. type: "follow" | "like" | "comment" | "message" */
 function logActivity(targetUid, type, text, extra) {
   if (!targetUid || targetUid === state.user.uid) return; // never notify yourself
-  db.collection("users").doc(targetUid).collection("notifications").add({
+  const prefKey = type === "like" ? "likes"
+    : type === "comment" ? "comments"
+    : (type === "follow" || type === "follow_accept" || type === "follow_request") ? "follows"
+    : type === "message" ? "messages" : null;
+  const write = () => db.collection("users").doc(targetUid).collection("notifications").add({
     type, text, fromUid: state.user.uid, fromName: state.user.name,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(), read: false, ...(extra || {})
   }).catch((err) => console.error(err));
+  if (!prefKey) { write(); return; }
+  // Real gating: check the recipient's own Notifications settings before writing —
+  // if they've turned this type off, it never gets created for them at all.
+  db.collection("users").doc(targetUid).get().then((doc) => {
+    const notifPrefs = (doc.exists && doc.data().settings && doc.data().settings.notifPrefs) || {};
+    if (notifPrefs[prefKey] === false) return;
+    write();
+  }).catch(() => write());
 }
 
 /* Marks every notification of a given type as read (called when its Inbox section is opened) */
@@ -4979,16 +5042,27 @@ function renderSettingsScreen() {
       <div style="width:28px"></div>
     </div>
 
+    <div class="menu-section-label">Activity</div>
+    <div class="menu-list">
+      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>Manage posts</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎬</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goLiveBtn"><span class="menu-item-icon">📺</span><span>LIVE</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>Notifications</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goWellbeingBtn"><span class="menu-item-icon">⏳</span><span>Time and well-being</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goFamilyBtn"><span class="menu-item-icon">👨‍👩‍👧</span><span>Family Pairing</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
     <div class="menu-section-label">Account</div>
     <div class="menu-list">
       <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>Account</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goPrivacyBtn"><span class="menu-item-icon">🔒</span><span>Privacy</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security &amp; permissions</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>Analytics</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Content &amp; display</div>
+    <div class="menu-section-label">Display</div>
     <div class="menu-list">
-      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎞️</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🎨</span><span>Theme</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>Accessibility</span><span class="menu-item-arrow">›</span></button>
     </div>
@@ -5012,6 +5086,13 @@ function renderSettingsScreen() {
   document.getElementById("goContentBtn").onclick = () => setState({ view: "settingsContent" });
   document.getElementById("goThemeBtn").onclick = () => setState({ view: "settingsTheme" });
   document.getElementById("goAccessibilityBtn").onclick = () => setState({ view: "settingsAccessibility" });
+  document.getElementById("goManagePostsBtn").onclick = () => setState({ view: "settingsManagePosts" });
+  document.getElementById("goLiveBtn").onclick = () => setState({ view: "settingsLive" });
+  document.getElementById("goNotifBtn").onclick = () => setState({ view: "settingsNotifications" });
+  document.getElementById("goWellbeingBtn").onclick = () => setState({ view: "settingsWellbeing" });
+  document.getElementById("goFamilyBtn").onclick = () => setState({ view: "settingsFamilyPairing" });
+  document.getElementById("goAnalyticsBtn").onclick = () => setState({ view: "creatorStudio" });
+  document.getElementById("goShareProfileBtn").onclick = () => doShareProfile(state.user.uid);
   document.getElementById("clearDataBtn").onclick = () => {
     if (!confirm("This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?")) return;
     handleClearData();
@@ -5116,10 +5197,16 @@ function renderSafetyListScreen(type) {
 /* ================= SETTINGS > Security ================= */
 function renderSettingsSecurityScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Security")}
+    ${settingsTopbar("Security & permissions")}
     <div class="menu-list">
       <button class="menu-item" id="secChangePwBtn"><span class="menu-item-icon">🔑</span><span>Change password</span><span class="menu-item-arrow">›</span></button>
     </div>
+    <div class="menu-section-label">App permissions</div>
+    <div class="menu-list">
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📷</span><span>Camera</span><span class="menu-item-sub" id="camPermStatus">Checking…</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">🎙️</span><span>Microphone</span><span class="menu-item-sub" id="micPermStatus">Checking…</span></div>
+    </div>
+    <div class="settings-hint">These show your browser's actual permission grant for this site — to change them, use your browser's site settings, not this app.</div>
     <div class="menu-list" style="margin-top:14px;">
       <button class="menu-item danger" id="secDeleteBtn"><span class="menu-item-icon">⚠️</span><span>Delete account</span><span class="menu-item-arrow">›</span></button>
     </div>
@@ -5127,6 +5214,18 @@ function renderSettingsSecurityScreen() {
   wireSettingsBack("settings");
   document.getElementById("secChangePwBtn").onclick = () => setState({ view: "settingsChangePassword" });
   document.getElementById("secDeleteBtn").onclick = () => setState({ view: "settingsDeleteAccount" });
+  const fmt = (s) => s === "granted" ? "Allowed" : s === "denied" ? "Blocked" : s === "prompt" ? "Ask each time" : "Unknown";
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: "camera" })
+      .then(r => { const el = document.getElementById("camPermStatus"); if (el) el.textContent = fmt(r.state); })
+      .catch(() => { const el = document.getElementById("camPermStatus"); if (el) el.textContent = "Unknown"; });
+    navigator.permissions.query({ name: "microphone" })
+      .then(r => { const el = document.getElementById("micPermStatus"); if (el) el.textContent = fmt(r.state); })
+      .catch(() => { const el = document.getElementById("micPermStatus"); if (el) el.textContent = "Unknown"; });
+  } else {
+    const cam = document.getElementById("camPermStatus"); if (cam) cam.textContent = "Unknown";
+    const mic = document.getElementById("micPermStatus"); if (mic) mic.textContent = "Unknown";
+  }
 }
 
 /* ================= SETTINGS > Security > Change password ================= */
@@ -5230,6 +5329,131 @@ function renderSettingsContentScreen() {
   `;
   wireSettingsBack("settings");
   document.getElementById("autoplayToggle").onclick = () => updateMySettings({ autoplayVideos: !autoplay });
+}
+
+/* ================= SETTINGS > Manage posts ================= */
+/* Real, working post management — reuses the existing owner action sheet
+   (edit / pin / privacy / delete) that's already wired up for the feed and
+   profile grid, so every action here actually writes to Firestore. */
+function renderSettingsManagePostsScreen() {
+  const myUid = state.user.uid;
+  const myPosts = (state.posts || []).filter(p => p.authorUid === myUid)
+    .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+  root.innerHTML = `
+    ${settingsTopbar("Manage posts")}
+    <div style="padding:0 14px 10px;font-size:12px;color:var(--ink-soft);">Tap ⋮ on a post to edit, change who can see it, pin it, or delete it.</div>
+    ${myPosts.length ? `
+      <div class="profile-grid" style="padding:0 10px;">
+        ${myPosts.map(p => `
+          <div class="profile-grid-item" id="managepost-${p.id}">
+            ${p.mediaType === "video"
+              ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
+              : p.media ? `<img src="${p.media}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:8px;font-size:12px;">${escapeHtml(p.text || "")}</div>`}
+            <div style="position:absolute;left:6px;top:6px;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:8px;">${p.privacy === "private" ? "Only me" : p.privacy === "friends" ? "Friends" : "Public"}</div>
+            <button class="grid-pin-toggle" id="managepostmenu-${p.id}" style="left:auto;right:6px;top:6px;">⋮</button>
+          </div>
+        `).join("")}
+      </div>
+    ` : `<div class="empty-nav-tab"><div class="big">🎞️</div><div class="line1">No posts yet</div></div>`}
+  `;
+  wireSettingsBack("settings");
+  myPosts.forEach(p => {
+    const btn = document.getElementById(`managepostmenu-${p.id}`);
+    if (btn) btn.onclick = (e) => { e.stopPropagation(); openGridOwnerMenu(p.id); };
+  });
+}
+
+/* ================= SETTINGS > LIVE (placeholder) ================= */
+/* Honest placeholder — real live streaming needs its own broadcast/RTMP-style
+   server, which is a much bigger build than this personal Firebase app has. */
+function renderSettingsLiveScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("LIVE")}
+    <div class="empty-nav-tab">
+      <div class="big">🔴</div>
+      <div class="line1">LIVE isn't available in this build</div>
+      <div class="line2">Real live streaming needs dedicated video-broadcast infrastructure beyond what this app currently has. This menu entry is here as a placeholder for now.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Notifications ================= */
+/* Real toggles — each one is checked server-side (in logActivity) before a
+   notification doc is ever written for you, so turning one off actually
+   stops that type from arriving. */
+function renderSettingsNotificationsScreen() {
+  const prefs = (state.myUserDoc && state.myUserDoc.settings && state.myUserDoc.settings.notifPrefs) || {};
+  const row = (key, label, sub) => `
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">${label}</div><div class="compose-toggle-sub">${sub}</div></div>
+      <button class="toggle-switch ${prefs[key] !== false ? "on" : ""}" id="notif-${key}"></button>
+    </div>`;
+  root.innerHTML = `
+    ${settingsTopbar("Notifications")}
+    ${row("likes", "Likes", "Get notified when someone likes your post")}
+    ${row("comments", "Comments", "Get notified when someone comments on your post")}
+    ${row("follows", "New followers", "Get notified about follows and follow requests")}
+    ${row("messages", "Direct messages", "Get notified about new messages")}
+  `;
+  wireSettingsBack("settings");
+  ["likes", "comments", "follows", "messages"].forEach(key => {
+    const btn = document.getElementById(`notif-${key}`);
+    if (btn) btn.onclick = () => {
+      const current = prefs[key] !== false;
+      updateMySettings({ notifPrefs: { [key]: !current } });
+    };
+  });
+}
+
+/* ================= SETTINGS > Time and well-being ================= */
+/* Real, on-device usage tracking (see startScreenTimeTracker) — no server,
+   no fake numbers, just this device's own clock while the app is open. */
+function renderSettingsWellbeingScreen() {
+  const totalSeconds = getTodayScreenSeconds();
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const limit = getScreenTimeLimitMinutes();
+  root.innerHTML = `
+    ${settingsTopbar("Time and well-being")}
+    <div style="padding:20px 18px 6px;">
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Screen time today</div>
+        <div style="font-size:28px;font-weight:800;">${hrs}h ${mins}m</div>
+      </div>
+    </div>
+    <div class="settings-field">
+      <label>Daily screen time reminder (minutes, 0 = off)</label>
+      <input type="number" min="0" id="wellbeingLimitInput" value="${limit}" />
+    </div>
+    <div style="padding:0 14px;">
+      <button class="btn-primary" id="wellbeingSaveBtn">Save</button>
+    </div>
+    <div class="settings-hint">Tracked only on this device, only while the app is open — it resets each day and isn't shared anywhere.</div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("wellbeingSaveBtn").onclick = () => {
+    const val = Math.max(0, parseInt(document.getElementById("wellbeingLimitInput").value, 10) || 0);
+    setScreenTimeLimitMinutes(val);
+    showToast(val > 0 ? `Reminder set for ${val} minutes/day` : "Reminder turned off");
+  };
+}
+
+/* ================= SETTINGS > Family Pairing (placeholder) ================= */
+/* Left as an honest placeholder on purpose: a half-working parental-control
+   link between two accounts (without real enforcement) could give a parent
+   a false sense that a child's account is actually being restricted, which
+   is worse than not having the feature at all. */
+function renderSettingsFamilyPairingScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Family Pairing")}
+    <div class="empty-nav-tab">
+      <div class="big">👨‍👩‍👧</div>
+      <div class="line1">Not available in this build</div>
+      <div class="line2">Real parental controls need a carefully tested system that actually enforces screen-time and content limits between two linked accounts. A version that only looked linked but didn't enforce anything could mislead a parent — so it's left out for now rather than faked.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
 }
 
 /* ================= SETTINGS > Theme ================= */

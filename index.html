@@ -4716,10 +4716,10 @@ function renderProfileScreen() {
   const uploadBtn = document.getElementById("profileUploadBtn");
   if (uploadBtn) uploadBtn.onclick = openCameraScreen;
 
-  // Tapping a grid item opens that post; the small pin badge (when present) is its own
-  // click target for pinning/unpinning, so opening a video no longer accidentally pins it.
-  // A long-press on your own thumbnail opens the same quick-actions sheet (Edit/Pin/Privacy/
-  // Delete) as TikTok's own profile grid — no full open needed just to manage the post.
+  // Tapping a grid item opens that post. A long-press on your own thumbnail opens the same
+  // quick-actions sheet (Edit/Pin/Privacy/Delete) as TikTok's own profile grid — pinning
+  // happens from there, not from an always-visible icon on the tile. Pinned posts just show
+  // a small non-interactive 📌 badge, like TikTok.
   activeTab.list.forEach(p => {
     const openEl = document.getElementById(`gridopen-${p.id}`);
     if (openEl) {
@@ -4730,8 +4730,6 @@ function renderProfileScreen() {
       };
       if (isOwn) attachGridLongPress(openEl, p.id, () => { suppressNextClick = true; });
     }
-    const pinToggle = document.getElementById(`gridpintoggle-${p.id}`);
-    if (pinToggle) pinToggle.onclick = (e) => { e.stopPropagation(); togglePinPost(p.id); };
   });
 }
 
@@ -4799,7 +4797,7 @@ function renderProfileGrid(posts, pinnedPosts, isOwn) {
         return `
           <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="gridopen-${p.id}" style="cursor:pointer">
             ${mediaHtml || escapeHtml((p.text || "").slice(0, 60))}
-            ${isOwn ? `<button class="grid-pin-toggle ${isPinned ? "pinned" : ""}" id="gridpintoggle-${p.id}" title="Pin/unpin">📌</button>` : (isPinned ? `<div class="grid-pin-badge">📌</div>` : "")}
+            ${isPinned ? `<div class="grid-pin-badge">📌</div>` : ""}
             ${isVideo ? `<div class="grid-video-badge">▶</div>` : ""}
           </div>
         `;

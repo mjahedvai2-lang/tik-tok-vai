@@ -316,7 +316,8 @@
   .profile-grid {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0 90px;
   }
-  .profile-grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; position: relative; }
+  .profile-grid-item { aspect-ratio: 1; background: var(--line); overflow: hidden; position: relative; transition: transform .12s ease; }
+  .profile-grid-item:active { transform: scale(0.96); }
   .profile-grid-item img, .profile-grid-item video { width: 100%; height: 100%; object-fit: cover; }
   .profile-grid-item.text-only {
     display: flex; align-items: center; justify-content: center; padding: 8px;
@@ -498,10 +499,19 @@
     width: 16px; height: 16px; border-radius: 50%; overflow: hidden; margin-left: -6px; border: 1.5px solid var(--card);
     display: inline-flex; background: var(--coral-soft);
   }
+  /* Like/comment notification post thumbnail (TikTok shows the post's own media, not a plain
+     icon, so a tap can jump straight to that post) */
+  .notif-post-thumb {
+    width: 44px; height: 44px; border-radius: 6px; overflow: hidden; position: relative;
+    flex-shrink: 0; background: var(--line);
+  }
+  .notif-post-thumb img, .notif-post-thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .notif-thumb-badge {
+    position: absolute; bottom: 2px; right: 2px; font-size: 10px; text-shadow: 0 0 3px rgba(0,0,0,0.7);
+  }
   .notif-mutual-avatars span:first-child { margin-left: 0; }
   .notif-mutual-avatars img { width: 100%; height: 100%; object-fit: cover; }
   .notif-suggest-tag { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
-  .notif-post-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--line); }
   .followback-btn {
     border: none; background: var(--tiktok-red); color: #fff; font-size: 13px; font-weight: 700;
     padding: 9px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
@@ -1715,7 +1725,8 @@ function renderFsSlide(p) {
         <button class="fs-action ${liked ? "liked" : ""}" id="fslike-${p.id}">${liked ? "❤️" : "🤍"}<span>${likes.length}</span></button>
         <button class="fs-action" id="fscomment-${p.id}">💬<span>${p.commentCount || 0}</span></button>
         <button class="fs-action ${saved ? "saved" : ""}" id="fssave-${p.id}">🔖<span>${savedBy.length}</span></button>
-        <button class="fs-action fs-more" id="fsshare-${p.id}">⋯</button>
+        <button class="fs-action" id="fsshare-${p.id}">↗️<span>Share</span></button>
+        ${isOwner ? `<button class="fs-action" id="fsowner-${p.id}">⋮</button>` : ""}
       </div>
       <div class="fs-overlay-bottom">
         ${reposted ? `<div class="fs-reposted-tag">↻ You reposted this</div>` : ""}
@@ -1748,6 +1759,8 @@ function wireFsSlideHandlers(posts) {
     if (saveBtn) saveBtn.onclick = () => toggleSave(p);
     const shareBtn = document.getElementById(`fsshare-${p.id}`);
     if (shareBtn) shareBtn.onclick = () => openShareSheet(p.id);
+    const ownerBtn = document.getElementById(`fsowner-${p.id}`);
+    if (ownerBtn) ownerBtn.onclick = () => openOwnerMenu(p.id);
     const insightsBtn = document.getElementById(`fsinsights-${p.id}`);
     if (insightsBtn) insightsBtn.onclick = () => openAnalyticsSheet(p.id);
     const tapLayer = document.getElementById(`fstap-${p.id}`);
@@ -2026,6 +2039,8 @@ function renderShareAppsRow() {
 function renderOwnPostShareSheet() {
   const myUid = state.user ? state.user.uid : null;
   const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
+  const myPinnedPosts = (state.myUserDoc && state.myUserDoc.pinnedPosts) || [];
+  const pinLabel = (activePostId && myPinnedPosts.includes(activePostId)) ? "Unpin" : "Pin";
   return `
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
@@ -2043,7 +2058,7 @@ function renderOwnPostShareSheet() {
       <div class="sheet-row" id="shareActionsRow" style="margin-top:2px;">
         <button class="sheet-item" id="shareAnalytics"><span class="sheet-icon" style="background:#8e44ad">📊</span>Analytics</button>
         <button class="sheet-item" id="shareDownload"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Download</button>
-        <button class="sheet-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>Pin</button>
+        <button class="sheet-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>${pinLabel}</button>
         <button class="sheet-item" id="shareGroup"><span class="sheet-icon" style="background:#3b82f6">👥</span>Create group</button>
         <button class="sheet-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
         <button class="sheet-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
@@ -3183,6 +3198,15 @@ function listenToNotifications() {
     }, (err) => console.error(err));
 }
 
+/* Small thumbnail to attach to a like/comment notification: the post's own image, or the
+   video's cover frame when it's a video. Falls back to null (plain icon shown instead) when
+   neither is available yet. */
+function getPostThumb(post) {
+  if (!post) return null;
+  const isVideo = post.mediaType === "video" || (post.media && post.media.startsWith("data:video"));
+  return isVideo ? (post.cover || null) : (post.media || null);
+}
+
 /* Records a real-time notification for a target user. type: "follow" | "like" | "comment" | "message" */
 function logActivity(targetUid, type, text, extra) {
   if (!targetUid || targetUid === state.user.uid) return; // never notify yourself
@@ -3460,19 +3484,20 @@ function renderInboxSubScreen() {
     const u = state.allUsers.find(x => x.uid === a.fromUid);
     const name = (u && u.name) || a.fromName || "User";
     const avatar = u && u.avatar;
-    // TikTok-style: tapping the row jumps straight to the liked/commented post (using the
-    // postId + thumbnail saved on the notification itself), tapping the avatar opens the
-    // profile instead — the two targets need separate click zones, handled below.
+    const badge = a.type === "like" ? "❤️" : "💬";
+    // Tapping a like/comment notification jumps to the exact post (TikTok's own behavior),
+    // so it carries the post's id and a small thumbnail instead of just a plain icon.
+    const thumbHtml = a.thumb
+      ? `<div class="notif-post-thumb">${a.thumb.startsWith("data:video") ? `<video src="${a.thumb}" muted></video>` : `<img src="${a.thumb}" />`}<span class="notif-thumb-badge">${badge}</span></div>`
+      : `<div class="inbox-section-icon" style="width:30px;height:30px;font-size:14px;background:${a.type === "like" ? "var(--tiktok-red)" : "#5352ed"}">${badge}</div>`;
     return `
-      <div class="inbox-section-row" data-uid="${a.fromUid || ""}" data-post="${a.postId || ""}" style="cursor:pointer;">
-        <div class="notif-row-avatar" data-open="${a.fromUid || ""}">${avatar ? `<img src="${avatar}" />` : initials(name)}</div>
+      <div class="inbox-section-row" data-uid="${a.fromUid || ""}" ${a.postId ? `data-post="${a.postId}"` : ""} style="cursor:pointer;">
+        <div class="notif-row-avatar">${avatar ? `<img src="${avatar}" />` : initials(name)}</div>
         <div class="inbox-section-info">
           <div class="is-title">${escapeHtml(a.text)}</div>
           <div class="notif-row-sub">${timeAgoShort(a.createdAt)}</div>
         </div>
-        ${a.postThumb
-          ? `<img class="notif-post-thumb" src="${a.postThumb}" />`
-          : `<div class="inbox-section-icon" style="width:30px;height:30px;font-size:14px;background:${a.type === "like" ? "var(--tiktok-red)" : "#5352ed"}">${a.type === "like" ? "❤️" : "💬"}</div>`}
+        ${thumbHtml}
       </div>
     `;
   };
@@ -3647,12 +3672,11 @@ function renderInboxSubScreen() {
     document.querySelectorAll(".wave-btn").forEach(btn => {
       btn.onclick = (e) => { e.stopPropagation(); sendWaveTo(btn.dataset.wave); };
     });
-    document.querySelectorAll(".inbox-section-row[data-uid]").forEach(row => {
+    document.querySelectorAll(".inbox-section-row").forEach(row => {
+      // Like/comment rows carry the post id, so they open that exact post; everything else
+      // (new followers, approved follow requests) still opens the person's profile.
       if (row.dataset.post) row.onclick = () => openPostViewer(row.dataset.post);
       else if (row.dataset.uid) row.onclick = () => openProfile(row.dataset.uid);
-    });
-    document.querySelectorAll(".notif-row-avatar[data-open]").forEach(el => {
-      if (el.dataset.open) el.onclick = (e) => { e.stopPropagation(); openProfile(el.dataset.open); };
     });
   } else if (section === "requests") {
     state.activity.filter(a => a.type === "message").forEach(a => {
@@ -4277,8 +4301,8 @@ function renderProfileScreen() {
   const myPosts = isOwn ? state.posts.filter(p => p.authorUid === targetUid) : state.viewingPosts;
 
   let publicPosts = myPosts.filter(p => !p.privacy || p.privacy === "public");
-  // Pinned posts sort to the top in pin order (most-recently-pinned first, matching
-  // TikTok); everything else keeps its existing relative order (sort is stable).
+  // Pinned posts float to the top in the order they were pinned (index 0 = most recently
+  // pinned = leftmost), matching TikTok; unpinned posts keep their existing relative order.
   publicPosts = [...publicPosts].sort((a, b) => {
     const ai = pinnedPosts.indexOf(a.id);
     const bi = pinnedPosts.indexOf(b.id);
@@ -4447,9 +4471,18 @@ function renderProfileScreen() {
 
   // Tapping a grid item opens that post; the small pin badge (when present) is its own
   // click target for pinning/unpinning, so opening a video no longer accidentally pins it.
+  // A long-press on your own thumbnail opens the same quick-actions sheet (Edit/Pin/Privacy/
+  // Delete) as TikTok's own profile grid — no full open needed just to manage the post.
   activeTab.list.forEach(p => {
     const openEl = document.getElementById(`gridopen-${p.id}`);
-    if (openEl) openEl.onclick = () => openPostViewer(p.id);
+    if (openEl) {
+      let suppressNextClick = false;
+      openEl.onclick = () => {
+        if (suppressNextClick) { suppressNextClick = false; return; }
+        openPostViewer(p.id);
+      };
+      if (isOwn) attachGridLongPress(openEl, p.id, () => { suppressNextClick = true; });
+    }
     const pinToggle = document.getElementById(`gridpintoggle-${p.id}`);
     if (pinToggle) pinToggle.onclick = (e) => { e.stopPropagation(); togglePinPost(p.id); };
   });
@@ -4457,8 +4490,8 @@ function renderProfileScreen() {
 
 /* Simple full-post viewer opened from a profile grid thumbnail (own post) */
 function openPostViewer(postId) {
-  const post = findPostById(postId);
-  if (!post) { showToast("Post no longer available"); return; }
+  const post = state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
+  if (!post) { showToast("This post is no longer available"); return; }
   activePostId = postId;
   if (unsubscribeFsComments) { unsubscribeFsComments(); unsubscribeFsComments = null; }
   setState({ openFsComments: null, fsComments: [], replyingTo: null });
@@ -4478,6 +4511,33 @@ function openPostViewer(postId) {
   wireFsSlideHandlers([post]);
   wireSheetHandlers();
   wireFsCommentsHandlers();
+}
+
+const MAX_PINNED_POSTS = 3;
+
+/* TikTok's own profile grid has no visible "⋯" on a thumbnail — a long-press on your own
+   video/photo is what opens the quick-actions sheet (Pin/Privacy/Delete/Edit). This mirrors
+   that: hold ~450ms to open the owner menu, and suppress the tap-to-open that would otherwise
+   fire right after. */
+function attachGridLongPress(el, postId, onFire) {
+  let timer = null;
+  const clear = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  const start = () => {
+    clear();
+    timer = setTimeout(() => {
+      timer = null;
+      if (onFire) onFire();
+      if (navigator.vibrate) navigator.vibrate(15);
+      openGridOwnerMenu(postId);
+    }, 450);
+  };
+  el.addEventListener("touchstart", start, { passive: true });
+  el.addEventListener("touchend", clear);
+  el.addEventListener("touchmove", clear);
+  el.addEventListener("touchcancel", clear);
+  el.addEventListener("mousedown", start);
+  el.addEventListener("mouseup", clear);
+  el.addEventListener("mouseleave", clear);
 }
 
 function renderProfileGrid(posts, pinnedPosts, isOwn) {
@@ -4501,28 +4561,21 @@ function renderProfileGrid(posts, pinnedPosts, isOwn) {
   `;
 }
 
-/* TikTok caps pinned posts at 3, and the most-recently-pinned one shows first (top-left) —
-   pinning a 4th automatically drops the oldest pin rather than blocking the action.
-   pinnedPosts is stored as an ORDERED array (index 0 = most recently pinned), so this
-   writes the whole array instead of using arrayUnion/arrayRemove (which don't preserve order). */
-const MAX_PINNED_POSTS = 3;
 function togglePinPost(postId) {
   const myUid = state.user.uid;
-  const pinnedPosts = (state.profile && state.profile.pinnedPosts) || [];
+  const pinnedPosts = (state.myUserDoc && state.myUserDoc.pinnedPosts) || [];
   const isPinned = pinnedPosts.includes(postId);
-  let newPinned;
-  let toastMsg;
-  if (isPinned) {
-    newPinned = pinnedPosts.filter(id => id !== postId);
-    toastMsg = "Unpinned";
-  } else {
-    const withoutThis = pinnedPosts.filter(id => id !== postId);
-    const willBump = withoutThis.length >= MAX_PINNED_POSTS;
-    newPinned = [postId, ...withoutThis].slice(0, MAX_PINNED_POSTS);
-    toastMsg = willBump ? `Pinned — you can only pin ${MAX_PINNED_POSTS}, so the oldest pin was removed` : "Pinned to top";
+  if (!isPinned && pinnedPosts.length >= MAX_PINNED_POSTS) {
+    showToast(`You can only pin up to ${MAX_PINNED_POSTS} posts. Unpin one first.`);
+    return;
   }
-  db.collection("users").doc(myUid).update({ pinnedPosts: newPinned }).then(() => {
-    showToast(toastMsg);
+  const newPinnedPosts = isPinned
+    ? pinnedPosts.filter(id => id !== postId)
+    : [postId, ...pinnedPosts];
+  db.collection("users").doc(myUid).update({
+    pinnedPosts: newPinnedPosts
+  }).then(() => {
+    showToast(isPinned ? "Unpinned" : "Pinned to top");
   }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
 }
 
@@ -5247,7 +5300,8 @@ function mailboxIconSvg() { return `<svg width="44" height="44" viewBox="0 0 24 
 
 /* ================= Share sheet: handlers ================= */
 function wireSheetHandlers() {
-  document.getElementById("shareOverlay").onclick = closeSheets;
+  const shareOverlay = document.getElementById("shareOverlay");
+  if (shareOverlay) shareOverlay.onclick = closeSheets;
   const ownerOverlay = document.getElementById("ownerOverlay");
   if (ownerOverlay) ownerOverlay.onclick = closeSheets;
 
@@ -5463,10 +5517,34 @@ function openOwnerMenu(postId) {
   document.querySelectorAll("#privacyOptions .privacy-option").forEach(btn => {
     btn.classList.toggle("selected", btn.dataset.level === currentLevel);
   });
+  const pinBtn = document.getElementById("pinPostBtn");
+  if (pinBtn) {
+    const myPinnedPosts = (state.myUserDoc && state.myUserDoc.pinnedPosts) || [];
+    pinBtn.textContent = myPinnedPosts.includes(postId) ? "📌 Unpin from profile" : "📌 Pin to profile";
+  }
+}
+
+/* Long-pressing your own thumbnail in the profile grid opens the same quick-actions sheet,
+   but the grid screen doesn't otherwise embed one (it would collide with the copy inside the
+   full-screen post viewer's own overlay). So this builds a throwaway one, appended straight to
+   body, and closeSheets() removes it again — never leaving a second #ownerSheet in the DOM. */
+function openGridOwnerMenu(postId) {
+  const existing = document.getElementById("gridOwnerMenuOverlay");
+  if (existing) existing.remove();
+  const wrap = document.createElement("div");
+  wrap.id = "gridOwnerMenuOverlay";
+  wrap.innerHTML = renderOwnerSheet();
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => {
+    wireSheetHandlers();
+    openOwnerMenu(postId);
+  });
 }
 
 function closeSheets() {
   document.querySelectorAll(".sheet-overlay, .bottom-sheet").forEach(el => el.classList.remove("open"));
+  const gridOwnerWrap = document.getElementById("gridOwnerMenuOverlay");
+  if (gridOwnerWrap) gridOwnerWrap.remove();
   activePostId = null;
   activeFollowListRemoveUid = null;
 }
@@ -5640,16 +5718,8 @@ function doPinPostFromSheet() {
 function doDeletePost() {
   if (!activePostId) return;
   if (!confirm("Delete this post? This can't be undone.")) return;
-  const deletedId = activePostId;
-  db.collection("posts").doc(deletedId).delete()
-    .then(() => {
-      showToast("Post deleted");
-      // If this delete happened inside the standalone grid post-viewer overlay,
-      // that overlay is a static snapshot and won't reflect the deletion on its own —
-      // close it so the user lands back on their (now updated) profile grid.
-      const overlay = document.getElementById("postViewerOverlay");
-      if (overlay) overlay.remove();
-    })
+  db.collection("posts").doc(activePostId).delete()
+    .then(() => showToast("Post deleted"))
     .catch((err) => { console.error(err); showToast("Couldn't delete the post"); });
   closeSheets();
 }
@@ -5772,7 +5842,7 @@ function toggleLike(post) {
       ? firebase.firestore.FieldValue.arrayRemove(uid)
       : firebase.firestore.FieldValue.arrayUnion(uid)
   }).then(() => {
-    if (!liked) logActivity(post.authorUid, "like", `${state.user.name} liked your post`, { postId: post.id, postThumb: postThumbFor(post) });
+    if (!liked) logActivity(post.authorUid, "like", `${state.user.name} liked your post`, { postId: post.id, thumb: getPostThumb(post) });
   }).catch((err) => console.error(err));
 }
 
@@ -5805,13 +5875,12 @@ function submitCommentOrReply(postId, text, parentId) {
       });
     })
     .then(() => {
-      const post = findPostById(postId);
-      const thumbExtra = { postId, postThumb: postThumbFor(post) };
+      const post = state.posts.find(p => p.id === postId);
       if (post && post.authorUid !== state.user.uid) {
-        logActivity(post.authorUid, "comment", `${state.user.name} ${parentId ? "replied" : "commented"}: "${trimmed.slice(0, 60)}"`, thumbExtra);
+        logActivity(post.authorUid, "comment", `${state.user.name} ${parentId ? "replied" : "commented"}: "${trimmed.slice(0, 60)}"`, { postId, thumb: getPostThumb(post) });
       }
       mentionUids.forEach(uid => {
-        if (uid !== state.user.uid) logActivity(uid, "mention", `${state.user.name} mentioned you in a comment`, thumbExtra);
+        if (uid !== state.user.uid) logActivity(uid, "mention", `${state.user.name} mentioned you in a comment`, { postId, thumb: getPostThumb(post) });
       });
       setState({ replyingTo: null });
     })
@@ -5945,21 +6014,6 @@ function sendWaveTo(uid) {
     console.error(err);
     showToast("Couldn't send");
   });
-}
-
-/* Finds a post whether it lives in the main feed list or the full-screen viewer's list —
-   same fallback openPostViewer already uses, reused here so a comment/like fired from either
-   place can still resolve the post for its notification thumbnail. */
-function findPostById(postId) {
-  return state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
-}
-
-/* Small thumbnail carried inside a like/comment notification doc, TikTok-style: the video's
-   cover frame, or the image itself. Text-only posts have no thumbnail. */
-function postThumbFor(post) {
-  if (!post) return null;
-  const isVideo = post.mediaType === "video" || (post.media && post.media.startsWith("data:video"));
-  return (isVideo ? post.cover : post.media) || null;
 }
 
 function privacyLabel(level) {

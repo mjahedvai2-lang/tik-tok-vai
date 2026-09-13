@@ -1600,8 +1600,6 @@ function render() {
     renderSettingsScreen();
   } else if (state.view === "settingsAccount") {
     renderSettingsAccountScreen();
-  } else if (state.view === "settingsPrivacy") {
-    renderSettingsPrivacyScreen();
   } else if (state.view === "settingsPrivacyComments") {
     renderSettingsPrivacyCommentsScreen();
   } else if (state.view === "settingsPrivacyMentions") {
@@ -5179,6 +5177,14 @@ function wireSettingsBack(backView) {
    stay pinned here since they're account-wide actions, not a category. */
 function renderSettingsScreen() {
   const myAvatarThumb = (state.profile && state.profile.avatar) || (state.myUserDoc && state.myUserDoc.avatar) || "";
+  const d = state.myUserDoc || {};
+  const isPrivate = !!d.private;
+  const pendingCount = (d.followRequests || []).length;
+  const blockedCount = (d.blockedUsers || []).length;
+  const restrictedCount = (d.restrictedUsers || []).length;
+  const mutedCount = (d.mutedUsers || []).length;
+  const tierLabel = (v) => v === "friends" ? "Friends" : v === "noone" ? "No one" : "Everyone";
+  const onOff = (v) => v === false ? "Off" : "On";
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="settingsBackBtn">←</button>
@@ -5186,17 +5192,54 @@ function renderSettingsScreen() {
       <div style="width:28px"></div>
     </div>
 
-    <div class="menu-list" style="margin-top:14px;">
-      <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>Account</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goPrivacyBtn"><span class="menu-item-icon">🔒</span><span>Privacy</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security &amp; permissions</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>Notifications</span><span class="menu-item-arrow">›</span></button>
+    <div class="menu-section-label" style="margin-top:14px;">Activity</div>
+    <div class="menu-list">
+      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>Manage posts</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎬</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goLiveBtn"><span class="menu-item-icon">📺</span><span>LIVE</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>Notifications</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goWellbeingBtn"><span class="menu-item-icon">⏳</span><span>Time and well-being</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goFamilyBtn"><span class="menu-item-icon">👨‍👩‍👧</span><span>Family Pairing</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
+    <div class="menu-section-label">Account</div>
+    <div class="menu-list">
+      <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>Account</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security &amp; permissions</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>Analytics</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
+    <div class="menu-section-label">Visibility</div>
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
+      <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
+    </div>
+    <div class="menu-list">
+      ${pendingCount > 0 ? `
+      <button class="menu-item" id="settingsFollowRequestsBtn"><span class="menu-item-icon">🔒</span><span>Follow requests</span><span class="menu-item-sub">${pendingCount}</span><span class="menu-item-arrow">›</span></button>` : ""}
+      <button class="menu-item" id="privBlockedBtn"><span class="menu-item-icon">🚫</span><span>Blocked accounts</span><span class="menu-item-sub">${blockedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>Restricted accounts</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>Muted accounts</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
+    <div class="menu-section-label">Interactions</div>
+    <div class="menu-list">
+      <button class="menu-item" id="privCommentsBtn"><span class="menu-item-icon">💬</span><span>Comments</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privMentionsBtn"><span class="menu-item-icon">@</span><span>Mentions</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privDmBtn"><span class="menu-item-icon">📩</span><span>Direct messages</span><span class="menu-item-sub">${tierLabel(d.dmPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privReuseBtn"><span class="menu-item-icon">🔁</span><span>Reuse of content</span><span class="menu-item-sub">${onOff(d.allowReuse)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privShareLinkBtn"><span class="menu-item-icon">🔗</span><span>Display profile when sharing links</span><span class="menu-item-sub">${onOff(d.showProfileOnShare)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privDownloadsBtn"><span class="menu-item-icon">⬇️</span><span>Downloads</span><span class="menu-item-sub">${onOff(d.allowDownloadsDefault)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privFollowingListBtn"><span class="menu-item-icon">👥</span><span>Following list</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? "Everyone" : "Only you"}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privLikedVideosBtn"><span class="menu-item-icon">❤️</span><span>Liked videos</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? "Everyone" : (d.likedVideosPrivacy === "friends" ? "Friends" : "Only you")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privViewersBtn"><span class="menu-item-icon">👣</span><span>Viewers</span><span class="menu-item-sub">${onOff(d.viewersEnabled)}</span><span class="menu-item-arrow">›</span></button>
+    </div>
+    <div class="settings-hint">Blocking, restricting and muting someone can also be done from their profile — tap ⋯ on their profile page.</div>
+
+    <div class="menu-section-label">Content &amp; Display</div>
+    <div class="menu-list">
       <button class="menu-item" id="goMusicBtn"><span class="menu-item-icon">🎵</span><span>Music</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goInboxMsgBtn"><span class="menu-item-icon">💬</span><span>Inbox &amp; Messaging</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goActivityCenterBtn"><span class="menu-item-icon">🕒</span><span>Activity center</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goAudienceBtn"><span class="menu-item-icon">👥</span><span>Audience control</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goAdsBtn"><span class="menu-item-icon">📢</span><span>Ads</span><span class="menu-item-arrow">›</span></button>
@@ -5213,12 +5256,6 @@ function renderSettingsScreen() {
       <button class="menu-item" id="goFreeUpSpaceBtn"><span class="menu-item-icon">🗑️</span><span>Free up space</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goDataSaverBtn"><span class="menu-item-icon">📶</span><span>Data Saver</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goWallpaperBtn"><span class="menu-item-icon">🖼️</span><span>Wallpaper</span><span class="menu-item-arrow">›</span></button>
-    </div>
-
-    <div class="menu-list" style="margin-top:14px;">
-      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>Manage posts</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>Analytics</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
     </div>
 
     <div class="menu-section-label">Support &amp; About</div>
@@ -5252,7 +5289,6 @@ function renderSettingsScreen() {
 
   document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
   document.getElementById("goAccountBtn").onclick = () => setState({ view: "settingsAccount" });
-  document.getElementById("goPrivacyBtn").onclick = () => setState({ view: "settingsPrivacy" });
   document.getElementById("goSecurityBtn").onclick = () => setState({ view: "settingsSecurity" });
   document.getElementById("goNotifBtn").onclick = () => setState({ view: "settingsNotifications" });
   document.getElementById("goContentBtn").onclick = () => setState({ view: "settingsContent" });
@@ -5260,7 +5296,6 @@ function renderSettingsScreen() {
   document.getElementById("goWellbeingBtn").onclick = () => setState({ view: "settingsWellbeing" });
   document.getElementById("goFamilyBtn").onclick = () => setState({ view: "settingsFamilyPairing" });
   document.getElementById("goMusicBtn").onclick = () => setState({ view: "settingsMusic" });
-  document.getElementById("goInboxMsgBtn").onclick = () => setState({ view: "settingsPrivacyDm" });
   document.getElementById("goActivityCenterBtn").onclick = () => setState({ view: "settingsActivityCenter" });
   document.getElementById("goAudienceBtn").onclick = () => setState({ view: "settingsAudienceControl" });
   document.getElementById("goAdsBtn").onclick = () => setState({ view: "settingsAds" });
@@ -5291,6 +5326,28 @@ function renderSettingsScreen() {
     if (!confirm("Log out of Milon?")) return;
     handleLogout();
   };
+  // Visibility + Interactions — inlined directly on this page (this is where real TikTok
+  // puts them too, not behind a separate "Privacy" sub-screen).
+  document.getElementById("privateAccountToggle").onclick = () => {
+    db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't update privacy setting");
+    });
+  };
+  const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
+  if (followReqBtn) followReqBtn.onclick = () => setState({ view: "inbox", inboxSection: "followRequests" });
+  document.getElementById("privBlockedBtn").onclick = () => setState({ view: "settingsBlockedList" });
+  document.getElementById("privRestrictedBtn").onclick = () => setState({ view: "settingsRestrictedList" });
+  document.getElementById("privMutedBtn").onclick = () => setState({ view: "settingsMutedList" });
+  document.getElementById("privCommentsBtn").onclick = () => setState({ view: "settingsPrivacyComments" });
+  document.getElementById("privMentionsBtn").onclick = () => setState({ view: "settingsPrivacyMentions" });
+  document.getElementById("privDmBtn").onclick = () => setState({ view: "settingsPrivacyDm" });
+  document.getElementById("privReuseBtn").onclick = () => setState({ view: "settingsPrivacyReuse" });
+  document.getElementById("privShareLinkBtn").onclick = () => setState({ view: "settingsPrivacyShareLink" });
+  document.getElementById("privDownloadsBtn").onclick = () => setState({ view: "settingsPrivacyDownloads" });
+  document.getElementById("privFollowingListBtn").onclick = () => setState({ view: "settingsPrivacyFollowingList" });
+  document.getElementById("privLikedVideosBtn").onclick = () => setState({ view: "settingsPrivacyLikedVideos" });
+  document.getElementById("privViewersBtn").onclick = () => setState({ view: "settingsPrivacyViewers" });
 }
 
 /* ================= SETTINGS > Account ================= */
@@ -5323,68 +5380,6 @@ function renderSettingsAccountScreen() {
    DMs, content reuse, share-link behavior, downloads, following list, liked videos and
    viewers — every row here is backed by a real field on the user doc and actually
    enforced elsewhere in the app (see canCommentOn/canMention/canMessage/etc.). */
-function renderSettingsPrivacyScreen() {
-  const d = state.myUserDoc || {};
-  const isPrivate = !!d.private;
-  const pendingCount = (d.followRequests || []).length;
-  const blockedCount = (d.blockedUsers || []).length;
-  const restrictedCount = (d.restrictedUsers || []).length;
-  const mutedCount = (d.mutedUsers || []).length;
-  const tierLabel = (v) => v === "friends" ? "Friends" : v === "noone" ? "No one" : "Everyone";
-  const onOff = (v) => v === false ? "Off" : "On";
-
-  root.innerHTML = `
-    ${settingsTopbar("Privacy")}
-    <div class="menu-section-label">Visibility</div>
-    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
-      <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
-    </div>
-    <div class="menu-list">
-      ${pendingCount > 0 ? `
-      <button class="menu-item" id="settingsFollowRequestsBtn"><span class="menu-item-icon">🔒</span><span>Follow requests</span><span class="menu-item-sub">${pendingCount}</span><span class="menu-item-arrow">›</span></button>` : ""}
-      <button class="menu-item" id="privBlockedBtn"><span class="menu-item-icon">🚫</span><span>Blocked accounts</span><span class="menu-item-sub">${blockedCount || ""}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>Restricted accounts</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>Muted accounts</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
-    </div>
-
-    <div class="menu-section-label">Interactions</div>
-    <div class="menu-list">
-      <button class="menu-item" id="privCommentsBtn"><span class="menu-item-icon">💬</span><span>Comments</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privMentionsBtn"><span class="menu-item-icon">@</span><span>Mentions</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privDmBtn"><span class="menu-item-icon">📩</span><span>Direct messages</span><span class="menu-item-sub">${tierLabel(d.dmPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privReuseBtn"><span class="menu-item-icon">🔁</span><span>Reuse of content</span><span class="menu-item-sub">${onOff(d.allowReuse)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privShareLinkBtn"><span class="menu-item-icon">🔗</span><span>Display profile when sharing links</span><span class="menu-item-sub">${onOff(d.showProfileOnShare)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privDownloadsBtn"><span class="menu-item-icon">⬇️</span><span>Downloads</span><span class="menu-item-sub">${onOff(d.allowDownloadsDefault)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privFollowingListBtn"><span class="menu-item-icon">👥</span><span>Following list</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? "Everyone" : "Only you"}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privLikedVideosBtn"><span class="menu-item-icon">❤️</span><span>Liked videos</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? "Everyone" : (d.likedVideosPrivacy === "friends" ? "Friends" : "Only you")}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privViewersBtn"><span class="menu-item-icon">👣</span><span>Viewers</span><span class="menu-item-sub">${onOff(d.viewersEnabled)}</span><span class="menu-item-arrow">›</span></button>
-    </div>
-    <div class="settings-hint">Blocking, restricting and muting someone can also be done from their profile — tap ⋯ on their profile page.</div>
-  `;
-  wireSettingsBack("settings");
-  document.getElementById("privateAccountToggle").onclick = () => {
-    db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
-      console.error(err);
-      showToast("Couldn't update privacy setting");
-    });
-  };
-  const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
-  if (followReqBtn) followReqBtn.onclick = () => setState({ view: "inbox", inboxSection: "followRequests" });
-  document.getElementById("privBlockedBtn").onclick = () => setState({ view: "settingsBlockedList" });
-  document.getElementById("privRestrictedBtn").onclick = () => setState({ view: "settingsRestrictedList" });
-  document.getElementById("privMutedBtn").onclick = () => setState({ view: "settingsMutedList" });
-  document.getElementById("privCommentsBtn").onclick = () => setState({ view: "settingsPrivacyComments" });
-  document.getElementById("privMentionsBtn").onclick = () => setState({ view: "settingsPrivacyMentions" });
-  document.getElementById("privDmBtn").onclick = () => setState({ view: "settingsPrivacyDm" });
-  document.getElementById("privReuseBtn").onclick = () => setState({ view: "settingsPrivacyReuse" });
-  document.getElementById("privShareLinkBtn").onclick = () => setState({ view: "settingsPrivacyShareLink" });
-  document.getElementById("privDownloadsBtn").onclick = () => setState({ view: "settingsPrivacyDownloads" });
-  document.getElementById("privFollowingListBtn").onclick = () => setState({ view: "settingsPrivacyFollowingList" });
-  document.getElementById("privLikedVideosBtn").onclick = () => setState({ view: "settingsPrivacyLikedVideos" });
-  document.getElementById("privViewersBtn").onclick = () => setState({ view: "settingsPrivacyViewers" });
-}
-
 /* Merge-writes one top-level field on my own user doc (private, commentPrivacy, dmPrivacy,
    etc.) — every row on the Privacy screen below funnels through this one function so the
    change is saved to Firestore and reflected everywhere in real time via listenToOwnUser. */
@@ -5412,7 +5407,7 @@ function renderPrivacyTierScreen(field, title, subtitleFor) {
     </div>
     <div class="settings-hint">"Friends" means people who follow you and who you follow back. This applies going forward — it doesn't change anything already posted.</div>
   `;
-  wireSettingsBack("settingsPrivacy");
+  wireSettingsBack("settings");
   document.querySelectorAll("[data-tier-choice]").forEach((btn) => {
     btn.onclick = () => updateMyPrivacyField(field, btn.dataset.tierChoice);
   });
@@ -5432,7 +5427,7 @@ function renderPrivacyToggleScreen(field, title, label, sub, defaultOn) {
       <button class="toggle-switch ${val ? "on" : ""}" id="privToggleSwitch"></button>
     </div>
   `;
-  wireSettingsBack("settingsPrivacy");
+  wireSettingsBack("settings");
   document.getElementById("privToggleSwitch").onclick = () => updateMyPrivacyField(field, !val);
 }
 function renderSettingsPrivacyReuseScreen() {
@@ -5466,7 +5461,7 @@ function renderSettingsPrivacyFollowingListScreen() {
       </div>
     </div>
   `;
-  wireSettingsBack("settingsPrivacy");
+  wireSettingsBack("settings");
   document.querySelectorAll("[data-follow-list-choice]").forEach((btn) => {
     btn.onclick = () => updateMyPrivacyField("followingListPrivacy", btn.dataset.followListChoice);
   });
@@ -5487,7 +5482,7 @@ function renderSettingsPrivacyLikedVideosScreen() {
       </div>
     </div>
   `;
-  wireSettingsBack("settingsPrivacy");
+  wireSettingsBack("settings");
   document.querySelectorAll("[data-liked-choice]").forEach((btn) => {
     btn.onclick = () => updateMyPrivacyField("likedVideosPrivacy", btn.dataset.likedChoice);
   });
@@ -5513,7 +5508,7 @@ function renderSafetyListScreen(type) {
       </div>
     `).join("")}</div>` : `<div class="settings-hint">${config.empty}</div>`}
   `;
-  wireSettingsBack("settingsPrivacy");
+  wireSettingsBack("settings");
   document.querySelectorAll("[data-uid]").forEach((btn) => {
     btn.onclick = () => {
       const u = users.find(x => x.uid === btn.dataset.uid);
@@ -6248,7 +6243,7 @@ function renderSettingsPrivacyCenterScreen() {
     </div>
   `;
   wireSettingsBack("settings");
-  document.getElementById("privacyCenterGoPrivacyBtn").onclick = () => setState({ view: "settingsPrivacy" });
+  document.getElementById("privacyCenterGoPrivacyBtn").onclick = () => setState({ view: "settings" });
 }
 function renderSettingsTermsScreen() {
   root.innerHTML = `

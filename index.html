@@ -1655,7 +1655,7 @@ function render() {
   } else if (state.view === "settingsContactsLocation") {
     renderSettingsContactsLocationScreen();
   } else if (state.view === "settingsOfflineVideos") {
-    renderSettingsOfflineVideosScreen();
+    renderOfflineVideosScreen("settings");
   } else if (state.view === "settingsFreeUpSpace") {
     renderSettingsFreeUpSpaceScreen();
   } else if (state.view === "settingsDataSaver") {
@@ -5989,20 +5989,6 @@ function renderSettingsContactsLocationScreen() {
   wireSettingsBack("settings");
 }
 
-/* ================= SETTINGS > Cache & Cellular > Offline videos (placeholder) ================= */
-/* Honest placeholder — there's no download-for-offline-viewing feature built yet. */
-function renderSettingsOfflineVideosScreen() {
-  root.innerHTML = `
-    ${settingsTopbar("Offline videos")}
-    <div class="empty-nav-tab">
-      <div class="big">⬇️</div>
-      <div class="line1">Not available in this build</div>
-      <div class="line2">Saving videos for offline viewing isn't built yet. This menu entry is here as a placeholder for now.</div>
-    </div>
-  `;
-  wireSettingsBack("settings");
-}
-
 /* ================= SETTINGS > Cache & Cellular > Free up space ================= */
 /* Real, non-destructive cache clear: wipes only the Service Worker cache
    storage (sw.js's CACHE_NAME bucket + any others), leaving you logged in —
@@ -6471,35 +6457,126 @@ function openViewersListSheet(post) {
 }
 
 /* ---------------- Offline videos ----------------
-   Downloading a video already puts a real copy in the device's own Downloads folder — this
-   just keeps a small local index (this device only, nothing uploaded) so the person can find
-   what they've saved again from Menu → Offline videos, TikTok-style. */
+   Genuinely offline: the actual media bytes are fetched once and stored on-device in
+   IndexedDB (not just a link back to Firebase Storage), plus a small locally-generated
+   thumbnail (data URL) stored in localStorage so the grid renders with zero network too.
+   Playback opens the on-device copy via a blob: URL, so it works with airplane mode on. */
 const OFFLINE_VIDEOS_KEY = "milon_offline_videos";
+const OFFLINE_DB_NAME = "milon_offline_db";
+const OFFLINE_DB_STORE = "media";
+let offlineObjectUrl = null; // tracks the currently-open blob: URL so we can revoke it
+
+function openOfflineDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(OFFLINE_DB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(OFFLINE_DB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbPutBlob(id, blob) {
+  return openOfflineDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readwrite");
+    tx.objectStore(OFFLINE_DB_STORE).put(blob, id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function idbGetBlob(id) {
+  return openOfflineDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readonly");
+    const req = tx.objectStore(OFFLINE_DB_STORE).get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  }));
+}
+function idbDeleteBlob(id) {
+  return openOfflineDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readwrite");
+    tx.objectStore(OFFLINE_DB_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
 function getOfflineVideos() {
   try { return JSON.parse(localStorage.getItem(OFFLINE_VIDEOS_KEY) || "[]"); } catch (e) { return []; }
 }
+// Draws a small local thumbnail (data URL, ~240px wide) from a media blob so the
+// grid never needs the network — for video it grabs a real video frame.
+function makeLocalThumb(blob, mediaType) {
+  return new Promise((resolve) => {
+    const tmpUrl = URL.createObjectURL(blob);
+    const finish = (dataUrl) => { URL.revokeObjectURL(tmpUrl); resolve(dataUrl || null); };
+    if (mediaType === "video") {
+      const vid = document.createElement("video");
+      vid.muted = true; vid.playsInline = true; vid.src = tmpUrl;
+      vid.onloadeddata = () => {
+        try { vid.currentTime = Math.min(0.2, (vid.duration || 1) / 4); } catch (e) { grab(); }
+      };
+      const grab = () => {
+        try {
+          const w = 240, h = Math.round((vid.videoHeight / (vid.videoWidth || 1)) * 240) || 240;
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(vid, 0, 0, w, h);
+          finish(canvas.toDataURL("image/jpeg", 0.7));
+        } catch (e) { finish(null); }
+      };
+      vid.onseeked = grab;
+      vid.onerror = () => finish(null);
+      setTimeout(() => { if (!vid.currentTime) finish(null); }, 4000); // safety timeout
+    } else {
+      const img = new Image();
+      img.onload = () => {
+        const w = 240, h = Math.round((img.height / (img.width || 1)) * 240) || 240;
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        finish(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = () => finish(null);
+      img.src = tmpUrl;
+    }
+  });
+}
 function saveVideoOffline(post) {
   if (!post || !post.media) { showToast("Nothing to save"); return; }
-  const a = document.createElement("a");
-  a.href = post.media;
-  a.download = `milon-post-${post.id}.${post.mediaType === "video" ? "webm" : "jpg"}`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  const author = (state.allUsers || []).find(u => u.uid === post.authorUid);
-  const list = getOfflineVideos().filter(v => v.id !== post.id);
-  list.unshift({
-    id: post.id,
-    media: post.media,
-    cover: post.cover || null,
-    mediaType: post.mediaType || "image",
-    caption: post.caption || "",
-    authorName: (author && author.name) || "",
-    savedAt: Date.now()
-  });
-  localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(list.slice(0, 100)));
-  showToast("Saved to Offline videos");
-  closeSheets();
+  const existing = getOfflineVideos().find(v => v.id === post.id);
+  if (existing) { showToast("Already saved for offline viewing"); closeSheets(); return; }
+  showToast("Saving for offline…");
+  fetch(post.media)
+    .then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.blob(); })
+    .then((blob) => {
+      const mediaType = post.mediaType || "image";
+      return idbPutBlob(post.id, blob).then(() => makeLocalThumb(blob, mediaType)).then((thumb) => {
+        const author = (state.allUsers || []).find(u => u.uid === post.authorUid);
+        const list = getOfflineVideos().filter(v => v.id !== post.id);
+        list.unshift({
+          id: post.id,
+          cover: thumb || post.cover || null,
+          mediaType,
+          caption: post.caption || "",
+          authorName: (author && author.name) || "",
+          savedAt: Date.now()
+        });
+        try {
+          localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(list.slice(0, 100)));
+        } catch (e) {
+          // localStorage full of thumbnails — drop the oldest until it fits
+          let trimmed = list;
+          while (trimmed.length > 1) {
+            trimmed = trimmed.slice(0, -1);
+            try { localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(trimmed)); break; } catch (e2) { /* keep trimming */ }
+          }
+        }
+        showToast("Saved for offline viewing");
+        closeSheets();
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      showToast("Couldn't save this — check your connection and try again");
+    });
 }
 function doSaveVideoFromSheet() {
   const post = state.posts.find(p => p.id === activePostId);
@@ -6509,54 +6586,90 @@ function doSaveVideoFromSheet() {
   }
   saveVideoOffline(post);
 }
-function removeOfflineVideo(id) {
+function removeOfflineVideo(id, backView) {
   localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(getOfflineVideos().filter(v => v.id !== id)));
-  renderOfflineVideosScreen();
+  idbDeleteBlob(id).catch((err) => console.error(err));
+  renderOfflineVideosScreen(backView);
 }
 function openOfflineVideoPlayer(v) {
   document.getElementById("offlinePlayerOverlay")?.remove();
+  if (offlineObjectUrl) { URL.revokeObjectURL(offlineObjectUrl); offlineObjectUrl = null; }
   const overlay = document.createElement("div");
   overlay.id = "offlinePlayerOverlay";
   overlay.style.cssText = "position:fixed;inset:0;background:#000;z-index:600;display:flex;align-items:center;justify-content:center;";
   overlay.innerHTML = `
     <button id="offlinePlayerClose" style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;z-index:2;">✕</button>
-    ${v.mediaType === "video"
-      ? `<video src="${v.media}" ${v.cover ? `poster="${v.cover}"` : ""} controls autoplay playsinline style="max-width:100%;max-height:100%;"></video>`
-      : `<img src="${v.media}" style="max-width:100%;max-height:100%;object-fit:contain;" />`}
+    <div id="offlinePlayerBody" style="color:#fff;font-size:14px;">Loading your saved copy…</div>
   `;
   document.body.appendChild(overlay);
-  document.getElementById("offlinePlayerClose").onclick = () => overlay.remove();
+  document.getElementById("offlinePlayerClose").onclick = () => {
+    if (offlineObjectUrl) { URL.revokeObjectURL(offlineObjectUrl); offlineObjectUrl = null; }
+    overlay.remove();
+  };
+  idbGetBlob(v.id).then((blob) => {
+    const body = document.getElementById("offlinePlayerBody");
+    if (!body) return; // overlay closed while loading
+    if (!blob) { body.textContent = "This saved copy is missing on this device — try saving it again."; return; }
+    offlineObjectUrl = URL.createObjectURL(blob);
+    body.outerHTML = v.mediaType === "video"
+      ? `<video id="offlinePlayerBody" src="${offlineObjectUrl}" ${v.cover ? `poster="${v.cover}"` : ""} controls autoplay playsinline style="max-width:100%;max-height:100%;"></video>`
+      : `<img id="offlinePlayerBody" src="${offlineObjectUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" />`;
+  }).catch((err) => {
+    console.error(err);
+    const body = document.getElementById("offlinePlayerBody");
+    if (body) body.textContent = "Couldn't open this saved copy.";
+  });
 }
-function renderOfflineVideosScreen() {
+function renderOfflineVideosScreen(backView) {
+  backView = backView || "menu";
   const list = getOfflineVideos();
   root.innerHTML = `
-    ${settingsTopbar("Offline videos", "menu")}
+    ${settingsTopbar("Offline videos", backView)}
     ${list.length ? `
+      <div class="settings-hint" style="margin-top:10px;">Saved on this device — plays even with no internet connection.</div>
       <div class="profile-grid">
         ${list.map(v => `
           <div class="profile-grid-item" id="offlineitem-${v.id}">
-            ${v.mediaType === "video"
-              ? `<video src="${v.media}" ${v.cover ? `poster="${v.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
-              : `<img src="${v.media}" />`}
+            ${v.cover ? `<img src="${v.cover}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--card);">${v.mediaType === "video" ? "🎬" : "🖼️"}</div>`}
+            ${v.mediaType === "video" ? `<span class="grid-video-badge">▶</span>` : ""}
             <button class="grid-pin-toggle" id="offlineremove-${v.id}" style="right:auto;left:6px;top:6px;" title="Remove">✕</button>
           </div>
         `).join("")}
       </div>
     ` : `
-      <div class="empty-nav-tab"><div class="big">📥</div><div class="line1">No offline videos yet</div><div class="line2">Open any video's share sheet → Save video to keep a copy here.</div></div>
+      <div class="empty-nav-tab"><div class="big">📥</div><div class="line1">No offline videos yet</div><div class="line2">Open any video's share sheet → Save video to keep a real, playable-offline copy here.</div></div>
     `}
   `;
-  wireSettingsBack("menu");
+  wireSettingsBack(backView);
   list.forEach(v => {
     const el = document.getElementById(`offlineitem-${v.id}`);
     if (el) el.onclick = (e) => { if (!e.target.closest(".grid-pin-toggle")) openOfflineVideoPlayer(v); };
     const removeBtn = document.getElementById(`offlineremove-${v.id}`);
-    if (removeBtn) removeBtn.onclick = (e) => { e.stopPropagation(); removeOfflineVideo(v.id); };
+    if (removeBtn) removeBtn.onclick = (e) => { e.stopPropagation(); removeOfflineVideo(v.id, backView); };
   });
 }
 
 function doDownloadFromSheet() {
-  saveVideoOffline(state.posts.find(p => p.id === activePostId));
+  const post = state.posts.find(p => p.id === activePostId);
+  if (!post || !post.media) { showToast("Nothing to download"); return; }
+  showToast("Downloading…");
+  fetch(post.media)
+    .then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.blob(); })
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `milon-post-${post.id}.${post.mediaType === "video" ? "webm" : "jpg"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      closeSheets();
+    })
+    .catch((err) => {
+      console.error(err);
+      showToast("Couldn't download — check your connection and try again");
+    });
 }
 
 /* ---------------- Your Music ----------------

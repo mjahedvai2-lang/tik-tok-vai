@@ -1457,6 +1457,8 @@ function render() {
     renderEditProfileScreen();
   } else if (state.view === "menu") {
     renderMenuScreen();
+  } else if (state.view === "offlineVideos") {
+    renderOfflineVideosScreen();
   } else if (state.view === "settings") {
     renderSettingsScreen();
   } else if (state.view === "settingsAccount") {
@@ -2021,6 +2023,7 @@ function renderShareSheet() {
       </div>
       ${renderShareAppsRow()}
       <div class="sheet-row" style="margin-top:2px;">
+        <button class="sheet-item" id="shareSaveVideo"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Save video</button>
         <button class="sheet-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>
         <button class="sheet-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
         <button class="sheet-item" id="shareReport"><span class="sheet-icon" style="background:#c0392b">⚑</span>Report</button>
@@ -4881,6 +4884,12 @@ function renderMenuScreen() {
       <div style="width:28px"></div>
     </div>
 
+    <div class="menu-section-label">Personal tools</div>
+    <div class="menu-list">
+      <button class="menu-item" id="menuQrBtn"><span class="menu-item-icon">▦</span><span>Your QR code</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuOfflineBtn"><span class="menu-item-icon">⬇️</span><span>Offline videos</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
     <div class="menu-list">
       <button class="menu-item" id="menuSettingsBtn">
         <span class="menu-item-icon">⚙️</span>
@@ -4892,6 +4901,8 @@ function renderMenuScreen() {
 
   document.getElementById("menuBackBtn").onclick = () => setState({ view: "profile" });
   document.getElementById("menuSettingsBtn").onclick = () => setState({ view: "settings" });
+  document.getElementById("menuQrBtn").onclick = () => doShowProfileQr(state.user.uid);
+  document.getElementById("menuOfflineBtn").onclick = () => setState({ view: "offlineVideos" });
 }
 
 /* ================= SETTINGS screen (Settings and privacy → Log out) ================= */
@@ -5352,6 +5363,8 @@ function wireSheetHandlers() {
   if (statusBtn) statusBtn.onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
   const smsBtn = document.getElementById("shareSms");
   if (smsBtn) smsBtn.onclick = () => doShareTo("sms");
+  const saveVideoBtn = document.getElementById("shareSaveVideo");
+  if (saveVideoBtn) saveVideoBtn.onclick = doSaveVideoFromSheet;
 
   // ---- Own-post share sheet actions ----
   const analyticsBtn = document.getElementById("shareAnalytics");
@@ -5488,16 +5501,88 @@ function openAnalyticsSheet(postId) {
   document.body.appendChild(sheetEl);
 }
 
-function doDownloadFromSheet() {
-  const post = state.posts.find(p => p.id === activePostId);
-  if (!post || !post.media) { showToast("Nothing to download"); return; }
+/* ---------------- Offline videos ----------------
+   Downloading a video already puts a real copy in the device's own Downloads folder — this
+   just keeps a small local index (this device only, nothing uploaded) so the person can find
+   what they've saved again from Menu → Offline videos, TikTok-style. */
+const OFFLINE_VIDEOS_KEY = "milon_offline_videos";
+function getOfflineVideos() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_VIDEOS_KEY) || "[]"); } catch (e) { return []; }
+}
+function saveVideoOffline(post) {
+  if (!post || !post.media) { showToast("Nothing to save"); return; }
   const a = document.createElement("a");
   a.href = post.media;
   a.download = `milon-post-${post.id}.${post.mediaType === "video" ? "webm" : "jpg"}`;
   document.body.appendChild(a);
   a.click();
   a.remove();
+  const author = (state.allUsers || []).find(u => u.uid === post.authorUid);
+  const list = getOfflineVideos().filter(v => v.id !== post.id);
+  list.unshift({
+    id: post.id,
+    media: post.media,
+    cover: post.cover || null,
+    mediaType: post.mediaType || "image",
+    caption: post.caption || "",
+    authorName: (author && author.name) || "",
+    savedAt: Date.now()
+  });
+  localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(list.slice(0, 100)));
+  showToast("Saved to Offline videos");
   closeSheets();
+}
+function doSaveVideoFromSheet() {
+  saveVideoOffline(state.posts.find(p => p.id === activePostId));
+}
+function removeOfflineVideo(id) {
+  localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(getOfflineVideos().filter(v => v.id !== id)));
+  renderOfflineVideosScreen();
+}
+function openOfflineVideoPlayer(v) {
+  document.getElementById("offlinePlayerOverlay")?.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "offlinePlayerOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;background:#000;z-index:600;display:flex;align-items:center;justify-content:center;";
+  overlay.innerHTML = `
+    <button id="offlinePlayerClose" style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;z-index:2;">✕</button>
+    ${v.mediaType === "video"
+      ? `<video src="${v.media}" ${v.cover ? `poster="${v.cover}"` : ""} controls autoplay playsinline style="max-width:100%;max-height:100%;"></video>`
+      : `<img src="${v.media}" style="max-width:100%;max-height:100%;object-fit:contain;" />`}
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById("offlinePlayerClose").onclick = () => overlay.remove();
+}
+function renderOfflineVideosScreen() {
+  const list = getOfflineVideos();
+  root.innerHTML = `
+    ${settingsTopbar("Offline videos", "menu")}
+    ${list.length ? `
+      <div class="profile-grid">
+        ${list.map(v => `
+          <div class="profile-grid-item" id="offlineitem-${v.id}">
+            ${v.mediaType === "video"
+              ? `<video src="${v.media}" ${v.cover ? `poster="${v.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
+              : `<img src="${v.media}" />`}
+            <button class="grid-pin-toggle" id="offlineremove-${v.id}" style="right:auto;left:6px;top:6px;" title="Remove">✕</button>
+          </div>
+        `).join("")}
+      </div>
+    ` : `
+      <div class="empty-nav-tab"><div class="big">📥</div><div class="line1">No offline videos yet</div><div class="line2">Open any video's share sheet → Save video to keep a copy here.</div></div>
+    `}
+  `;
+  wireSettingsBack("menu");
+  list.forEach(v => {
+    const el = document.getElementById(`offlineitem-${v.id}`);
+    if (el) el.onclick = (e) => { if (!e.target.closest(".grid-pin-toggle")) openOfflineVideoPlayer(v); };
+    const removeBtn = document.getElementById(`offlineremove-${v.id}`);
+    if (removeBtn) removeBtn.onclick = (e) => { e.stopPropagation(); removeOfflineVideo(v.id); };
+  });
+}
+
+function doDownloadFromSheet() {
+  saveVideoOffline(state.posts.find(p => p.id === activePostId));
 }
 
 /* Minimal working "Create group" — makes a group thread doc the user can message into (starts with just them; more members can be added by chatting the group's id to others in a future iteration) */

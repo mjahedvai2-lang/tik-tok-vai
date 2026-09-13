@@ -245,6 +245,8 @@
   .menu-item .menu-item-arrow { margin-left: auto; color: var(--ink-soft); }
   .menu-item.danger { color: var(--coral); }
   .menu-item .menu-item-sub { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+  .menu-item .menu-item-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); margin-left: auto; }
+  .menu-item .menu-item-dot + .menu-item-arrow { margin-left: 8px; }
   .settings-field { margin: 0 14px 14px; }
   .settings-field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
   .settings-field input {
@@ -960,7 +962,7 @@ function escapeHtml(str) {
    once signed in, users/{uid}.settings (see ensureUserProfile) is the source
    of truth and is kept in sync here in real time by listenToOwnUser(). */
 const SETTINGS_CACHE_KEY = "milon_settings_cache";
-const DEFAULT_SETTINGS = { theme: "system", fontSize: "default", reduceMotion: false, autoplayVideos: true };
+const DEFAULT_SETTINGS = { theme: "system", fontSize: "default", reduceMotion: false, autoplayVideos: true, dataSaver: false };
 
 function getCachedSettings() {
   try {
@@ -1026,6 +1028,7 @@ function applyUserSettings(settings) {
 
 function autoplayVideosEnabled() {
   const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
+  if (s.dataSaver) return false;
   return s.autoplayVideos !== false;
 }
 
@@ -1474,7 +1477,8 @@ function ensureUserProfile(user) {
           theme: "system",        // light | dark | system
           fontSize: "default",    // small | default | large
           reduceMotion: false,
-          autoplayVideos: true
+          autoplayVideos: true,
+          dataSaver: false
         },
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -1628,6 +1632,26 @@ function render() {
     renderSettingsThemeScreen();
   } else if (state.view === "settingsAccessibility") {
     renderSettingsAccessibilityScreen();
+  } else if (state.view === "settingsMusic") {
+    renderSettingsMusicScreen();
+  } else if (state.view === "settingsActivityCenter") {
+    renderSettingsActivityCenterScreen();
+  } else if (state.view === "settingsAudienceControl") {
+    renderSettingsAudienceControlScreen();
+  } else if (state.view === "settingsAds") {
+    renderSettingsAdsScreen();
+  } else if (state.view === "settingsPlayback") {
+    renderSettingsPlaybackScreen();
+  } else if (state.view === "settingsLanguage") {
+    renderSettingsLanguageScreen();
+  } else if (state.view === "settingsContactsLocation") {
+    renderSettingsContactsLocationScreen();
+  } else if (state.view === "settingsOfflineVideos") {
+    renderSettingsOfflineVideosScreen();
+  } else if (state.view === "settingsFreeUpSpace") {
+    renderSettingsFreeUpSpaceScreen();
+  } else if (state.view === "settingsDataSaver") {
+    renderSettingsDataSaverScreen();
   } else if (state.view === "settingsBlockedList") {
     renderSafetyListScreen("blocked");
   } else if (state.view === "settingsRestrictedList") {
@@ -5143,29 +5167,38 @@ function renderSettingsScreen() {
       <div style="width:28px"></div>
     </div>
 
-    <div class="menu-section-label">Activity</div>
-    <div class="menu-list">
-      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>Manage posts</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎬</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goLiveBtn"><span class="menu-item-icon">📺</span><span>LIVE</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>Notifications</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goWellbeingBtn"><span class="menu-item-icon">⏳</span><span>Time and well-being</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goFamilyBtn"><span class="menu-item-icon">👨‍👩‍👧</span><span>Family Pairing</span><span class="menu-item-arrow">›</span></button>
-    </div>
-
-    <div class="menu-section-label">Account</div>
-    <div class="menu-list">
+    <div class="menu-list" style="margin-top:14px;">
       <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>Account</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goPrivacyBtn"><span class="menu-item-icon">🔒</span><span>Privacy</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security &amp; permissions</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>Analytics</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>Notifications</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎬</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goLiveBtn"><span class="menu-item-icon">📺</span><span>LIVE</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goWellbeingBtn"><span class="menu-item-icon">⏳</span><span>Time and well-being</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goFamilyBtn"><span class="menu-item-icon">👨‍👩‍👧</span><span>Family Pairing</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goMusicBtn"><span class="menu-item-icon">🎵</span><span>Music</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goInboxMsgBtn"><span class="menu-item-icon">💬</span><span>Inbox &amp; Messaging</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goActivityCenterBtn"><span class="menu-item-icon">🕒</span><span>Activity center</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAudienceBtn"><span class="menu-item-icon">👥</span><span>Audience control</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAdsBtn"><span class="menu-item-icon">📢</span><span>Ads</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goPlaybackBtn"><span class="menu-item-icon">▶️</span><span>Playback</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🌙</span><span>Display</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goLanguageBtn"><span class="menu-item-icon">🔤</span><span>Language</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>Accessibility</span><span class="menu-item-dot"></span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goContactsLocationBtn"><span class="menu-item-icon">📍</span><span>Contacts and location</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Display</div>
+    <div class="menu-section-label">Cache &amp; Cellular</div>
     <div class="menu-list">
-      <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🎨</span><span>Theme</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>Accessibility</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goOfflineVideosBtn"><span class="menu-item-icon">⬇️</span><span>Offline videos</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goFreeUpSpaceBtn"><span class="menu-item-icon">🗑️</span><span>Free up space</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goDataSaverBtn"><span class="menu-item-icon">📶</span><span>Data Saver</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
+    <div class="menu-list" style="margin-top:14px;">
+      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>Manage posts</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>Analytics</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
     </div>
 
     <div class="menu-list" style="margin-top:14px;">
@@ -5184,14 +5217,25 @@ function renderSettingsScreen() {
   document.getElementById("goAccountBtn").onclick = () => setState({ view: "settingsAccount" });
   document.getElementById("goPrivacyBtn").onclick = () => setState({ view: "settingsPrivacy" });
   document.getElementById("goSecurityBtn").onclick = () => setState({ view: "settingsSecurity" });
-  document.getElementById("goContentBtn").onclick = () => setState({ view: "settingsContent" });
-  document.getElementById("goThemeBtn").onclick = () => setState({ view: "settingsTheme" });
-  document.getElementById("goAccessibilityBtn").onclick = () => setState({ view: "settingsAccessibility" });
-  document.getElementById("goManagePostsBtn").onclick = () => setState({ view: "settingsManagePosts" });
-  document.getElementById("goLiveBtn").onclick = () => setState({ view: "settingsLive" });
   document.getElementById("goNotifBtn").onclick = () => setState({ view: "settingsNotifications" });
+  document.getElementById("goContentBtn").onclick = () => setState({ view: "settingsContent" });
+  document.getElementById("goLiveBtn").onclick = () => setState({ view: "settingsLive" });
   document.getElementById("goWellbeingBtn").onclick = () => setState({ view: "settingsWellbeing" });
   document.getElementById("goFamilyBtn").onclick = () => setState({ view: "settingsFamilyPairing" });
+  document.getElementById("goMusicBtn").onclick = () => setState({ view: "settingsMusic" });
+  document.getElementById("goInboxMsgBtn").onclick = () => setState({ view: "settingsPrivacyDm" });
+  document.getElementById("goActivityCenterBtn").onclick = () => setState({ view: "settingsActivityCenter" });
+  document.getElementById("goAudienceBtn").onclick = () => setState({ view: "settingsAudienceControl" });
+  document.getElementById("goAdsBtn").onclick = () => setState({ view: "settingsAds" });
+  document.getElementById("goPlaybackBtn").onclick = () => setState({ view: "settingsPlayback" });
+  document.getElementById("goThemeBtn").onclick = () => setState({ view: "settingsTheme" });
+  document.getElementById("goLanguageBtn").onclick = () => setState({ view: "settingsLanguage" });
+  document.getElementById("goAccessibilityBtn").onclick = () => setState({ view: "settingsAccessibility" });
+  document.getElementById("goContactsLocationBtn").onclick = () => setState({ view: "settingsContactsLocation" });
+  document.getElementById("goOfflineVideosBtn").onclick = () => setState({ view: "settingsOfflineVideos" });
+  document.getElementById("goFreeUpSpaceBtn").onclick = () => setState({ view: "settingsFreeUpSpace" });
+  document.getElementById("goDataSaverBtn").onclick = () => setState({ view: "settingsDataSaver" });
+  document.getElementById("goManagePostsBtn").onclick = () => setState({ view: "settingsManagePosts" });
   document.getElementById("goAnalyticsBtn").onclick = () => setState({ view: "creatorStudio" });
   document.getElementById("goShareProfileBtn").onclick = () => doShareProfile(state.user.uid);
   document.getElementById("clearDataBtn").onclick = () => {
@@ -5556,18 +5600,20 @@ function handleDeleteAccount() {
     });
 }
 
-/* ================= SETTINGS > Content preferences ================= */
+/* ================= SETTINGS > Content preferences (placeholder) ================= */
+/* Honest placeholder — real "For You" tuning (keyword/hashtag filtering, refreshing
+   your feed's interest model) needs a recommendation engine this app doesn't have yet.
+   Autoplay lives under Playback below, where TikTok actually keeps it. */
 function renderSettingsContentScreen() {
-  const autoplay = !(state.myUserDoc && state.myUserDoc.settings && state.myUserDoc.settings.autoplayVideos === false);
   root.innerHTML = `
     ${settingsTopbar("Content preferences")}
-    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Autoplay videos</div><div class="compose-toggle-sub">Videos start playing automatically as you scroll the feed.</div></div>
-      <button class="toggle-switch ${autoplay ? "on" : ""}" id="autoplayToggle"></button>
+    <div class="empty-nav-tab">
+      <div class="big">🎬</div>
+      <div class="line1">Not available in this build</div>
+      <div class="line2">Filtering keywords/hashtags and refreshing your feed's interest model needs a recommendation engine this app doesn't have yet. This menu entry is here as a placeholder for now.</div>
     </div>
   `;
   wireSettingsBack("settings");
-  document.getElementById("autoplayToggle").onclick = () => updateMySettings({ autoplayVideos: !autoplay });
 }
 
 /* ================= SETTINGS > Manage posts ================= */
@@ -5751,6 +5797,231 @@ function renderSettingsAccessibilityScreen() {
   document.getElementById("reduceMotionToggle").onclick = () => {
     applyUserSettings({ ...s, reduceMotion: !reduceMotion });
     updateMySettings({ reduceMotion: !reduceMotion });
+  };
+}
+
+/* ================= SETTINGS > Music (placeholder) ================= */
+/* Honest placeholder — posts here are photo/video uploads with no attached-track
+   system, so there's no real "saved sounds" library to manage yet. */
+function renderSettingsMusicScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Music")}
+    <div class="empty-nav-tab">
+      <div class="big">🎵</div>
+      <div class="line1">Not available in this build</div>
+      <div class="line2">Posts don't have an attached-track/sound system yet, so there's no music library to manage here. This menu entry is here as a placeholder for now.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Activity center ================= */
+/* Real part: your own account's creation date, straight from your user doc.
+   A full device/login history isn't tracked anywhere in this app, so that part
+   is left as an honest placeholder rather than invented. */
+function renderSettingsActivityCenterScreen() {
+  const d = state.myUserDoc || {};
+  const created = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : null;
+  const createdLabel = created ? created.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—";
+  root.innerHTML = `
+    ${settingsTopbar("Activity center")}
+    <div class="menu-section-label">Account activity</div>
+    <div class="menu-list">
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📅</span><span>Account created</span><span class="menu-item-sub">${createdLabel}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📝</span><span>Posts</span><span class="menu-item-sub">${(state.posts || []).filter(p => p.authorUid === state.user.uid).length}</span></div>
+    </div>
+    <div class="empty-nav-tab">
+      <div class="big">🕒</div>
+      <div class="line1">Full activity log not available</div>
+      <div class="line2">A detailed login/device history isn't tracked by this app yet — only the account-level info above is real.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Audience control ================= */
+/* Curated view over fields that already exist and are already enforced elsewhere
+   (private account, comments, mentions, following list, liked videos) — this screen
+   doesn't add new fields, it just groups the ones that govern who sees/reaches you,
+   the same way TikTok's own "Audience control" groups them. */
+function renderSettingsAudienceControlScreen() {
+  const d = state.myUserDoc || {};
+  const isPrivate = !!d.private;
+  const tierLabel = (v) => v === "friends" ? "Friends" : v === "noone" ? "No one" : "Everyone";
+  root.innerHTML = `
+    ${settingsTopbar("Audience control")}
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts." : "Anyone can follow you and see your public posts."}</div></div>
+      <button class="toggle-switch ${isPrivate ? "on" : ""}" id="audiencePrivateToggle"></button>
+    </div>
+    <div class="menu-list">
+      <button class="menu-item" id="audienceCommentsBtn"><span class="menu-item-icon">💬</span><span>Who can comment</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceMentionsBtn"><span class="menu-item-icon">@</span><span>Who can mention you</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceFollowingBtn"><span class="menu-item-icon">👥</span><span>Following list</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? "Everyone" : "Only you"}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceLikedBtn"><span class="menu-item-icon">❤️</span><span>Liked videos</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? "Everyone" : (d.likedVideosPrivacy === "friends" ? "Friends" : "Only you")}</span><span class="menu-item-arrow">›</span></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("audiencePrivateToggle").onclick = () => {
+    db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't update privacy setting");
+    });
+  };
+  document.getElementById("audienceCommentsBtn").onclick = () => setState({ view: "settingsPrivacyComments" });
+  document.getElementById("audienceMentionsBtn").onclick = () => setState({ view: "settingsPrivacyMentions" });
+  document.getElementById("audienceFollowingBtn").onclick = () => setState({ view: "settingsPrivacyFollowingList" });
+  document.getElementById("audienceLikedBtn").onclick = () => setState({ view: "settingsPrivacyLikedVideos" });
+}
+
+/* ================= SETTINGS > Ads (placeholder) ================= */
+/* Honest placeholder — this app shows no ads at all, so there are no real
+   ad-preference values to store or enforce. */
+function renderSettingsAdsScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Ads")}
+    <div class="empty-nav-tab">
+      <div class="big">📢</div>
+      <div class="line1">Milon doesn't show ads</div>
+      <div class="line2">There's no ad system in this app, so there's nothing to configure here. This menu entry is here as a placeholder for now.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Playback ================= */
+/* Real toggle — this is the same autoplayVideos field the feed already reads via
+   autoplayVideosEnabled(), just moved here to match where TikTok actually keeps it. */
+function renderSettingsPlaybackScreen() {
+  const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
+  const autoplay = s.autoplayVideos !== false;
+  const dataSaver = !!s.dataSaver;
+  root.innerHTML = `
+    ${settingsTopbar("Playback")}
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Autoplay videos</div><div class="compose-toggle-sub">Videos start playing automatically as you scroll the feed.${dataSaver ? " Currently off because Data Saver is on." : ""}</div></div>
+      <button class="toggle-switch ${autoplay && !dataSaver ? "on" : ""} ${dataSaver ? "disabled" : ""}" id="playbackAutoplayToggle" ${dataSaver ? "disabled" : ""}></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  const btn = document.getElementById("playbackAutoplayToggle");
+  if (!dataSaver) btn.onclick = () => updateMySettings({ autoplayVideos: !autoplay });
+}
+
+/* ================= SETTINGS > Language (placeholder) ================= */
+/* Honest placeholder — the interface only exists in English right now; there's
+   no translation layer to actually switch strings, so nothing here is wired
+   to a real toggle. */
+function renderSettingsLanguageScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Language")}
+    <div class="settings-field">
+      <label>App language</label>
+      <div class="privacy-options">
+        <button class="privacy-option selected" disabled>English</button>
+      </div>
+    </div>
+    <div class="settings-hint">This app's interface only exists in English right now — there's no translation system yet to offer other languages.</div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Contacts and location (placeholder) ================= */
+/* Honest placeholder — a web app can request the browser's Geolocation
+   permission, but it has no reliable way to read a phone's contacts list,
+   and neither is actually used anywhere in this app yet. Rather than wire up
+   a permission prompt that doesn't do anything real once granted, this stays
+   an explained placeholder. */
+function renderSettingsContactsLocationScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Contacts and location")}
+    <div class="empty-nav-tab">
+      <div class="big">📍</div>
+      <div class="line1">Not available in this build</div>
+      <div class="line2">Nothing in Milon currently uses your contacts or location (e.g. to suggest people to follow), so there's no real permission to request yet. This menu entry is here as a placeholder for now.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Cache & Cellular > Offline videos (placeholder) ================= */
+/* Honest placeholder — there's no download-for-offline-viewing feature built yet. */
+function renderSettingsOfflineVideosScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Offline videos")}
+    <div class="empty-nav-tab">
+      <div class="big">⬇️</div>
+      <div class="line1">Not available in this build</div>
+      <div class="line2">Saving videos for offline viewing isn't built yet. This menu entry is here as a placeholder for now.</div>
+    </div>
+  `;
+  wireSettingsBack("settings");
+}
+
+/* ================= SETTINGS > Cache & Cellular > Free up space ================= */
+/* Real, non-destructive cache clear: wipes only the Service Worker cache
+   storage (sw.js's CACHE_NAME bucket + any others), leaving you logged in —
+   unlike the account-wide "Clear data" button below, which also signs you out.
+   Shows a real usage estimate from the browser's Storage API where available. */
+function renderSettingsFreeUpSpaceScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Free up space")}
+    <div style="padding:20px 18px 6px;">
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Cache used on this device</div>
+        <div style="font-size:22px;font-weight:800;" id="cacheUsageLabel">Calculating…</div>
+      </div>
+    </div>
+    <div style="padding:0 14px;">
+      <button class="btn-primary" id="freeUpSpaceBtn">Clear cache</button>
+    </div>
+    <div class="settings-hint">This clears cached images/pages stored by the app so it can re-download the latest version — you stay logged in and none of your posts or profile data are touched.</div>
+  `;
+  wireSettingsBack("settings");
+  if (navigator.storage && navigator.storage.estimate) {
+    navigator.storage.estimate().then((est) => {
+      const mb = ((est.usage || 0) / (1024 * 1024)).toFixed(1);
+      const label = document.getElementById("cacheUsageLabel");
+      if (label) label.textContent = `${mb} MB`;
+    }).catch(() => {
+      const label = document.getElementById("cacheUsageLabel");
+      if (label) label.textContent = "Unknown";
+    });
+  } else {
+    const label = document.getElementById("cacheUsageLabel");
+    if (label) label.textContent = "Unknown";
+  }
+  document.getElementById("freeUpSpaceBtn").onclick = () => {
+    if (!confirm("Clear cached app data on this device? You'll stay logged in.")) return;
+    const clearCaches = window.caches ? caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))) : Promise.resolve();
+    clearCaches.then(() => {
+      showToast("Cache cleared");
+      const label = document.getElementById("cacheUsageLabel");
+      if (label) label.textContent = "0.0 MB";
+    }).catch((err) => {
+      console.error(err);
+      showToast("Couldn't clear cache");
+    });
+  };
+}
+
+/* ================= SETTINGS > Cache & Cellular > Data Saver ================= */
+/* Real toggle, persisted like every other setting — autoplayVideosEnabled()
+   already checks settings.dataSaver and forces autoplay off when it's on. */
+function renderSettingsDataSaverScreen() {
+  const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
+  const dataSaver = !!s.dataSaver;
+  root.innerHTML = `
+    ${settingsTopbar("Data Saver")}
+    <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
+      <div><div class="compose-toggle-label">Data Saver</div><div class="compose-toggle-sub">Turns off autoplay so videos only load when you tap them, to use less mobile data.</div></div>
+      <button class="toggle-switch ${dataSaver ? "on" : ""}" id="dataSaverToggle"></button>
+    </div>
+  `;
+  wireSettingsBack("settings");
+  document.getElementById("dataSaverToggle").onclick = () => {
+    applyUserSettings({ ...s, dataSaver: !dataSaver });
+    updateMySettings({ dataSaver: !dataSaver });
   };
 }
 

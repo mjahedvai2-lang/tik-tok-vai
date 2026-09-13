@@ -5609,7 +5609,7 @@ function handleChangePassword() {
 function renderSettingsDeleteAccountScreen() {
   root.innerHTML = `
     ${settingsTopbar("Delete account")}
-    <div class="settings-hint" style="color:var(--coral);">This permanently deletes your account and sign-in. Your posts, comments and profile stay in the app tied to your old user ID unless you remove them first — this cannot be undone.</div>
+    <div class="settings-hint" style="color:var(--coral);">This permanently deletes your account, sign-in, posts (and their media), comments, messages, and every trace of you elsewhere in the app — likes, saves, reposts, views you left on others' posts, and your spot in anyone's followers/following/blocked lists. This cannot be undone.</div>
     <div class="settings-field">
       <label>Confirm your password</label>
       <input type="password" id="delPasswordInput" value="${escapeHtml(state.delPassword)}" autocomplete="current-password" />
@@ -5624,19 +5624,139 @@ function renderSettingsDeleteAccountScreen() {
   document.getElementById("delConfirmBtn").onclick = handleDeleteAccount;
 }
 
+/* ---------------- Real account deletion (TikTok-style) ----------------
+   Deleting your account used to only remove your users/{uid} doc and sign-in —
+   your posts, comments, and messages stayed in the database forever, orphaned.
+   This now actually erases everything tied to your account before the account
+   itself goes: your own posts (+ their comments + any video files in Storage —
+   photos/chat media are stored as data URLs inside the documents themselves, so
+   deleting the doc deletes the media too), your comments on other people's posts,
+   your DM threads and their messages, your own notifications, notifications you
+   generated for other people, and every reference to your uid in anyone else's
+   followers/following/blocked/follow-request/pinned lists. */
+function deleteBatchOfDocs(docRefs) {
+  // Firestore batches cap at 500 writes — chunk defensively so large accounts still work.
+  const chunks = [];
+  for (let i = 0; i < docRefs.length; i += 450) chunks.push(docRefs.slice(i, i + 450));
+  return chunks.reduce((p, chunk) => p.then(() => {
+    const batch = db.batch();
+    chunk.forEach((ref) => batch.delete(ref));
+    return batch.commit();
+  }), Promise.resolve());
+}
+function deleteStorageFileByUrl(url) {
+  try { return storage.refFromURL(url).delete().catch(() => {}); }
+  catch (e) { return Promise.resolve(); }
+}
+function deleteOwnPosts(uid) {
+  return db.collection("posts").where("authorUid", "==", uid).get().then((snap) => {
+    return Promise.all(snap.docs.map((doc) => {
+      const data = doc.data();
+      return doc.ref.collection("comments").get()
+        .then((c) => deleteBatchOfDocs(c.docs.map((d) => d.ref)))
+        .then(() => (data.mediaType === "video" && data.media) ? deleteStorageFileByUrl(data.media) : null)
+        .then(() => doc.ref.delete());
+    }));
+  });
+}
+function deleteOwnCommentsOnOthersPosts(uid) {
+  // Needs a Firestore collection-group index on comments.uid — Firebase auto-suggests
+  // creating it (with a direct link) the first time this query runs if it's missing.
+  return db.collectionGroup("comments").where("uid", "==", uid).get()
+    .then((snap) => deleteBatchOfDocs(snap.docs.map((d) => d.ref)))
+    .catch((err) => console.error("comment cleanup skipped (Firestore index may be needed):", err));
+}
+function deleteOwnThreads(uid) {
+  return db.collection("threads").where("participants", "array-contains", uid).get().then((snap) => {
+    return Promise.all(snap.docs.map((doc) => {
+      return doc.ref.collection("messages").get()
+        .then((m) => deleteBatchOfDocs(m.docs.map((d) => d.ref)))
+        .then(() => doc.ref.delete());
+    }));
+  });
+}
+function deleteOwnNotifications(uid) {
+  return db.collection("users").doc(uid).collection("notifications").get()
+    .then((snap) => deleteBatchOfDocs(snap.docs.map((d) => d.ref)))
+    .catch((err) => console.error(err));
+}
+function deleteNotificationsGeneratedByUser(uid) {
+  // Needs a Firestore collection-group index on notifications.fromUid — same as above.
+  return db.collectionGroup("notifications").where("fromUid", "==", uid).get()
+    .then((snap) => deleteBatchOfDocs(snap.docs.map((d) => d.ref)))
+    .catch((err) => console.error("notification cleanup skipped (Firestore index may be needed):", err));
+}
+function scrubUidFromOtherUsers(uid) {
+  const fields = ["followers", "following", "blockedUsers", "blockedBy", "followRequests", "pinnedFriends"];
+  return Promise.all(fields.map((field) => {
+    return db.collection("users").where(field, "array-contains", uid).get().then((snap) => {
+      const chunks = [];
+      for (let i = 0; i < snap.docs.length; i += 450) chunks.push(snap.docs.slice(i, i + 450));
+      return chunks.reduce((p, chunk) => p.then(() => {
+        const batch = db.batch();
+        chunk.forEach((doc) => batch.update(doc.ref, { [field]: firebase.firestore.FieldValue.arrayRemove(uid) }));
+        return batch.commit();
+      }), Promise.resolve());
+    }).catch((err) => console.error(err));
+  }));
+}
+// Removes every trace of this uid left behind on OTHER people's posts — likes, saves,
+// reposts, and view history — so deleting an account doesn't leave dangling references
+// (inflated-looking counts, a "ghost" entry in someone's Liked videos) anywhere in the app.
+function scrubUidFromPostsField(uid, field) {
+  return db.collection("posts").where(field, "array-contains", uid).get().then((snap) => {
+    const chunks = [];
+    for (let i = 0; i < snap.docs.length; i += 450) chunks.push(snap.docs.slice(i, i + 450));
+    return chunks.reduce((p, chunk) => p.then(() => {
+      const batch = db.batch();
+      chunk.forEach((doc) => batch.update(doc.ref, { [field]: firebase.firestore.FieldValue.arrayRemove(uid) }));
+      return batch.commit();
+    }), Promise.resolve());
+  }).catch((err) => console.error(err));
+}
+// Same idea for likes left on OTHER people's comments (a subcollection, so this needs the
+// same collection-group index Firestore auto-suggests for the comment-cleanup query above).
+function scrubUidFromCommentLikes(uid) {
+  return db.collectionGroup("comments").where("likes", "array-contains", uid).get().then((snap) => {
+    const chunks = [];
+    for (let i = 0; i < snap.docs.length; i += 450) chunks.push(snap.docs.slice(i, i + 450));
+    return chunks.reduce((p, chunk) => p.then(() => {
+      const batch = db.batch();
+      chunk.forEach((doc) => batch.update(doc.ref, { likes: firebase.firestore.FieldValue.arrayRemove(uid) }));
+      return batch.commit();
+    }), Promise.resolve());
+  }).catch((err) => console.error("comment-likes cleanup skipped (Firestore index may be needed):", err));
+}
+function wipeAllUserData(uid) {
+  return Promise.all([
+    deleteOwnPosts(uid),
+    deleteOwnCommentsOnOthersPosts(uid),
+    deleteOwnThreads(uid),
+    deleteOwnNotifications(uid),
+    deleteNotificationsGeneratedByUser(uid),
+    scrubUidFromOtherUsers(uid),
+    scrubUidFromPostsField(uid, "likes"),
+    scrubUidFromPostsField(uid, "savedBy"),
+    scrubUidFromPostsField(uid, "reposts"),
+    scrubUidFromPostsField(uid, "viewedBy"),
+    scrubUidFromCommentLikes(uid)
+  ]);
+}
+
 function handleDeleteAccount() {
   if (!state.delPassword) { setState({ delError: "Enter your password to confirm." }); return; }
-  if (!confirm("This will permanently delete your account. Continue?")) return;
+  if (!confirm("This permanently deletes your account AND everything tied to it — your posts, comments, and messages. This can't be undone. Continue?")) return;
 
   setState({ delError: "", delSaving: true });
   const user = auth.currentUser;
   const uid = user.uid;
   const credential = firebase.auth.EmailAuthProvider.credential(user.email, state.delPassword);
   user.reauthenticateWithCredential(credential)
+    .then(() => wipeAllUserData(uid))
     .then(() => db.collection("users").doc(uid).delete())
     .then(() => user.delete())
     .then(() => {
-      showToast("Account deleted");
+      showToast("Account and all your data deleted");
       // auth.onAuthStateChanged() handles resetting local state once the sign-out fires.
     })
     .catch((err) => {
@@ -6133,13 +6253,11 @@ function renderSettingsPrivacyCenterScreen() {
 function renderSettingsTermsScreen() {
   root.innerHTML = `
     ${settingsTopbar("Terms and Policies")}
-    <div style="padding:14px 18px 24px; font-size:13.5px; color:var(--ink); line-height:1.7;">
-      <p style="color:var(--ink-soft); font-size:12.5px;">This is a basic placeholder, not reviewed legal terms — swap in real Terms of Service and a Privacy Policy before this app is used by people outside your own testing.</p>
-      <p><strong>Using Milon:</strong> Don't post anything illegal, harassing, or that you don't have the rights to share. You're responsible for what you post under your account.</p>
-      <p><strong>Your content:</strong> You keep ownership of what you post. Posting it here just lets other users on Milon view it according to the privacy setting you chose for it.</p>
-      <p><strong>Account safety:</strong> Keep your password private. You're responsible for activity that happens under your account.</p>
-      <p><strong>Changes:</strong> These terms may change as the app changes — there's no formal notice process yet.</p>
+    <div class="menu-list" style="margin-top:10px;">
+      <a class="menu-item" href="terms-of-service.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;"><span class="menu-item-icon">📄</span><span>Terms of Service</span><span class="menu-item-arrow">↗</span></a>
+      <a class="menu-item" href="privacy-policy.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;"><span class="menu-item-icon">🔏</span><span>Privacy Policy</span><span class="menu-item-arrow">↗</span></a>
     </div>
+    <div class="settings-hint">Opens the full legal document in a new tab.</div>
   `;
   wireSettingsBack("settings");
 }

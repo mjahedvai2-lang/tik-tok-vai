@@ -338,6 +338,11 @@
     font-size: 12px; border: none; z-index: 2; cursor: pointer;
   }
   .grid-pin-toggle.pinned { background: var(--coral); }
+  .promote-toggle-btn {
+    position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; border: none;
+    border-radius: 12px; padding: 4px 9px; font-size: 11px; font-weight: 700; z-index: 2; cursor: pointer;
+  }
+  .promote-toggle-btn.active { background: var(--coral); }
 
   /* ---------- DISCOVER / SEARCH ---------- */
   .discover-search-wrap { padding: 10px 14px; position: sticky; top: 0; background: var(--bg); z-index: 5; }
@@ -656,6 +661,10 @@
     flex: 1; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 10px;
     border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer;
   }
+  .compose-sound-input {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    font-size: 13.5px; font-family: inherit; background: var(--card); color: var(--ink); margin: 4px 0 14px;
+  }
   .compose-privacy-row { display: flex; gap: 8px; margin: 10px 0 18px; flex-wrap: wrap; }
   .compose-char-count { text-align: right; font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
   .compose-char-count.over { color: #c0392b; font-weight: 700; }
@@ -701,6 +710,7 @@
   .fs-author { font-weight: 700; font-size: 14px; margin-bottom: 4px; cursor: pointer; }
   .fs-caption { font-size: 13px; line-height: 1.5; margin-bottom: 4px; white-space: pre-wrap; }
   .fs-reposted-tag { font-size: 12px; background: rgba(255,255,255,0.18); display: inline-block; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; }
+  .fs-sound-tag { font-size: 12.5px; display: flex; align-items: center; gap: 5px; opacity: 0.92; margin-top: 2px; }
   .fs-side-rail {
     position: absolute; right: 10px; bottom: 90px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 18px; color: #fff;
   }
@@ -819,6 +829,7 @@ let state = {
   composerText: "",
   composerMedia: null,
   composerMediaType: null, // "image" | "video"
+  composerSoundName: "",   // optional TikTok-style sound/song name tag typed by the poster
   toastMsg: "",
   openComments: {},
   view: "feed",         // feed | friends | inbox | profile | chat | camera
@@ -884,6 +895,8 @@ let state = {
   activityFilter: "all", // "all" | "like" | "comment" — filter chips on the Activity sub-screen (matches TikTok: new-follower notices stay in their own section, not here)
   systemNotices: [],      // real-time broadcast messages from the app owner (systemNotices collection)
   ownerNoticeText: "",
+  viewingSoundName: null, // set while drilled into one sound's posts on the "Your Music" screen
+  demoPromotedPosts: [],  // post ids toggled "Promoted" on the local-only Promote demo screen (never sent to Firestore)
 
   // ---- Full-screen video feed state (Home / Friends) ----
   homeFeedTab: "forYou",   // forYou | following  (Home)
@@ -1459,6 +1472,16 @@ function render() {
     renderMenuScreen();
   } else if (state.view === "offlineVideos") {
     renderOfflineVideosScreen();
+  } else if (state.view === "yourMusic") {
+    renderYourMusicScreen();
+  } else if (state.view === "balance") {
+    renderBalanceScreen();
+  } else if (state.view === "creatorStudio") {
+    renderCreatorStudioScreen();
+  } else if (state.view === "creatorInsights") {
+    renderCreatorInsightsScreen();
+  } else if (state.view === "promote") {
+    renderPromoteScreen();
   } else if (state.view === "settings") {
     renderSettingsScreen();
   } else if (state.view === "settingsAccount") {
@@ -1750,6 +1773,7 @@ function renderFsSlide(p) {
         ${reposted ? `<div class="fs-reposted-tag">↻ You reposted this</div>` : ""}
         <div class="fs-author" id="fsauthorname-${p.id}">@${escapeHtml(p.authorName)}</div>
         ${p.media && p.text ? `<div class="fs-caption">${escapeHtml(p.text)}</div>` : ""}
+        ${p.soundName ? `<div class="fs-sound-tag">🎵 ${escapeHtml(p.soundName)}</div>` : ""}
         ${isOwner ? `
           <div class="fs-insights-row">
             <div class="fs-views-count">▶ ${(p.views || 0).toLocaleString()} views</div>
@@ -2354,7 +2378,7 @@ function renderCameraScreen() {
       if (mode === "TEXT") {
         // Text-only post: close the camera and open the compose screen with no media
         stopCameraStream();
-        setState({ view: "postCompose", composerMedia: null, composerMediaType: null, composerText: "" });
+        setState({ view: "postCompose", composerMedia: null, composerMediaType: null, composerText: "", composerSoundName: "" });
         return;
       }
       setState({ cameraMode: mode });
@@ -2518,7 +2542,7 @@ function useCapturedMedia() {
   const url = state.cameraCapturedUrl;
 
   if (type === "photo") {
-    setState({ view: "postCompose", composerMedia: url, composerMediaType: "image", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+    setState({ view: "postCompose", composerMedia: url, composerMediaType: "image", composerText: "", composerSoundName: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
     return;
   }
 
@@ -2526,11 +2550,11 @@ function useCapturedMedia() {
     if (state.cameraCapturedBlob) {
       const reader = new FileReader();
       reader.onload = () => {
-        setState({ view: "postCompose", composerMedia: reader.result, composerMediaType: "video", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+        setState({ view: "postCompose", composerMedia: reader.result, composerMediaType: "video", composerText: "", composerSoundName: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
       };
       reader.readAsDataURL(state.cameraCapturedBlob);
     } else {
-      setState({ view: "postCompose", composerMedia: url, composerMediaType: "video", composerText: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
+      setState({ view: "postCompose", composerMedia: url, composerMediaType: "video", composerText: "", composerSoundName: "", cameraCapturedType: null, cameraCapturedUrl: null, cameraCapturedBlob: null });
     }
   }
 }
@@ -2581,6 +2605,7 @@ function renderPostComposeScreen() {
           </label>
           ${state.composerMedia ? `<button id="composeRemoveMediaBtn" ${uploading ? "disabled" : ""}>✕ Remove media</button>` : ""}
         </div>
+        <input type="text" id="composeSoundInput" class="compose-sound-input" placeholder="🎵 Sound name (optional)" maxlength="60" value="${escapeHtml(state.composerSoundName || "")}" ${uploading ? "disabled" : ""} />
         <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Who can see this</div>
         <div class="compose-privacy-row">
           <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public" ${uploading ? "disabled" : ""}>Public</button>
@@ -2610,9 +2635,10 @@ function renderPostComposeScreen() {
         showToast("Draft saved");
       } catch (e) { /* storage full or unavailable — just discard silently */ }
     }
-    setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "" });
+    setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "", composerSoundName: "" });
   };
   document.getElementById("composeTextInput").oninput = (e) => { state.composerText = e.target.value; render(); };
+  document.getElementById("composeSoundInput").oninput = (e) => { state.composerSoundName = e.target.value; };
   document.getElementById("composePhotoInput").onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -4884,10 +4910,24 @@ function renderMenuScreen() {
       <div style="width:28px"></div>
     </div>
 
+    <div class="menu-section-label">Assets</div>
+    <div class="menu-list">
+      <button class="menu-item" id="menuBalanceBtn"><span class="menu-item-icon">👛</span><span>Balance</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
     <div class="menu-section-label">Personal tools</div>
     <div class="menu-list">
-      <button class="menu-item" id="menuQrBtn"><span class="menu-item-icon">▦</span><span>Your QR code</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuActivityBtn"><span class="menu-item-icon">🕐</span><span>Activity center</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="menuOfflineBtn"><span class="menu-item-icon">⬇️</span><span>Offline videos</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuQrBtn"><span class="menu-item-icon">▦</span><span>Your QR code</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuMusicBtn"><span class="menu-item-icon">🎵</span><span>Your Music</span><span class="menu-item-arrow">›</span></button>
+    </div>
+
+    <div class="menu-section-label">Creation &amp; business tools</div>
+    <div class="menu-list">
+      <button class="menu-item" id="menuStudioBtn"><span class="menu-item-icon">📊</span><span>TikTok Studio</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuInsightsBtn"><span class="menu-item-icon">💡</span><span>Creator Search Insights</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuPromoteBtn"><span class="menu-item-icon">🔥</span><span>Promote</span><span class="menu-item-arrow">›</span></button>
     </div>
 
     <div class="menu-list">
@@ -4903,6 +4943,12 @@ function renderMenuScreen() {
   document.getElementById("menuSettingsBtn").onclick = () => setState({ view: "settings" });
   document.getElementById("menuQrBtn").onclick = () => doShowProfileQr(state.user.uid);
   document.getElementById("menuOfflineBtn").onclick = () => setState({ view: "offlineVideos" });
+  document.getElementById("menuMusicBtn").onclick = () => setState({ view: "yourMusic", viewingSoundName: null });
+  document.getElementById("menuActivityBtn").onclick = () => setState({ view: "inbox", inboxSection: "activity" });
+  document.getElementById("menuBalanceBtn").onclick = () => setState({ view: "balance" });
+  document.getElementById("menuStudioBtn").onclick = () => setState({ view: "creatorStudio" });
+  document.getElementById("menuInsightsBtn").onclick = () => setState({ view: "creatorInsights" });
+  document.getElementById("menuPromoteBtn").onclick = () => setState({ view: "promote", promoteSelectedPostId: null });
 }
 
 /* ================= SETTINGS screen (Settings and privacy → Log out) ================= */
@@ -5585,7 +5631,198 @@ function doDownloadFromSheet() {
   saveVideoOffline(state.posts.find(p => p.id === activePostId));
 }
 
-/* Minimal working "Create group" — makes a group thread doc the user can message into (starts with just them; more members can be added by chatting the group's id to others in a future iteration) */
+/* ---------------- Your Music ----------------
+   Groups the current user's own posts by the optional soundName tag they typed
+   in compose. Text tag only (no real audio track) — see composeSoundInput. */
+function renderYourMusicScreen() {
+  const myPosts = (state.posts || []).filter(p => p.authorUid === state.user.uid && p.soundName);
+
+  if (state.viewingSoundName) {
+    const list = myPosts.filter(p => p.soundName === state.viewingSoundName);
+    root.innerHTML = `
+      ${settingsTopbar(state.viewingSoundName, "yourMusic")}
+      ${list.length ? `
+        <div class="profile-grid">
+          ${list.map(p => `
+            <div class="profile-grid-item" id="musicitem-${p.id}">
+              ${p.mediaType === "video"
+                ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
+                : p.media ? `<img src="${p.media}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:8px;font-size:12px;">${escapeHtml(p.text || "")}</div>`}
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div class="empty-nav-tab"><div class="big">🎵</div><div class="line1">No posts with this sound</div></div>`}
+    `;
+    list.forEach(p => {
+      const el = document.getElementById(`musicitem-${p.id}`);
+      if (el) el.onclick = () => openOfflineVideoPlayer(p);
+    });
+    document.getElementById("settingsSubBackBtn").onclick = () => setState({ viewingSoundName: null });
+    return;
+  }
+
+  const counts = {};
+  myPosts.forEach(p => { counts[p.soundName] = (counts[p.soundName] || 0) + 1; });
+  const sounds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+
+  root.innerHTML = `
+    ${settingsTopbar("Your Music", "menu")}
+    ${sounds.length ? `
+      <div class="menu-list">
+        ${sounds.map(name => `
+          <button class="menu-item" id="soundrow-${encodeURIComponent(name)}">
+            <span class="menu-item-icon">🎵</span>
+            <span>${escapeHtml(name)}</span>
+            <span class="menu-item-sub">${counts[name]} post${counts[name] > 1 ? "s" : ""}</span>
+            <span class="menu-item-arrow">›</span>
+          </button>
+        `).join("")}
+      </div>
+    ` : `<div class="empty-nav-tab"><div class="big">🎵</div><div class="line1">No sounds tagged yet</div><div class="line2">Add a sound name when you post to see it grouped here.</div></div>`}
+  `;
+  wireSettingsBack("menu");
+  sounds.forEach(name => {
+    const el = document.getElementById(`soundrow-${encodeURIComponent(name)}`);
+    if (el) el.onclick = () => setState({ viewingSoundName: name });
+  });
+}
+
+/* ---------------- Balance (Assets → Balance) ----------------
+   Demo-only screen. This app has no payment processor wired up, so this
+   intentionally shows a static 0-coin balance rather than pretending real
+   purchases or cash-outs work. */
+function renderBalanceScreen() {
+  root.innerHTML = `
+    ${settingsTopbar("Balance", "menu")}
+    <div style="padding:24px 18px;">
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center;">
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Coin balance</div>
+        <div style="font-size:32px;font-weight:800;color:var(--ink);">🪙 0</div>
+      </div>
+      <div style="margin-top:16px;font-size:12.5px;color:var(--ink-soft);line-height:1.6;text-align:center;">
+        This is a demo balance — this app has no payment system connected, so coins can't actually be bought, gifted, or cashed out here.
+      </div>
+    </div>
+  `;
+  wireSettingsBack("menu");
+}
+
+/* ---------------- TikTok Studio (Creation & business tools) ----------------
+   Real analytics built from the user's own post data already stored in
+   Firestore (views / likes / commentCount) — no fake numbers. */
+function renderCreatorStudioScreen() {
+  const myUid = state.user.uid;
+  const myPosts = (state.posts || []).filter(p => p.authorUid === myUid);
+  const totalViews = myPosts.reduce((s, p) => s + (p.views || 0), 0);
+  const totalLikes = myPosts.reduce((s, p) => s + ((p.likes || []).length), 0);
+  const totalComments = myPosts.reduce((s, p) => s + (p.commentCount || 0), 0);
+  const topPosts = [...myPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+
+  root.innerHTML = `
+    ${settingsTopbar("TikTok Studio", "menu")}
+    <div style="padding:18px;">
+      <div class="profile-stats" style="padding:0 0 20px;">
+        <div class="profile-stat"><div class="num">${myPosts.length}</div><div class="lbl">Posts</div></div>
+        <div class="profile-stat"><div class="num">${totalViews.toLocaleString()}</div><div class="lbl">Views</div></div>
+        <div class="profile-stat"><div class="num">${totalLikes.toLocaleString()}</div><div class="lbl">Likes</div></div>
+        <div class="profile-stat"><div class="num">${totalComments.toLocaleString()}</div><div class="lbl">Comments</div></div>
+      </div>
+      <div class="menu-section-label" style="padding-left:0;">Top posts by views</div>
+      ${topPosts.length ? `
+        <div class="menu-list">
+          ${topPosts.map(p => `
+            <div class="menu-item" style="cursor:default;">
+              <span class="menu-item-icon">${p.mediaType === "video" ? "▶️" : "🖼️"}</span>
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;">${escapeHtml((p.text || "(no caption)").slice(0, 40))}</span>
+              <span class="menu-item-sub">👁 ${(p.views || 0).toLocaleString()} · ❤️ ${(p.likes || []).length}</span>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div class="empty-nav-tab"><div class="big">📊</div><div class="line1">No posts yet</div><div class="line2">Post something to start seeing stats here.</div></div>`}
+    </div>
+  `;
+  wireSettingsBack("menu");
+}
+
+/* ---------------- Creator Search Insights (simplified) ----------------
+   TikTok's real version aggregates platform-wide search trends across all
+   creators — this app has no such scale of data. This is a scoped-down,
+   honest version: how each hashtag you've personally used is performing
+   across your own posts, sorted by total views. */
+function renderCreatorInsightsScreen() {
+  const myUid = state.user.uid;
+  const myPosts = (state.posts || []).filter(p => p.authorUid === myUid);
+  const tagStats = {};
+  myPosts.forEach(p => {
+    (p.hashtags || []).forEach(tag => {
+      if (!tagStats[tag]) tagStats[tag] = { count: 0, views: 0 };
+      tagStats[tag].count += 1;
+      tagStats[tag].views += (p.views || 0);
+    });
+  });
+  const tags = Object.keys(tagStats).sort((a, b) => tagStats[b].views - tagStats[a].views);
+
+  root.innerHTML = `
+    ${settingsTopbar("Creator Search Insights", "menu")}
+    <div style="padding:14px 18px 0;font-size:12px;color:var(--ink-soft);line-height:1.5;">
+      Based only on hashtags you've used on your own posts — not platform-wide search trends.
+    </div>
+    ${tags.length ? `
+      <div class="menu-list" style="margin-top:14px;">
+        ${tags.map(tag => `
+          <div class="menu-item" style="cursor:default;">
+            <span class="menu-item-icon">#</span>
+            <span>${escapeHtml(tag)}</span>
+            <span class="menu-item-sub">${tagStats[tag].count} post${tagStats[tag].count > 1 ? "s" : ""} · 👁 ${tagStats[tag].views.toLocaleString()}</span>
+          </div>
+        `).join("")}
+      </div>
+    ` : `<div class="empty-nav-tab"><div class="big">💡</div><div class="line1">No hashtags yet</div><div class="line2">Add #hashtags to your captions to see them tracked here.</div></div>`}
+  `;
+  wireSettingsBack("menu");
+}
+
+/* ---------------- Promote (demo only) ----------------
+   Real ad delivery needs a payment processor and an ad-serving system,
+   which this personal Firebase app doesn't have. This is an honest, clearly
+   labeled demo: picking a post just adds a local-only "Promoted" preview
+   label — nothing is charged, and it doesn't change reach for anyone. */
+function renderPromoteScreen() {
+  const myUid = state.user.uid;
+  const myPosts = (state.posts || []).filter(p => p.authorUid === myUid);
+  const promoted = state.demoPromotedPosts || [];
+
+  root.innerHTML = `
+    ${settingsTopbar("Promote", "menu")}
+    <div style="padding:14px 18px 0;font-size:12px;color:var(--ink-soft);line-height:1.5;">
+      Demo only — this app has no ad payment or delivery system. Tapping "Promote" just previews a 🔥 Promoted label on your own screen; it doesn't spend money or boost real reach.
+    </div>
+    ${myPosts.length ? `
+      <div class="profile-grid" style="margin-top:14px;">
+        ${myPosts.map(p => `
+          <div class="profile-grid-item" id="promoteitem-${p.id}">
+            ${p.mediaType === "video"
+              ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
+              : p.media ? `<img src="${p.media}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:8px;font-size:12px;">${escapeHtml(p.text || "")}</div>`}
+            <button class="promote-toggle-btn ${promoted.includes(p.id) ? "active" : ""}" id="promotebtn-${p.id}">${promoted.includes(p.id) ? "🔥 Promoted" : "Promote"}</button>
+          </div>
+        `).join("")}
+      </div>
+    ` : `<div class="empty-nav-tab"><div class="big">🔥</div><div class="line1">No posts yet</div></div>`}
+  `;
+  wireSettingsBack("menu");
+  myPosts.forEach(p => {
+    const btn = document.getElementById(`promotebtn-${p.id}`);
+    if (btn) btn.onclick = (e) => {
+      e.stopPropagation();
+      const list = state.demoPromotedPosts || [];
+      const next = list.includes(p.id) ? list.filter(id => id !== p.id) : [...list, p.id];
+      setState({ demoPromotedPosts: next });
+    };
+  });
+}
+
+
 function doCreateGroupFromSheet() {
   const myUid = state.user.uid;
   db.collection("groups").add({
@@ -5864,6 +6101,7 @@ function submitPost() {
       mediaType: state.composerMediaType || (mediaUrl ? "image" : null),
       cover: coverDataUrl || null,
       hashtags: extractHashtags(state.composerText),
+      soundName: (state.composerSoundName || "").trim() || null,
       privacy: state.composePrivacy || "public",
       allowComments: state.composeAllowComments !== false,
       allowDownload: state.composeAllowDownload !== false,
@@ -5876,7 +6114,7 @@ function submitPost() {
     }).then(() => {
       try { localStorage.removeItem("milon_draft"); } catch (e) {}
       setState({
-        composerText: "", composerMedia: null, composerMediaType: null,
+        composerText: "", composerMedia: null, composerMediaType: null, composerSoundName: "",
         composePrivacy: "public", composeAllowComments: true, composeAllowDownload: true,
         composeUploadPct: null, view: "feed"
       });

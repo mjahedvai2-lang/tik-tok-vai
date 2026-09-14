@@ -1,8 +1,8 @@
 {
   "id": "./index.html",
-  "name": "Milon — Social App",
-  "short_name": "Milon",
-  "description": "Milon — a social app",
+  "name": "MiloGroove — Social App",
+  "short_name": "MiloGroove",
+  "description": "MiloGroove — a social app",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

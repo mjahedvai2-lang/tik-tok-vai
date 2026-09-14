@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0F6E56">
 <link rel="apple-touch-icon" href="icons/milon-icon-180.png">
 
- <title>Milon — Social App</title>
+ <title>MiloGroove — Social App</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -883,7 +883,7 @@ const FULLY_SUPPORTED_LANGS = ["bn", "en"];
 
 const TRANSLATIONS = {
   en: {
-    appName: "Milon",
+    appName: "MiloGroove",
     tagline: "Stay connected with friends and family",
     yourName: "Your name",
     emailPlaceholder: "you@example.com",
@@ -1053,7 +1053,7 @@ const TRANSLATIONS = {
     newChatsHint: "New chats started with you show up here.",
     writeNoticePlaceholder: "Write a notice to send to everyone...",
     sendToEveryone: "Send to everyone",
-    welcomeToMilon: "Welcome to Milon",
+    welcomeToMilon: "Welcome to MiloGroove",
     welcomeToMilonSub: "Thanks for joining — explore Friends and Inbox to connect with people.",
     unarchive: "Unarchive",
     deleteBtn: "Delete",
@@ -1213,7 +1213,7 @@ const TRANSLATIONS = {
     couldntUpdatePrivacySetting: "Couldn't update privacy setting",
     clearDataConfirm: "This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?",
     switchAccountConfirm: "Log out of this account so you can sign in with a different one?",
-    logOutConfirm: "Log out of Milon?",
+    logOutConfirm: "Log out of MiloGroove?",
     accountInformation: "Account information",
     emailLabel: "Email",
     handleLabel: "Handle",
@@ -1347,7 +1347,7 @@ const TRANSLATIONS = {
     noOneLabel: "No one",
     couldntUpdatePrivacySetting: "Couldn't update privacy setting",
     adsTitle: "Ads",
-    noAdsTitle: "Milon doesn't show ads",
+    noAdsTitle: "MiloGroove doesn't show ads",
     adsDesc: "There's no ad system in this app, so there's nothing to configure here. This menu entry is here as a placeholder for now.",
     playbackTitle: "Playback",
     autoplayVideosLabel: "Autoplay videos",
@@ -1356,7 +1356,7 @@ const TRANSLATIONS = {
 
     /* ---- Contacts/location / Free up space / Data Saver / Wallpaper ---- */
     contactsLocationTitle: "Contacts and location",
-    contactsLocationDesc: "Nothing in Milon currently uses your contacts or location (e.g. to suggest people to follow), so there's no real permission to request yet. This menu entry is here as a placeholder for now.",
+    contactsLocationDesc: "Nothing in MiloGroove currently uses your contacts or location (e.g. to suggest people to follow), so there's no real permission to request yet. This menu entry is here as a placeholder for now.",
     freeUpSpaceTitle: "Free up space",
     cacheUsedOnDeviceLabel: "Cache used on this device",
     calculatingEllipsis: "Calculating…",
@@ -1387,9 +1387,9 @@ const TRANSLATIONS = {
     faqQ4: "How do I delete my account?",
     faqA4: "Go to Settings and privacy → Account → Delete account. This is permanent.",
     faqQ5: "How do I report a problem or bug?",
-    faqA5: "Milon doesn't have a live support inbox yet — for now, describe the issue to whoever manages your copy of the app.",
+    faqA5: "MiloGroove doesn't have a live support inbox yet — for now, describe the issue to whoever manages your copy of the app.",
     privacyCenterTitle: "Privacy Center",
-    privacyCenterIntro: "This is a plain-language summary of what Milon actually stores about you. For the controls themselves, see Privacy or Audience control.",
+    privacyCenterIntro: "This is a plain-language summary of what MiloGroove actually stores about you. For the controls themselves, see Privacy or Audience control.",
     whatsStoredLabel: "What's stored",
     profileInfoLabel: "Profile info",
     profileInfoSub: "name, handle, bio, avatar",
@@ -1447,7 +1447,7 @@ const TRANSLATIONS = {
     pinToProfileLabel: "Pin to profile"
   },
   bn: {
-    appName: "মিলন",
+    appName: "MiloGroove",
     tagline: "বন্ধু ও পরিবারের সাথে যুক্ত থাকুন",
     yourName: "আপনার নাম",
     emailPlaceholder: "you@example.com",
@@ -1617,7 +1617,7 @@ const TRANSLATIONS = {
     newChatsHint: "আপনার সাথে শুরু হওয়া নতুন চ্যাট এখানে দেখাবে।",
     writeNoticePlaceholder: "সবাইকে পাঠানোর জন্য একটি নোটিশ লিখুন...",
     sendToEveryone: "সবাইকে পাঠান",
-    welcomeToMilon: "মিলনে স্বাগতম",
+    welcomeToMilon: "MiloGroove-এ স্বাগতম",
     welcomeToMilonSub: "যোগ দেওয়ার জন্য ধন্যবাদ — মানুষদের সাথে যুক্ত হতে Friends ও Inbox ঘুরে দেখুন।",
     unarchive: "আর্কাইভ থেকে ফেরান",
     deleteBtn: "ডিলিট করুন",
@@ -2691,7 +2691,7 @@ function submitBirthdate() {
   }
   const age = calculateAge(dobStr);
   if (age < MIN_AGE) {
-    errEl.textContent = `You must be at least ${MIN_AGE} years old to use Milon.`;
+    errEl.textContent = `You must be at least ${MIN_AGE} years old to use MiloGroove.`;
     auth.signOut();
     return;
   }
@@ -2719,7 +2719,7 @@ function renderAgeGateScreen() {
   root.innerHTML = `
     <div class="login-screen">
       <div class="brand">Confirm your birthday</div>
-      <div class="tagline">This won't be shown on your profile. It just keeps Milon safe for everyone.</div>
+      <div class="tagline">This won't be shown on your profile. It just keeps MiloGroove safe for everyone.</div>
 
       <div class="field">
         <label>Date of birth</label>
@@ -4131,7 +4131,36 @@ function renderPostComposeScreen() {
     }
     setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "", composerSoundName: "" });
   };
-  document.getElementById("composeTextInput").oninput = (e) => { state.composerText = e.target.value; render(); };
+  document.getElementById("composeTextInput").oninput = (e) => {
+    state.composerText = e.target.value;
+    // Do NOT call render() here — a full re-render replaces this textarea
+    // with a brand new DOM node, which steals focus and closes the mobile
+    // keyboard on every keystroke (it then has to reopen for the next key).
+    // Instead, patch only the small bits of UI that depend on the text.
+    const cc = state.composerText.length;
+    const countEl = document.querySelector(".compose-char-count");
+    if (countEl) {
+      countEl.textContent = `${cc}/2200`;
+      countEl.classList.toggle("over", cc > 2200);
+    }
+    const hashtags = extractHashtags(state.composerText);
+    let chipsWrap = document.querySelector(".compose-hashtag-chips");
+    if (hashtags.length) {
+      const chipsHtml = hashtags.map(h => `<span class="compose-hashtag-chip">#${escapeHtml(h)}</span>`).join("");
+      if (chipsWrap) {
+        chipsWrap.innerHTML = chipsHtml;
+      } else {
+        chipsWrap = document.createElement("div");
+        chipsWrap.className = "compose-hashtag-chips";
+        chipsWrap.innerHTML = chipsHtml;
+        countEl.insertAdjacentElement("afterend", chipsWrap);
+      }
+    } else if (chipsWrap) {
+      chipsWrap.remove();
+    }
+    const postBtn = document.getElementById("composePostBtn");
+    if (postBtn) postBtn.disabled = (!state.composerText.trim() && !state.composerMedia) || cc > 2200;
+  };
   document.getElementById("composeSoundInput").oninput = (e) => { state.composerSoundName = e.target.value; };
   document.getElementById("composePhotoInput").onchange = (e) => {
     const file = e.target.files[0];
@@ -6601,7 +6630,7 @@ function renderSettingsScreen() {
         <span>${t("logOut")}</span>
       </button>
     </div>
-    <div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:18px 0 8px;">Milon v1.0.0</div>
+    <div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:18px 0 8px;">MiloGroove v1.0.0</div>
   `;
 
   document.getElementById("settingsBackBtn").onclick = () => setState({ view: "menu" });
@@ -8385,14 +8414,14 @@ function doCopyLink() {
 
 function doShareTo(platform) {
   const link = encodeURIComponent(getPostLink(activePostId));
-  const text = encodeURIComponent("Check out this post on Milon!");
+  const text = encodeURIComponent("Check out this post on MiloGroove!");
   const urls = {
     whatsapp: `https://wa.me/?text=${text}%20${link}`,
     messenger: `fb-messenger://share/?link=${link}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${link}`,
     telegram: `https://t.me/share/url?url=${link}&text=${text}`,
     sms: `sms:?body=${text}%20${link}`,
-    email: `mailto:?subject=${encodeURIComponent("Check this out on Milon")}&body=${text}%20${link}`,
+    email: `mailto:?subject=${encodeURIComponent("Check this out on MiloGroove")}&body=${text}%20${link}`,
   };
   window.open(urls[platform], "_blank");
   closeSheets();
@@ -8418,7 +8447,7 @@ function doShareInstagram() {
 function doShareMore() {
   const link = getPostLink(activePostId);
   if (navigator.share) {
-    navigator.share({ title: "Milon", text: "Check out this post on Milon!", url: link }).catch(() => {});
+    navigator.share({ title: "MiloGroove", text: "Check out this post on MiloGroove!", url: link }).catch(() => {});
     closeSheets();
   } else {
     doCopyLink();
@@ -8483,7 +8512,7 @@ function doShowProfileQr(uid) {
 function doShareProfile(uid) {
   const link = getProfileLink(uid);
   if (navigator.share) {
-    navigator.share({ title: "Milon profile", text: "Check out this profile on Milon", url: link }).catch(() => {});
+    navigator.share({ title: "MiloGroove profile", text: "Check out this profile on MiloGroove", url: link }).catch(() => {});
   } else {
     navigator.clipboard.writeText(link).then(() => showToast(t("profileLinkCopiedToast"))).catch(() => showToast(t("couldntCopyLink")));
   }

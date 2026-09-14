@@ -1250,7 +1250,201 @@ const TRANSLATIONS = {
     allowedLabel: "Allowed",
     blockedLabel: "Blocked",
     askEachTime: "Ask each time",
-    unknownLabel: "Unknown"
+    unknownLabel: "Unknown",
+
+    /* ---- Change password / Delete account ---- */
+    changePasswordTitle: "Change password",
+    currentPasswordLabel: "Current password",
+    newPasswordLabel: "New password",
+    confirmNewPasswordLabel: "Confirm new password",
+    updatingEllipsis: "Updating...",
+    updatePasswordBtn: "Update password",
+    fillAllThreeFields: "Fill in all three fields.",
+    newPasswordMinChars: "New password must be at least 6 characters.",
+    newPasswordsDontMatch: "New passwords don't match.",
+    passwordUpdatedToast: "Password updated",
+    deleteAccountTitle: "Delete account",
+    deleteAccountWarning: "This permanently deletes your account, sign-in, posts (and their media), comments, messages, and every trace of you elsewhere in the app — likes, saves, reposts, views you left on others' posts, and your spot in anyone's followers/following/blocked lists. This cannot be undone.",
+    confirmYourPasswordLabel: "Confirm your password",
+    deletingEllipsis: "Deleting...",
+    permanentlyDeleteAccountBtn: "Permanently delete my account",
+    enterPasswordToConfirm: "Enter your password to confirm.",
+    deleteAccountConfirmDialog: "This permanently deletes your account AND everything tied to it — your posts, comments, and messages. This can't be undone. Continue?",
+    accountDeletedToast: "Account and all your data deleted",
+
+    /* ---- Content preferences / Manage posts / LIVE ---- */
+    contentPreferencesTitle: "Content preferences",
+    notAvailableInBuild: "Not available in this build",
+    contentPreferencesDesc: "Filtering keywords/hashtags and refreshing your feed's interest model needs a recommendation engine this app doesn't have yet. This menu entry is here as a placeholder for now.",
+    managePostsTitle: "Manage posts",
+    managePostsHint: "Tap ⋮ on a post to edit, change who can see it, pin it, or delete it.",
+    onlyMeLabel: "Only me",
+    friendsLabel: "Friends",
+    publicLabel: "Public",
+    noPostsYet: "No posts yet",
+    liveTitle: "LIVE",
+    liveNotAvailable: "LIVE isn't available in this build",
+    liveDesc: "Real live streaming needs dedicated video-broadcast infrastructure beyond what this app currently has. This menu entry is here as a placeholder for now.",
+
+    /* ---- Notifications ---- */
+    notificationsTitle: "Notifications",
+    notifLikesLabel: "Likes",
+    notifLikesDesc: "Get notified when someone likes your post",
+    notifCommentsLabel: "Comments",
+    notifCommentsDesc: "Get notified when someone comments on your post",
+    notifFollowsLabel: "New followers",
+    notifFollowsDesc: "Get notified about follows and follow requests",
+    notifMessagesLabel: "Direct messages",
+    notifMessagesDesc: "Get notified about new messages",
+
+    /* ---- Well-being / Family pairing ---- */
+    wellbeingTitle: "Time and well-being",
+    screenTimeTodayLabel: "Screen time today",
+    hoursShort: "h",
+    minutesShort: "m",
+    dailyScreenTimeReminderLabel: "Daily screen time reminder (minutes, 0 = off)",
+    saveBtn: "Save",
+    wellbeingTrackedHint: "Tracked only on this device, only while the app is open — it resets each day and isn't shared anywhere.",
+    reminderSetToast: "Reminder set for {min} minutes/day",
+    reminderOffToast: "Reminder turned off",
+    familyPairingTitle: "Family Pairing",
+    familyPairingDesc: "Real parental controls need a carefully tested system that actually enforces screen-time and content limits between two linked accounts. A version that only looked linked but didn't enforce anything could mislead a parent — so it's left out for now rather than faked.",
+
+    /* ---- Theme / Accessibility / Music ---- */
+    themeTitle: "Theme",
+    appearanceLabel: "Appearance",
+    themeLight: "Light",
+    themeDark: "Dark",
+    themeSystem: "System",
+    themeSystemHint: "\"System\" follows your device's light/dark setting automatically.",
+    accessibilityTitle: "Accessibility",
+    textSizeLabel: "Text size",
+    textSizeSmall: "Small",
+    textSizeDefault: "Default",
+    textSizeLarge: "Large",
+    reduceMotionLabel: "Reduce motion",
+    reduceMotionDesc: "Minimizes transitions and animations throughout the app.",
+    musicTitle: "Music",
+    musicDesc: "Posts don't have an attached-track/sound system yet, so there's no music library to manage here. This menu entry is here as a placeholder for now.",
+
+    /* ---- Activity center / Audience control / Ads / Playback ---- */
+    activityCenterTitle: "Activity center",
+    accountActivityLabel: "Account activity",
+    accountCreatedLabel: "Account created",
+    postsLabel: "Posts",
+    fullActivityLogNotAvailable: "Full activity log not available",
+    activityCenterDesc: "A detailed login/device history isn't tracked by this app yet — only the account-level info above is real.",
+    audienceControlTitle: "Audience control",
+    privateAccountLabel: "Private account",
+    privateAccountOnDesc: "Only approved followers can see your posts.",
+    privateAccountOffDesc: "Anyone can follow you and see your public posts.",
+    whoCanCommentLabel: "Who can comment",
+    whoCanMentionLabel: "Who can mention you",
+    followingListLabel: "Following list",
+    everyoneLabel: "Everyone",
+    onlyYouLabel: "Only you",
+    likedVideosLabel: "Liked videos",
+    noOneLabel: "No one",
+    couldntUpdatePrivacySetting: "Couldn't update privacy setting",
+    adsTitle: "Ads",
+    noAdsTitle: "Milon doesn't show ads",
+    adsDesc: "There's no ad system in this app, so there's nothing to configure here. This menu entry is here as a placeholder for now.",
+    playbackTitle: "Playback",
+    autoplayVideosLabel: "Autoplay videos",
+    autoplayVideosDesc: "Videos start playing automatically as you scroll the feed.",
+    autoplayOffDataSaverNote: "Currently off because Data Saver is on.",
+
+    /* ---- Contacts/location / Free up space / Data Saver / Wallpaper ---- */
+    contactsLocationTitle: "Contacts and location",
+    contactsLocationDesc: "Nothing in Milon currently uses your contacts or location (e.g. to suggest people to follow), so there's no real permission to request yet. This menu entry is here as a placeholder for now.",
+    freeUpSpaceTitle: "Free up space",
+    cacheUsedOnDeviceLabel: "Cache used on this device",
+    calculatingEllipsis: "Calculating…",
+    clearCacheBtn: "Clear cache",
+    freeUpSpaceHint: "This clears cached images/pages stored by the app so it can re-download the latest version — you stay logged in and none of your posts or profile data are touched.",
+    unknownLabel2: "Unknown",
+    clearCacheConfirmDialog: "Clear cached app data on this device? You'll stay logged in.",
+    cacheClearedToast: "Cache cleared",
+    couldntClearCache: "Couldn't clear cache",
+    dataSaverDesc: "Turns off autoplay so videos only load when you tap them, to use less mobile data.",
+    wallpaperTitle: "Wallpaper",
+    wallpaperHint: "Applies to the background behind your chat messages.",
+    wallpaper_default: "Default",
+    wallpaper_teal: "Teal",
+    wallpaper_sunset: "Sunset",
+    wallpaper_ocean: "Ocean",
+    wallpaper_dark: "Charcoal",
+
+    /* ---- Help / Privacy Center / Terms ---- */
+    helpCenterTitle: "Help Center",
+    faqSectionLabel: "Frequently asked questions",
+    faqQ1: "How do I post something?",
+    faqA1: "Tap the + button in the bottom navigation, add a photo or video, then tap Post.",
+    faqQ2: "How do I make my account private?",
+    faqA2: "Go to Settings and privacy → Privacy (or Audience control) and turn on Private account.",
+    faqQ3: "How do I stop someone from contacting me?",
+    faqA3: "Open their profile, tap ⋯, and choose Block, Restrict, or Mute depending on how much you want to limit them.",
+    faqQ4: "How do I delete my account?",
+    faqA4: "Go to Settings and privacy → Account → Delete account. This is permanent.",
+    faqQ5: "How do I report a problem or bug?",
+    faqA5: "Milon doesn't have a live support inbox yet — for now, describe the issue to whoever manages your copy of the app.",
+    privacyCenterTitle: "Privacy Center",
+    privacyCenterIntro: "This is a plain-language summary of what Milon actually stores about you. For the controls themselves, see Privacy or Audience control.",
+    whatsStoredLabel: "What's stored",
+    profileInfoLabel: "Profile info",
+    profileInfoSub: "name, handle, bio, avatar",
+    yourPostsLabel: "Your posts",
+    yourPostsSub: "media, captions, privacy setting",
+    socialGraphLabel: "Social graph",
+    socialGraphSub: "followers, following, likes, comments",
+    messagesLabel: "Messages",
+    messagesSub: "DMs you send/receive in-app",
+    appSettingsLabel: "App settings",
+    appSettingsSub: "theme, accessibility, notification prefs",
+    goToPrivacySettingsLabel: "Go to Privacy settings",
+    termsAndPoliciesTitle: "Terms and Policies",
+    termsOfServiceLabel: "Terms of Service",
+    privacyPolicyLabel: "Privacy Policy",
+    opensLegalDocHint: "Opens the full legal document in a new tab.",
+    couldntSaveSetting: "Couldn't save setting",
+
+    /* ---- Offline videos / Your Music / Balance / Creator tools / Promote ---- */
+    offlineVideosTitle: "Offline videos",
+    offlineVideosHint: "Saved on this device — plays even with no internet connection.",
+    removeLabel: "Remove",
+    noOfflineVideosYet: "No offline videos yet",
+    offlineVideosEmptyDesc: "Open any video's share sheet → Save video to keep a real, playable-offline copy here.",
+    nothingToDownload: "Nothing to download",
+    downloadingEllipsis: "Downloading…",
+    couldntDownloadCheckConnection: "Couldn't download — check your connection and try again",
+    noPostsWithThisSound: "No posts with this sound",
+    yourMusicTitle: "Your Music",
+    postsPluralLabel: "posts",
+    postSingularLabel: "post",
+    noSoundsTaggedYet: "No sounds tagged yet",
+    noSoundsTaggedDesc: "Add a sound name when you post to see it grouped here.",
+    balanceTitle: "Balance",
+    coinBalanceLabel: "Coin balance",
+    balanceDemoDesc: "This is a demo balance — this app has no payment system connected, so coins can't actually be bought, gifted, or cashed out here.",
+    creatorStudioTitle: "TikTok Studio",
+    viewsLabel: "Views",
+    likesLabel: "Likes",
+    commentsLabel: "Comments",
+    topPostsByViewsLabel: "Top posts by views",
+    noCaptionPlaceholder: "(no caption)",
+    postSomethingToSeeStats: "Post something to start seeing stats here.",
+    creatorInsightsTitle: "Creator Search Insights",
+    creatorInsightsIntro: "Based only on hashtags you've used on your own posts — not platform-wide search trends.",
+    noHashtagsYet: "No hashtags yet",
+    noHashtagsDesc: "Add #hashtags to your captions to see them tracked here.",
+    promoteTitle: "Promote",
+    promoteDemoDesc: "Demo only — this app has no ad payment or delivery system. Tapping \"Promote\" just previews a 🔥 Promoted label on your own screen; it doesn't spend money or boost real reach.",
+    promotedLabel: "Promoted",
+    promoteBtnLabel: "Promote",
+    groupCreatedToast: "Group created — find it soon under Inbox",
+    couldntCreateGroup: "Couldn't create group",
+    unpinFromProfileLabel: "Unpin from profile",
+    pinToProfileLabel: "Pin to profile"
   },
   bn: {
     appName: "মিলন",
@@ -1620,7 +1814,201 @@ const TRANSLATIONS = {
     allowedLabel: "অনুমোদিত",
     blockedLabel: "ব্লক করা",
     askEachTime: "প্রতিবার জিজ্ঞাসা করুন",
-    unknownLabel: "অজানা"
+    unknownLabel: "অজানা",
+
+    /* ---- পাসওয়ার্ড পরিবর্তন / অ্যাকাউন্ট ডিলিট ---- */
+    changePasswordTitle: "পাসওয়ার্ড পরিবর্তন করুন",
+    currentPasswordLabel: "বর্তমান পাসওয়ার্ড",
+    newPasswordLabel: "নতুন পাসওয়ার্ড",
+    confirmNewPasswordLabel: "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+    updatingEllipsis: "আপডেট হচ্ছে...",
+    updatePasswordBtn: "পাসওয়ার্ড আপডেট করুন",
+    fillAllThreeFields: "তিনটি ঘরই পূরণ করুন।",
+    newPasswordMinChars: "নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+    newPasswordsDontMatch: "নতুন পাসওয়ার্ড দুটি মিলছে না।",
+    passwordUpdatedToast: "পাসওয়ার্ড আপডেট হয়েছে",
+    deleteAccountTitle: "অ্যাকাউন্ট ডিলিট করুন",
+    deleteAccountWarning: "এতে আপনার অ্যাকাউন্ট, সাইন-ইন, পোস্ট (এবং সেগুলোর মিডিয়া), কমেন্ট, মেসেজ এবং অ্যাপের অন্য সব জায়গায় আপনার প্রতিটি চিহ্ন — লাইক, সেভ, রিপোস্ট, আপনি অন্যের পোস্টে যেসব ভিউ রেখেছেন, এবং যেকারো ফলোয়ার্স/ফলোয়িং/ব্লকড লিস্টে আপনার জায়গা — স্থায়ীভাবে মুছে যাবে। এটা আর ফিরিয়ে আনা যাবে না।",
+    confirmYourPasswordLabel: "আপনার পাসওয়ার্ড নিশ্চিত করুন",
+    deletingEllipsis: "ডিলিট হচ্ছে...",
+    permanentlyDeleteAccountBtn: "আমার অ্যাকাউন্ট স্থায়ীভাবে ডিলিট করুন",
+    enterPasswordToConfirm: "নিশ্চিত করতে আপনার পাসওয়ার্ড লিখুন।",
+    deleteAccountConfirmDialog: "এতে আপনার অ্যাকাউন্ট এবং এর সাথে যুক্ত সবকিছু — আপনার পোস্ট, কমেন্ট, মেসেজ — স্থায়ীভাবে ডিলিট হয়ে যাবে। এটা ফিরিয়ে আনা যাবে না। চালিয়ে যাবেন?",
+    accountDeletedToast: "অ্যাকাউন্ট ও আপনার সব ডেটা ডিলিট হয়েছে",
+
+    /* ---- কনটেন্ট প্রেফারেন্স / পোস্ট ম্যানেজ / LIVE ---- */
+    contentPreferencesTitle: "কনটেন্ট প্রেফারেন্স",
+    notAvailableInBuild: "এই বিল্ডে এটি উপলব্ধ নয়",
+    contentPreferencesDesc: "কীওয়ার্ড/হ্যাশট্যাগ ফিল্টার করা এবং আপনার ফিডের আগ্রহের মডেল রিফ্রেশ করার জন্য একটি রিকমেন্ডেশন ইঞ্জিন দরকার, যা এই অ্যাপে এখনো নেই। এই মেনু এন্ট্রিটি আপাতত একটি প্লেসহোল্ডার হিসেবে রাখা হয়েছে।",
+    managePostsTitle: "পোস্ট ম্যানেজ করুন",
+    managePostsHint: "এডিট করতে, কে দেখতে পারবে তা পরিবর্তন করতে, পিন করতে বা ডিলিট করতে কোনো পোস্টে ⋮ ট্যাপ করুন।",
+    onlyMeLabel: "শুধু আমি",
+    friendsLabel: "বন্ধুরা",
+    publicLabel: "পাবলিক",
+    noPostsYet: "এখনো কোনো পোস্ট নেই",
+    liveTitle: "LIVE",
+    liveNotAvailable: "এই বিল্ডে LIVE উপলব্ধ নয়",
+    liveDesc: "আসল লাইভ স্ট্রিমিংয়ের জন্য এই অ্যাপের বর্তমান সক্ষমতার চেয়ে বেশি নিবেদিত ভিডিও-ব্রডকাস্ট অবকাঠামো দরকার। এই মেনু এন্ট্রিটি আপাতত একটি প্লেসহোল্ডার হিসেবে রাখা হয়েছে।",
+
+    /* ---- নোটিফিকেশন ---- */
+    notificationsTitle: "নোটিফিকেশন",
+    notifLikesLabel: "লাইক",
+    notifLikesDesc: "কেউ আপনার পোস্ট লাইক করলে নোটিফিকেশন পান",
+    notifCommentsLabel: "কমেন্ট",
+    notifCommentsDesc: "কেউ আপনার পোস্টে কমেন্ট করলে নোটিফিকেশন পান",
+    notifFollowsLabel: "নতুন ফলোয়ার",
+    notifFollowsDesc: "ফলো এবং ফলো-রিকোয়েস্ট সম্পর্কে নোটিফিকেশন পান",
+    notifMessagesLabel: "ডাইরেক্ট মেসেজ",
+    notifMessagesDesc: "নতুন মেসেজ সম্পর্কে নোটিফিকেশন পান",
+
+    /* ---- Well-being / Family pairing ---- */
+    wellbeingTitle: "সময় ও সুস্থতা",
+    screenTimeTodayLabel: "আজকের স্ক্রিন টাইম",
+    hoursShort: "ঘ",
+    minutesShort: "মি",
+    dailyScreenTimeReminderLabel: "দৈনিক স্ক্রিন টাইম রিমাইন্ডার (মিনিট, ০ = বন্ধ)",
+    saveBtn: "সংরক্ষণ করুন",
+    wellbeingTrackedHint: "শুধু এই ডিভাইসে, শুধু অ্যাপ খোলা থাকা অবস্থায় ট্র্যাক করা হয় — এটি প্রতিদিন রিসেট হয় এবং কোথাও শেয়ার করা হয় না।",
+    reminderSetToast: "প্রতিদিন {min} মিনিটের জন্য রিমাইন্ডার সেট হয়েছে",
+    reminderOffToast: "রিমাইন্ডার বন্ধ করা হয়েছে",
+    familyPairingTitle: "Family Pairing",
+    familyPairingDesc: "আসল প্যারেন্টাল কন্ট্রোলের জন্য এমন একটি ভালোভাবে পরীক্ষিত সিস্টেম দরকার যা দুটি লিংক করা অ্যাকাউন্টের মধ্যে স্ক্রিন-টাইম ও কনটেন্ট সীমা প্রকৃতপক্ষে কার্যকর করে। শুধু লিংক দেখানো কিন্তু কিছুই কার্যকর না করা একটি সংস্করণ একজন অভিভাবককে ভুল বোঝাতে পারে — তাই মিথ্যা কিছু বানানোর বদলে এটি আপাতত বাদ রাখা হয়েছে।",
+
+    /* ---- থিম / অ্যাক্সেসিবিলিটি / মিউজিক ---- */
+    themeTitle: "থিম",
+    appearanceLabel: "চেহারা",
+    themeLight: "লাইট",
+    themeDark: "ডার্ক",
+    themeSystem: "সিস্টেম",
+    themeSystemHint: "\"সিস্টেম\" নির্বাচন করলে এটি স্বয়ংক্রিয়ভাবে আপনার ডিভাইসের লাইট/ডার্ক সেটিং অনুসরণ করবে।",
+    accessibilityTitle: "অ্যাক্সেসিবিলিটি",
+    textSizeLabel: "টেক্সট সাইজ",
+    textSizeSmall: "ছোট",
+    textSizeDefault: "ডিফল্ট",
+    textSizeLarge: "বড়",
+    reduceMotionLabel: "মোশন কমান",
+    reduceMotionDesc: "পুরো অ্যাপ জুড়ে ট্রানজিশন ও অ্যানিমেশন কমিয়ে দেয়।",
+    musicTitle: "মিউজিক",
+    musicDesc: "পোস্টগুলোতে এখনো কোনো অ্যাটাচড-ট্র্যাক/সাউন্ড সিস্টেম নেই, তাই এখানে ম্যানেজ করার মতো কোনো মিউজিক লাইব্রেরি নেই। এই মেনু এন্ট্রিটি আপাতত একটি প্লেসহোল্ডার হিসেবে রাখা হয়েছে।",
+
+    /* ---- অ্যাক্টিভিটি সেন্টার / অডিয়েন্স কন্ট্রোল / বিজ্ঞাপন / প্লেব্যাক ---- */
+    activityCenterTitle: "অ্যাক্টিভিটি সেন্টার",
+    accountActivityLabel: "অ্যাকাউন্ট অ্যাক্টিভিটি",
+    accountCreatedLabel: "অ্যাকাউন্ট তৈরি হয়েছে",
+    postsLabel: "পোস্ট",
+    fullActivityLogNotAvailable: "সম্পূর্ণ অ্যাক্টিভিটি লগ উপলব্ধ নয়",
+    activityCenterDesc: "এই অ্যাপে এখনো বিস্তারিত লগ-ইন/ডিভাইস ইতিহাস ট্র্যাক করা হয় না — শুধু উপরের অ্যাকাউন্ট-লেভেল তথ্যই আসল।",
+    audienceControlTitle: "অডিয়েন্স কন্ট্রোল",
+    privateAccountLabel: "প্রাইভেট অ্যাকাউন্ট",
+    privateAccountOnDesc: "শুধু অনুমোদিত ফলোয়াররা আপনার পোস্ট দেখতে পাবে।",
+    privateAccountOffDesc: "যে কেউ আপনাকে ফলো করতে পারবে এবং আপনার পাবলিক পোস্ট দেখতে পারবে।",
+    whoCanCommentLabel: "কে কমেন্ট করতে পারবে",
+    whoCanMentionLabel: "কে আপনাকে মেনশন করতে পারবে",
+    followingListLabel: "ফলোয়িং লিস্ট",
+    everyoneLabel: "সবাই",
+    onlyYouLabel: "শুধু আপনি",
+    likedVideosLabel: "লাইক করা ভিডিও",
+    noOneLabel: "কেউ না",
+    couldntUpdatePrivacySetting: "প্রাইভেসি সেটিং আপডেট করা যায়নি",
+    adsTitle: "বিজ্ঞাপন",
+    noAdsTitle: "মিলন কোনো বিজ্ঞাপন দেখায় না",
+    adsDesc: "এই অ্যাপে কোনো বিজ্ঞাপন সিস্টেম নেই, তাই এখানে কনফিগার করার মতো কিছু নেই। এই মেনু এন্ট্রিটি আপাতত একটি প্লেসহোল্ডার হিসেবে রাখা হয়েছে।",
+    playbackTitle: "প্লেব্যাক",
+    autoplayVideosLabel: "ভিডিও অটোপ্লে",
+    autoplayVideosDesc: "ফিড স্ক্রল করার সময় ভিডিও স্বয়ংক্রিয়ভাবে চলতে শুরু করে।",
+    autoplayOffDataSaverNote: "Data Saver চালু থাকায় বর্তমানে বন্ধ আছে।",
+
+    /* ---- Contacts/location / ফাঁকা জায়গা / Data Saver / Wallpaper ---- */
+    contactsLocationTitle: "যোগাযোগ ও অবস্থান",
+    contactsLocationDesc: "মিলনে এখন পর্যন্ত এমন কিছু নেই যা আপনার কন্টাক্ট বা লোকেশন ব্যবহার করে (যেমন ফলো করার জন্য মানুষ সাজেস্ট করতে), তাই এখনো এমন কোনো আসল পারমিশনের প্রয়োজন নেই। এই মেনু এন্ট্রিটি আপাতত একটি প্লেসহোল্ডার হিসেবে রাখা হয়েছে।",
+    freeUpSpaceTitle: "জায়গা খালি করুন",
+    cacheUsedOnDeviceLabel: "এই ডিভাইসে ব্যবহৃত ক্যাশ",
+    calculatingEllipsis: "হিসাব করা হচ্ছে…",
+    clearCacheBtn: "ক্যাশ পরিষ্কার করুন",
+    freeUpSpaceHint: "এটি অ্যাপ দ্বারা সংরক্ষিত ক্যাশ করা ছবি/পেজ মুছে দেয় যাতে এটি সর্বশেষ ভার্সন আবার ডাউনলোড করতে পারে — আপনি লগ-ইন থাকা অবস্থাতেই থাকবেন এবং আপনার কোনো পোস্ট বা প্রোফাইল ডেটা স্পর্শ করা হবে না।",
+    unknownLabel2: "অজানা",
+    clearCacheConfirmDialog: "এই ডিভাইসে অ্যাপের ক্যাশ করা ডেটা পরিষ্কার করবেন? আপনি লগ-ইন অবস্থায়ই থাকবেন।",
+    cacheClearedToast: "ক্যাশ পরিষ্কার হয়েছে",
+    couldntClearCache: "ক্যাশ পরিষ্কার করা যায়নি",
+    dataSaverDesc: "মোবাইল ডেটা কম ব্যবহারের জন্য অটোপ্লে বন্ধ করে দেয়, ফলে ভিডিও শুধু ট্যাপ করলেই লোড হবে।",
+    wallpaperTitle: "ওয়ালপেপার",
+    wallpaperHint: "আপনার চ্যাট মেসেজের পেছনের ব্যাকগ্রাউন্ডে প্রযোজ্য।",
+    wallpaper_default: "ডিফল্ট",
+    wallpaper_teal: "টিল",
+    wallpaper_sunset: "সানসেট",
+    wallpaper_ocean: "ওশান",
+    wallpaper_dark: "চারকোল",
+
+    /* ---- Help / Privacy Center / Terms ---- */
+    helpCenterTitle: "হেল্প সেন্টার",
+    faqSectionLabel: "সাধারণ জিজ্ঞাসা",
+    faqQ1: "আমি কীভাবে পোস্ট করব?",
+    faqA1: "নিচের নেভিগেশনে + বাটনে ট্যাপ করুন, একটি ছবি বা ভিডিও যোগ করুন, তারপর Post-এ ট্যাপ করুন।",
+    faqQ2: "আমি কীভাবে আমার অ্যাকাউন্ট প্রাইভেট করব?",
+    faqA2: "Settings and privacy → Privacy (অথবা Audience control)-এ যান এবং Private account চালু করুন।",
+    faqQ3: "আমি কীভাবে কাউকে আমার সাথে যোগাযোগ করা থেকে আটকাব?",
+    faqA3: "তাদের প্রোফাইল খুলুন, ⋯ ট্যাপ করুন, এবং তাদের কতটা সীমিত করতে চান তার উপর ভিত্তি করে Block, Restrict, বা Mute বেছে নিন।",
+    faqQ4: "আমি কীভাবে আমার অ্যাকাউন্ট ডিলিট করব?",
+    faqA4: "Settings and privacy → Account → Delete account-এ যান। এটি স্থায়ী।",
+    faqQ5: "আমি কীভাবে কোনো সমস্যা বা বাগ রিপোর্ট করব?",
+    faqA5: "মিলনের এখনো কোনো লাইভ সাপোর্ট ইনবক্স নেই — আপাতত, যিনি আপনার অ্যাপের কপি ম্যানেজ করেন তাকে সমস্যাটি বর্ণনা করুন।",
+    privacyCenterTitle: "প্রাইভেসি সেন্টার",
+    privacyCenterIntro: "মিলন আসলে আপনার সম্পর্কে কী সংরক্ষণ করে তার একটি সহজ-ভাষার সারসংক্ষেপ এটি। নিয়ন্ত্রণগুলোর জন্য, Privacy বা Audience control দেখুন।",
+    whatsStoredLabel: "যা সংরক্ষিত আছে",
+    profileInfoLabel: "প্রোফাইল তথ্য",
+    profileInfoSub: "নাম, হ্যান্ডেল, বায়ো, অ্যাভাটার",
+    yourPostsLabel: "আপনার পোস্ট",
+    yourPostsSub: "মিডিয়া, ক্যাপশন, প্রাইভেসি সেটিং",
+    socialGraphLabel: "সোশ্যাল গ্রাফ",
+    socialGraphSub: "ফলোয়ার, ফলোয়িং, লাইক, কমেন্ট",
+    messagesLabel: "মেসেজ",
+    messagesSub: "অ্যাপে আপনি যেসব DM পাঠান/পান",
+    appSettingsLabel: "অ্যাপ সেটিংস",
+    appSettingsSub: "থিম, অ্যাক্সেসিবিলিটি, নোটিফিকেশন প্রেফারেন্স",
+    goToPrivacySettingsLabel: "Privacy সেটিংসে যান",
+    termsAndPoliciesTitle: "শর্তাবলী ও নীতিমালা",
+    termsOfServiceLabel: "সেবার শর্তাবলী",
+    privacyPolicyLabel: "গোপনীয়তা নীতি",
+    opensLegalDocHint: "সম্পূর্ণ আইনি ডকুমেন্ট একটি নতুন ট্যাবে খোলে।",
+    couldntSaveSetting: "সেটিং সংরক্ষণ করা যায়নি",
+
+    /* ---- অফলাইন ভিডিও / Your Music / Balance / Creator tools / Promote ---- */
+    offlineVideosTitle: "অফলাইন ভিডিও",
+    offlineVideosHint: "এই ডিভাইসে সংরক্ষিত — ইন্টারনেট সংযোগ ছাড়াও চলবে।",
+    removeLabel: "সরান",
+    noOfflineVideosYet: "এখনো কোনো অফলাইন ভিডিও নেই",
+    offlineVideosEmptyDesc: "এখানে একটি আসল, অফলাইনে চালানো যায় এমন কপি রাখতে যেকোনো ভিডিওর শেয়ার শিট খুলুন → Save video।",
+    nothingToDownload: "ডাউনলোড করার মতো কিছু নেই",
+    downloadingEllipsis: "ডাউনলোড হচ্ছে…",
+    couldntDownloadCheckConnection: "ডাউনলোড করা যায়নি — আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন",
+    noPostsWithThisSound: "এই সাউন্ড দিয়ে কোনো পোস্ট নেই",
+    yourMusicTitle: "Your Music",
+    postsPluralLabel: "টি পোস্ট",
+    postSingularLabel: "টি পোস্ট",
+    noSoundsTaggedYet: "এখনো কোনো সাউন্ড ট্যাগ করা হয়নি",
+    noSoundsTaggedDesc: "এখানে গ্রুপ করা দেখতে পোস্ট করার সময় একটি সাউন্ড নাম যোগ করুন।",
+    balanceTitle: "Balance",
+    coinBalanceLabel: "কয়েন ব্যালেন্স",
+    balanceDemoDesc: "এটি একটি ডেমো ব্যালেন্স — এই অ্যাপে কোনো পেমেন্ট সিস্টেম যুক্ত নেই, তাই এখানে কয়েন প্রকৃতপক্ষে কেনা, উপহার দেওয়া বা ক্যাশ-আউট করা যায় না।",
+    creatorStudioTitle: "TikTok Studio",
+    viewsLabel: "ভিউ",
+    likesLabel: "লাইক",
+    commentsLabel: "কমেন্ট",
+    topPostsByViewsLabel: "ভিউ অনুযায়ী সেরা পোস্ট",
+    noCaptionPlaceholder: "(কোনো ক্যাপশন নেই)",
+    postSomethingToSeeStats: "এখানে স্ট্যাটস দেখতে শুরু করতে কিছু পোস্ট করুন।",
+    creatorInsightsTitle: "Creator Search Insights",
+    creatorInsightsIntro: "শুধু আপনার নিজের পোস্টে ব্যবহৃত হ্যাশট্যাগের উপর ভিত্তি করে — প্ল্যাটফর্ম-জুড়ে সার্চ ট্রেন্ড নয়।",
+    noHashtagsYet: "এখনো কোনো হ্যাশট্যাগ নেই",
+    noHashtagsDesc: "এখানে ট্র্যাক দেখতে আপনার ক্যাপশনে #হ্যাশট্যাগ যোগ করুন।",
+    promoteTitle: "Promote",
+    promoteDemoDesc: "শুধু ডেমো — এই অ্যাপে কোনো বিজ্ঞাপন পেমেন্ট বা ডেলিভারি সিস্টেম নেই। \"Promote\"-এ ট্যাপ করলে শুধু আপনার নিজের স্ক্রিনে একটি 🔥 Promoted লেবেল প্রিভিউ দেখায়; এতে কোনো টাকা খরচ হয় না বা আসল রিচ বাড়ে না।",
+    promotedLabel: "Promoted",
+    promoteBtnLabel: "Promote",
+    groupCreatedToast: "গ্রুপ তৈরি হয়েছে — শীঘ্রই Inbox-এ খুঁজে পাবেন",
+    couldntCreateGroup: "গ্রুপ তৈরি করা যায়নি",
+    unpinFromProfileLabel: "প্রোফাইল থেকে আনপিন করুন",
+    pinToProfileLabel: "প্রোফাইলে পিন করুন"
   }
 };
 
@@ -1991,7 +2379,7 @@ function toggleBlockUser(targetUid, targetName) {
     }
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update — check Firestore Rules allow this");
+    showToast(t("couldntUpdateFirestoreRules"));
   });
 }
 function isBlockedByMe(otherUid) {
@@ -2004,10 +2392,10 @@ function isBlockedByMe(otherUid) {
 function toggleRestrictUser(targetUid, targetName) {
   if (!state.user || !targetUid || targetUid === state.user.uid) return;
   const isRestricted = isRestrictedByMe(targetUid);
-  const label = targetName || "this user";
+  const label = targetName || t("thisUserLabel");
   const msg = isRestricted
-    ? `Remove restriction from ${label}?`
-    : `Restrict ${label}? Their comments on your posts will only be visible to you and them, and they won't be notified.`;
+    ? t("removeRestrictionConfirm").replace("{name}", label)
+    : t("restrictConfirm").replace("{name}", label);
   if (!confirm(msg)) return;
 
   db.collection("users").doc(state.user.uid).update({
@@ -2015,11 +2403,11 @@ function toggleRestrictUser(targetUid, targetName) {
       ? firebase.firestore.FieldValue.arrayRemove(targetUid)
       : firebase.firestore.FieldValue.arrayUnion(targetUid)
   }).then(() => {
-    showToast(isRestricted ? "Restriction removed" : "Restricted");
+    showToast(isRestricted ? t("restrictionRemovedToast") : t("restrictedToast"));
     closeSheets();
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update");
+    showToast(t("couldntUpdateGeneric"));
   });
 }
 
@@ -2034,28 +2422,28 @@ function toggleMuteUser(targetUid, targetName) {
       ? firebase.firestore.FieldValue.arrayRemove(targetUid)
       : firebase.firestore.FieldValue.arrayUnion(targetUid)
   }).then(() => {
-    showToast(isMuted ? "Unmuted" : `Muted — you won't see ${targetName || "their"} posts in your feed`);
+    showToast(isMuted ? t("unmutedToast") : t("mutedToast").replace("{name}", targetName || t("theirLabel")));
     closeSheets();
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update");
+    showToast(t("couldntUpdateGeneric"));
   });
 }
 
 function reportUserAccount(targetUid) {
   if (!state.user || !targetUid) return;
-  if (!confirm("Report this account to the app owner?")) return;
+  if (!confirm(t("reportAccountConfirm"))) return;
   db.collection("userReports").add({
     reportedUid: targetUid,
     reportedByUid: state.user.uid,
     reportedByName: state.user.name,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    showToast("Account reported. Thanks for letting us know.");
+    showToast(t("accountReportedToast"));
     closeSheets();
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't submit report");
+    showToast(t("couldntSubmitReport"));
   });
 }
 
@@ -2065,7 +2453,7 @@ function reportUserAccount(targetUid) {
 function renderSafetySheet(targetUid) {
   if (!targetUid) return "";
   const u = findCachedUser(targetUid) || {};
-  const name = u.name || (state.profile && state.profile.name) || "this user";
+  const name = u.name || (state.profile && state.profile.name) || t("thisUserLabel");
   const isRestricted = isRestrictedByMe(targetUid);
   const isMuted = isMutedByMe(targetUid);
   const isBlocked = isBlockedByMe(targetUid);
@@ -2073,10 +2461,10 @@ function renderSafetySheet(targetUid) {
     <div class="sheet-overlay" id="safetyOverlay"></div>
     <div class="bottom-sheet" id="safetySheet">
       <div class="sheet-handle"></div>
-      <button class="menu-list-item" id="safetyRestrictBtn">🧯 ${isRestricted ? "Remove restriction" : "Restrict"}</button>
-      <button class="menu-list-item" id="safetyMuteBtn">🔇 ${isMuted ? "Unmute" : "Mute"}</button>
-      <button class="menu-list-item danger" id="safetyBlockBtn">🚫 ${isBlocked ? "Unblock" : `Block ${escapeHtml((name || "").split(" ")[0])}`}</button>
-      <button class="menu-list-item danger" id="safetyReportBtn">⚑ Report account</button>
+      <button class="menu-list-item" id="safetyRestrictBtn">🧯 ${isRestricted ? t("removeRestrictionLabel") : t("restrictLabel")}</button>
+      <button class="menu-list-item" id="safetyMuteBtn">🔇 ${isMuted ? t("unmuteLabel") : t("muteLabel")}</button>
+      <button class="menu-list-item danger" id="safetyBlockBtn">🚫 ${isBlocked ? t("unblockLabel") : `${t("blockLabel")} ${escapeHtml((name || "").split(" ")[0])}`}</button>
+      <button class="menu-list-item danger" id="safetyReportBtn">⚑ ${t("reportAccountLabel")}</button>
     </div>
   `;
 }
@@ -2378,7 +2766,7 @@ function listenToPosts() {
       handleDeepLink();
     }, (err) => {
       console.error(err);
-      showToast("Couldn't load posts");
+      showToast(t("couldntLoadPosts"));
     });
 }
 
@@ -5702,14 +6090,14 @@ function renderFollowListUserRow(u, myUid, isOwn) {
   const amFollowing = (u.followers || []).includes(myUid);
   const theyFollowMe = (u.following || []).includes(myUid);
   const isRequested = !amFollowing && (u.followRequests || []).includes(myUid);
-  const label = amFollowing ? (theyFollowMe ? "Friends" : "Following") : (isRequested ? "Requested" : (theyFollowMe ? "Follow back" : "Follow"));
+  const label = amFollowing ? (theyFollowMe ? t("friendsLabel") : t("followingLabel")) : (isRequested ? t("requestedLabel") : (theyFollowMe ? t("followBackLabel") : t("followLabel")));
   const cls = amFollowing ? "following" : (isRequested ? "requested" : "");
   const online = isUserOnline(u.uid);
   return `
     <div class="user-row">
-      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}${online ? `<span class="presence-dot"></span>` : ""}</div>
+      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userLabel"))}${online ? `<span class="presence-dot"></span>` : ""}</div>
       <div class="user-row-info" id="userinfo-${u.uid}">
-        <div class="u-name">${escapeHtml(u.name || "User")}</div>
+        <div class="u-name">${escapeHtml(u.name || t("userLabel"))}</div>
         <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
       </div>
       <div class="user-row-actions">
@@ -5751,24 +6139,24 @@ function renderFollowListScreen() {
   const rowsHtml = isLockedForMe
     ? ""
     : followingListLocked
-    ? `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">This list is private</div><div class="line2">${escapeHtml(profile.name || "This account")} has chosen to keep who they follow visible to only themself.</div></div>`
+    ? `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">${t("thisListIsPrivate")}</div><div class="line2">${escapeHtml(profile.name || t("thisAccountLabel"))} ${t("hasChosenToKeepFollowingPrivate")}</div></div>`
     : followListRowsHtml(list, isSearching, myUid, isOwn);
 
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="followListBackBtn">←</button>
-      <div class="back-title">Connections</div>
+      <div class="back-title">${t("connectionsTitle")}</div>
     </div>
     ${isLockedForMe ? `
-    <div class="empty-state"><div class="big">🔒</div><div>This account is private</div><div style="font-size:13px; margin-top:6px;">Follow ${escapeHtml(profile.name || "this account")} to see their connections.</div></div>
+    <div class="empty-state"><div class="big">🔒</div><div>${t("thisAccountIsPrivate")}</div><div style="font-size:13px; margin-top:6px;">${t("followToSeeConnections").replace("{name}", escapeHtml(profile.name || t("thisAccountLabel")))}</div></div>
     ` : `
     <div class="friends-sub-tabs">
-      <button class="simple-tab ${kind === "following" ? "active" : ""}" id="followListTabFollowing">Following (${counts.following})</button>
-      <button class="simple-tab ${kind === "followers" ? "active" : ""}" id="followListTabFollowers">Followers (${counts.followers})</button>
-      <button class="simple-tab ${kind === "friends" ? "active" : ""}" id="followListTabFriends">Friends (${counts.friends})</button>
+      <button class="simple-tab ${kind === "following" ? "active" : ""}" id="followListTabFollowing">${t("followingLabel")} (${counts.following})</button>
+      <button class="simple-tab ${kind === "followers" ? "active" : ""}" id="followListTabFollowers">${t("followersLabel")} (${counts.followers})</button>
+      <button class="simple-tab ${kind === "friends" ? "active" : ""}" id="followListTabFriends">${t("friendsLabel")} (${counts.friends})</button>
     </div>
     <div class="friends-search-wrap">
-      <input id="followListSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.followListSearch || "")}" />
+      <input id="followListSearchInput" type="text" placeholder="${t("searchPeopleByNamePlaceholder")}" value="${escapeHtml(state.followListSearch || "")}" />
     </div>
     <div class="user-list">${rowsHtml}</div>
     `}
@@ -5776,7 +6164,7 @@ function renderFollowListScreen() {
     <div class="sheet-overlay" id="removeConnOverlay"></div>
     <div class="bottom-sheet" id="removeConnSheet">
       <div class="sheet-handle"></div>
-      <button class="menu-list-item danger" id="removeConnBtn">🚫 Remove</button>
+      <button class="menu-list-item danger" id="removeConnBtn">🚫 ${t("removeLabel")}</button>
     </div>` : ""}
   `;
   document.getElementById("followListBackBtn").onclick = () => setState({ view: "profile" });
@@ -5849,7 +6237,7 @@ function doRemoveConnection() {
     showToast(kind === "followers" ? "Removed" : "Unfollowed");
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't remove — check your connection or try again");
+    showToast(t("couldntRemoveCheckConnection"));
   });
 }
 
@@ -6381,22 +6769,22 @@ function renderSettingsSecurityScreen() {
 /* ================= SETTINGS > Security > Change password ================= */
 function renderSettingsChangePasswordScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Change password")}
+    ${settingsTopbar(t("changePasswordTitle"))}
     <div class="settings-field">
-      <label>Current password</label>
+      <label>${t("currentPasswordLabel")}</label>
       <input type="password" id="pwCurrentInput" value="${escapeHtml(state.pwCurrent)}" autocomplete="current-password" />
     </div>
     <div class="settings-field">
-      <label>New password</label>
+      <label>${t("newPasswordLabel")}</label>
       <input type="password" id="pwNewInput" value="${escapeHtml(state.pwNew)}" autocomplete="new-password" />
     </div>
     <div class="settings-field">
-      <label>Confirm new password</label>
+      <label>${t("confirmNewPasswordLabel")}</label>
       <input type="password" id="pwConfirmInput" value="${escapeHtml(state.pwConfirm)}" autocomplete="new-password" />
     </div>
     ${state.pwError ? `<div class="settings-error">${escapeHtml(state.pwError)}</div>` : ""}
     <div style="padding:0 14px;">
-      <button class="btn-primary" id="pwSaveBtn" ${state.pwSaving ? "disabled" : ""}>${state.pwSaving ? "Updating..." : "Update password"}</button>
+      <button class="btn-primary" id="pwSaveBtn" ${state.pwSaving ? "disabled" : ""}>${state.pwSaving ? t("updatingEllipsis") : t("updatePasswordBtn")}</button>
     </div>
   `;
   wireSettingsBack("settingsSecurity");
@@ -6408,9 +6796,9 @@ function renderSettingsChangePasswordScreen() {
 
 function handleChangePassword() {
   const { pwCurrent, pwNew, pwConfirm } = state;
-  if (!pwCurrent || !pwNew || !pwConfirm) { setState({ pwError: "Fill in all three fields." }); return; }
-  if (pwNew.length < 6) { setState({ pwError: "New password must be at least 6 characters." }); return; }
-  if (pwNew !== pwConfirm) { setState({ pwError: "New passwords don't match." }); return; }
+  if (!pwCurrent || !pwNew || !pwConfirm) { setState({ pwError: t("fillAllThreeFields") }); return; }
+  if (pwNew.length < 6) { setState({ pwError: t("newPasswordMinChars") }); return; }
+  if (pwNew !== pwConfirm) { setState({ pwError: t("newPasswordsDontMatch") }); return; }
 
   setState({ pwError: "", pwSaving: true });
   const user = auth.currentUser;
@@ -6419,7 +6807,7 @@ function handleChangePassword() {
     .then(() => user.updatePassword(pwNew))
     .then(() => {
       setState({ pwSaving: false, pwCurrent: "", pwNew: "", pwConfirm: "", view: "settingsSecurity" });
-      showToast("Password updated");
+      showToast(t("passwordUpdatedToast"));
     })
     .catch((err) => {
       console.error(err);
@@ -6430,15 +6818,15 @@ function handleChangePassword() {
 /* ================= SETTINGS > Security > Delete account ================= */
 function renderSettingsDeleteAccountScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Delete account")}
-    <div class="settings-hint" style="color:var(--coral);">This permanently deletes your account, sign-in, posts (and their media), comments, messages, and every trace of you elsewhere in the app — likes, saves, reposts, views you left on others' posts, and your spot in anyone's followers/following/blocked lists. This cannot be undone.</div>
+    ${settingsTopbar(t("deleteAccountTitle"))}
+    <div class="settings-hint" style="color:var(--coral);">${t("deleteAccountWarning")}</div>
     <div class="settings-field">
-      <label>Confirm your password</label>
+      <label>${t("confirmYourPasswordLabel")}</label>
       <input type="password" id="delPasswordInput" value="${escapeHtml(state.delPassword)}" autocomplete="current-password" />
     </div>
     ${state.delError ? `<div class="settings-error">${escapeHtml(state.delError)}</div>` : ""}
     <div style="padding:0 14px;">
-      <button class="btn-primary" id="delConfirmBtn" style="background:var(--coral);" ${state.delSaving ? "disabled" : ""}>${state.delSaving ? "Deleting..." : "Permanently delete my account"}</button>
+      <button class="btn-primary" id="delConfirmBtn" style="background:var(--coral);" ${state.delSaving ? "disabled" : ""}>${state.delSaving ? t("deletingEllipsis") : t("permanentlyDeleteAccountBtn")}</button>
     </div>
   `;
   wireSettingsBack("settingsSecurity");
@@ -6566,8 +6954,8 @@ function wipeAllUserData(uid) {
 }
 
 function handleDeleteAccount() {
-  if (!state.delPassword) { setState({ delError: "Enter your password to confirm." }); return; }
-  if (!confirm("This permanently deletes your account AND everything tied to it — your posts, comments, and messages. This can't be undone. Continue?")) return;
+  if (!state.delPassword) { setState({ delError: t("enterPasswordToConfirm") }); return; }
+  if (!confirm(t("deleteAccountConfirmDialog"))) return;
 
   setState({ delError: "", delSaving: true });
   const user = auth.currentUser;
@@ -6578,7 +6966,7 @@ function handleDeleteAccount() {
     .then(() => db.collection("users").doc(uid).delete())
     .then(() => user.delete())
     .then(() => {
-      showToast("Account and all your data deleted");
+      showToast(t("accountDeletedToast"));
       // auth.onAuthStateChanged() handles resetting local state once the sign-out fires.
     })
     .catch((err) => {
@@ -6593,11 +6981,11 @@ function handleDeleteAccount() {
    Autoplay lives under Playback below, where TikTok actually keeps it. */
 function renderSettingsContentScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Content preferences")}
+    ${settingsTopbar(t("contentPreferencesTitle"))}
     <div class="empty-nav-tab">
       <div class="big">🎬</div>
-      <div class="line1">Not available in this build</div>
-      <div class="line2">Filtering keywords/hashtags and refreshing your feed's interest model needs a recommendation engine this app doesn't have yet. This menu entry is here as a placeholder for now.</div>
+      <div class="line1">${t("notAvailableInBuild")}</div>
+      <div class="line2">${t("contentPreferencesDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6612,8 +7000,8 @@ function renderSettingsManagePostsScreen() {
   const myPosts = (state.posts || []).filter(p => p.authorUid === myUid)
     .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
   root.innerHTML = `
-    ${settingsTopbar("Manage posts")}
-    <div style="padding:0 14px 10px;font-size:12px;color:var(--ink-soft);">Tap ⋮ on a post to edit, change who can see it, pin it, or delete it.</div>
+    ${settingsTopbar(t("managePostsTitle"))}
+    <div style="padding:0 14px 10px;font-size:12px;color:var(--ink-soft);">${t("managePostsHint")}</div>
     ${myPosts.length ? `
       <div class="profile-grid" style="padding:0 10px;">
         ${myPosts.map(p => `
@@ -6621,12 +7009,12 @@ function renderSettingsManagePostsScreen() {
             ${p.mediaType === "video"
               ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
               : p.media ? `<img src="${p.media}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:8px;font-size:12px;">${escapeHtml(p.text || "")}</div>`}
-            <div style="position:absolute;left:6px;top:6px;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:8px;">${p.privacy === "private" ? "Only me" : p.privacy === "friends" ? "Friends" : "Public"}</div>
+            <div style="position:absolute;left:6px;top:6px;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:8px;">${p.privacy === "private" ? t("onlyMeLabel") : p.privacy === "friends" ? t("friendsLabel") : t("publicLabel")}</div>
             <button class="grid-pin-toggle" id="managepostmenu-${p.id}" style="left:auto;right:6px;top:6px;">⋮</button>
           </div>
         `).join("")}
       </div>
-    ` : `<div class="empty-nav-tab"><div class="big">🎞️</div><div class="line1">No posts yet</div></div>`}
+    ` : `<div class="empty-nav-tab"><div class="big">🎞️</div><div class="line1">${t("noPostsYet")}</div></div>`}
   `;
   wireSettingsBack("settings");
   myPosts.forEach(p => {
@@ -6640,11 +7028,11 @@ function renderSettingsManagePostsScreen() {
    server, which is a much bigger build than this personal Firebase app has. */
 function renderSettingsLiveScreen() {
   root.innerHTML = `
-    ${settingsTopbar("LIVE")}
+    ${settingsTopbar(t("liveTitle"))}
     <div class="empty-nav-tab">
       <div class="big">🔴</div>
-      <div class="line1">LIVE isn't available in this build</div>
-      <div class="line2">Real live streaming needs dedicated video-broadcast infrastructure beyond what this app currently has. This menu entry is here as a placeholder for now.</div>
+      <div class="line1">${t("liveNotAvailable")}</div>
+      <div class="line2">${t("liveDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6662,11 +7050,11 @@ function renderSettingsNotificationsScreen() {
       <button class="toggle-switch ${prefs[key] !== false ? "on" : ""}" id="notif-${key}"></button>
     </div>`;
   root.innerHTML = `
-    ${settingsTopbar("Notifications")}
-    ${row("likes", "Likes", "Get notified when someone likes your post")}
-    ${row("comments", "Comments", "Get notified when someone comments on your post")}
-    ${row("follows", "New followers", "Get notified about follows and follow requests")}
-    ${row("messages", "Direct messages", "Get notified about new messages")}
+    ${settingsTopbar(t("notificationsTitle"))}
+    ${row("likes", t("notifLikesLabel"), t("notifLikesDesc"))}
+    ${row("comments", t("notifCommentsLabel"), t("notifCommentsDesc"))}
+    ${row("follows", t("notifFollowsLabel"), t("notifFollowsDesc"))}
+    ${row("messages", t("notifMessagesLabel"), t("notifMessagesDesc"))}
   `;
   wireSettingsBack("settings");
   ["likes", "comments", "follows", "messages"].forEach(key => {
@@ -6687,27 +7075,27 @@ function renderSettingsWellbeingScreen() {
   const mins = Math.floor((totalSeconds % 3600) / 60);
   const limit = getScreenTimeLimitMinutes();
   root.innerHTML = `
-    ${settingsTopbar("Time and well-being")}
+    ${settingsTopbar(t("wellbeingTitle"))}
     <div style="padding:20px 18px 6px;">
       <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;">
-        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Screen time today</div>
-        <div style="font-size:28px;font-weight:800;">${hrs}h ${mins}m</div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">${t("screenTimeTodayLabel")}</div>
+        <div style="font-size:28px;font-weight:800;">${hrs}${t("hoursShort")} ${mins}${t("minutesShort")}</div>
       </div>
     </div>
     <div class="settings-field">
-      <label>Daily screen time reminder (minutes, 0 = off)</label>
+      <label>${t("dailyScreenTimeReminderLabel")}</label>
       <input type="number" min="0" id="wellbeingLimitInput" value="${limit}" />
     </div>
     <div style="padding:0 14px;">
-      <button class="btn-primary" id="wellbeingSaveBtn">Save</button>
+      <button class="btn-primary" id="wellbeingSaveBtn">${t("saveBtn")}</button>
     </div>
-    <div class="settings-hint">Tracked only on this device, only while the app is open — it resets each day and isn't shared anywhere.</div>
+    <div class="settings-hint">${t("wellbeingTrackedHint")}</div>
   `;
   wireSettingsBack("settings");
   document.getElementById("wellbeingSaveBtn").onclick = () => {
     const val = Math.max(0, parseInt(document.getElementById("wellbeingLimitInput").value, 10) || 0);
     setScreenTimeLimitMinutes(val);
-    showToast(val > 0 ? `Reminder set for ${val} minutes/day` : "Reminder turned off");
+    showToast(val > 0 ? t("reminderSetToast").replace("{min}", val) : t("reminderOffToast"));
   };
 }
 
@@ -6718,11 +7106,11 @@ function renderSettingsWellbeingScreen() {
    is worse than not having the feature at all. */
 function renderSettingsFamilyPairingScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Family Pairing")}
+    ${settingsTopbar(t("familyPairingTitle"))}
     <div class="empty-nav-tab">
       <div class="big">👨‍👩‍👧</div>
-      <div class="line1">Not available in this build</div>
-      <div class="line2">Real parental controls need a carefully tested system that actually enforces screen-time and content limits between two linked accounts. A version that only looked linked but didn't enforce anything could mislead a parent — so it's left out for now rather than faked.</div>
+      <div class="line1">${t("notAvailableInBuild")}</div>
+      <div class="line2">${t("familyPairingDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6733,16 +7121,16 @@ function renderSettingsThemeScreen() {
   const current = (state.myUserDoc && state.myUserDoc.settings && state.myUserDoc.settings.theme) || getCachedSettings().theme;
   const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-theme-choice="${key}">${label}</button>`;
   root.innerHTML = `
-    ${settingsTopbar("Theme")}
+    ${settingsTopbar(t("themeTitle"))}
     <div class="settings-field">
-      <label>Appearance</label>
+      <label>${t("appearanceLabel")}</label>
       <div class="privacy-options">
-        ${opt("light", "☀️ Light")}
-        ${opt("dark", "🌙 Dark")}
-        ${opt("system", "📱 System")}
+        ${opt("light", "☀️ " + t("themeLight"))}
+        ${opt("dark", "🌙 " + t("themeDark"))}
+        ${opt("system", "📱 " + t("themeSystem"))}
       </div>
     </div>
-    <div class="settings-hint">"System" follows your device's light/dark setting automatically.</div>
+    <div class="settings-hint">${t("themeSystemHint")}</div>
   `;
   wireSettingsBack("settings");
   document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
@@ -6760,17 +7148,17 @@ function renderSettingsAccessibilityScreen() {
   const reduceMotion = !!s.reduceMotion;
   const opt = (key, label) => `<button class="privacy-option ${fontSize === key ? "selected" : ""}" data-fontsize-choice="${key}">${label}</button>`;
   root.innerHTML = `
-    ${settingsTopbar("Accessibility")}
+    ${settingsTopbar(t("accessibilityTitle"))}
     <div class="settings-field">
-      <label>Text size</label>
+      <label>${t("textSizeLabel")}</label>
       <div class="privacy-options">
-        ${opt("small", "Small")}
-        ${opt("default", "Default")}
-        ${opt("large", "Large")}
+        ${opt("small", t("textSizeSmall"))}
+        ${opt("default", t("textSizeDefault"))}
+        ${opt("large", t("textSizeLarge"))}
       </div>
     </div>
     <div class="compose-toggle-row" style="margin:4px 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Reduce motion</div><div class="compose-toggle-sub">Minimizes transitions and animations throughout the app.</div></div>
+      <div><div class="compose-toggle-label">${t("reduceMotionLabel")}</div><div class="compose-toggle-sub">${t("reduceMotionDesc")}</div></div>
       <button class="toggle-switch ${reduceMotion ? "on" : ""}" id="reduceMotionToggle"></button>
     </div>
   `;
@@ -6792,11 +7180,11 @@ function renderSettingsAccessibilityScreen() {
    system, so there's no real "saved sounds" library to manage yet. */
 function renderSettingsMusicScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Music")}
+    ${settingsTopbar(t("musicTitle"))}
     <div class="empty-nav-tab">
       <div class="big">🎵</div>
-      <div class="line1">Not available in this build</div>
-      <div class="line2">Posts don't have an attached-track/sound system yet, so there's no music library to manage here. This menu entry is here as a placeholder for now.</div>
+      <div class="line1">${t("notAvailableInBuild")}</div>
+      <div class="line2">${t("musicDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6811,16 +7199,16 @@ function renderSettingsActivityCenterScreen() {
   const created = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : null;
   const createdLabel = created ? created.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—";
   root.innerHTML = `
-    ${settingsTopbar("Activity center")}
-    <div class="menu-section-label">Account activity</div>
+    ${settingsTopbar(t("activityCenterTitle"))}
+    <div class="menu-section-label">${t("accountActivityLabel")}</div>
     <div class="menu-list">
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📅</span><span>Account created</span><span class="menu-item-sub">${createdLabel}</span></div>
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📝</span><span>Posts</span><span class="menu-item-sub">${(state.posts || []).filter(p => p.authorUid === state.user.uid).length}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📅</span><span>${t("accountCreatedLabel")}</span><span class="menu-item-sub">${createdLabel}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📝</span><span>${t("postsLabel")}</span><span class="menu-item-sub">${(state.posts || []).filter(p => p.authorUid === state.user.uid).length}</span></div>
     </div>
     <div class="empty-nav-tab">
       <div class="big">🕒</div>
-      <div class="line1">Full activity log not available</div>
-      <div class="line2">A detailed login/device history isn't tracked by this app yet — only the account-level info above is real.</div>
+      <div class="line1">${t("fullActivityLogNotAvailable")}</div>
+      <div class="line2">${t("activityCenterDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6834,25 +7222,25 @@ function renderSettingsActivityCenterScreen() {
 function renderSettingsAudienceControlScreen() {
   const d = state.myUserDoc || {};
   const isPrivate = !!d.private;
-  const tierLabel = (v) => v === "friends" ? "Friends" : v === "noone" ? "No one" : "Everyone";
+  const tierLabel = (v) => v === "friends" ? t("friendsLabel") : v === "noone" ? t("noOneLabel") : t("everyoneLabel");
   root.innerHTML = `
-    ${settingsTopbar("Audience control")}
+    ${settingsTopbar(t("audienceControlTitle"))}
     <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts." : "Anyone can follow you and see your public posts."}</div></div>
+      <div><div class="compose-toggle-label">${t("privateAccountLabel")}</div><div class="compose-toggle-sub">${isPrivate ? t("privateAccountOnDesc") : t("privateAccountOffDesc")}</div></div>
       <button class="toggle-switch ${isPrivate ? "on" : ""}" id="audiencePrivateToggle"></button>
     </div>
     <div class="menu-list">
-      <button class="menu-item" id="audienceCommentsBtn"><span class="menu-item-icon">💬</span><span>Who can comment</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="audienceMentionsBtn"><span class="menu-item-icon">@</span><span>Who can mention you</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="audienceFollowingBtn"><span class="menu-item-icon">👥</span><span>Following list</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? "Everyone" : "Only you"}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="audienceLikedBtn"><span class="menu-item-icon">❤️</span><span>Liked videos</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? "Everyone" : (d.likedVideosPrivacy === "friends" ? "Friends" : "Only you")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceCommentsBtn"><span class="menu-item-icon">💬</span><span>${t("whoCanCommentLabel")}</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceMentionsBtn"><span class="menu-item-icon">@</span><span>${t("whoCanMentionLabel")}</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceFollowingBtn"><span class="menu-item-icon">👥</span><span>${t("followingListLabel")}</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? t("everyoneLabel") : t("onlyYouLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="audienceLikedBtn"><span class="menu-item-icon">❤️</span><span>${t("likedVideosLabel")}</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? t("everyoneLabel") : (d.likedVideosPrivacy === "friends" ? t("friendsLabel") : t("onlyYouLabel"))}</span><span class="menu-item-arrow">›</span></button>
     </div>
   `;
   wireSettingsBack("settings");
   document.getElementById("audiencePrivateToggle").onclick = () => {
     db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
       console.error(err);
-      showToast("Couldn't update privacy setting");
+      showToast(t("couldntUpdatePrivacySetting"));
     });
   };
   document.getElementById("audienceCommentsBtn").onclick = () => setState({ view: "settingsPrivacyComments" });
@@ -6866,11 +7254,11 @@ function renderSettingsAudienceControlScreen() {
    ad-preference values to store or enforce. */
 function renderSettingsAdsScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Ads")}
+    ${settingsTopbar(t("adsTitle"))}
     <div class="empty-nav-tab">
       <div class="big">📢</div>
-      <div class="line1">Milon doesn't show ads</div>
-      <div class="line2">There's no ad system in this app, so there's nothing to configure here. This menu entry is here as a placeholder for now.</div>
+      <div class="line1">${t("noAdsTitle")}</div>
+      <div class="line2">${t("adsDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6884,9 +7272,9 @@ function renderSettingsPlaybackScreen() {
   const autoplay = s.autoplayVideos !== false;
   const dataSaver = !!s.dataSaver;
   root.innerHTML = `
-    ${settingsTopbar("Playback")}
+    ${settingsTopbar(t("playbackTitle"))}
     <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Autoplay videos</div><div class="compose-toggle-sub">Videos start playing automatically as you scroll the feed.${dataSaver ? " Currently off because Data Saver is on." : ""}</div></div>
+      <div><div class="compose-toggle-label">${t("autoplayVideosLabel")}</div><div class="compose-toggle-sub">${t("autoplayVideosDesc")}${dataSaver ? " " + t("autoplayOffDataSaverNote") : ""}</div></div>
       <button class="toggle-switch ${autoplay && !dataSaver ? "on" : ""} ${dataSaver ? "disabled" : ""}" id="playbackAutoplayToggle" ${dataSaver ? "disabled" : ""}></button>
     </div>
   `;
@@ -6931,11 +7319,11 @@ function renderSettingsLanguageScreen() {
    an explained placeholder. */
 function renderSettingsContactsLocationScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Contacts and location")}
+    ${settingsTopbar(t("contactsLocationTitle"))}
     <div class="empty-nav-tab">
       <div class="big">📍</div>
-      <div class="line1">Not available in this build</div>
-      <div class="line2">Nothing in Milon currently uses your contacts or location (e.g. to suggest people to follow), so there's no real permission to request yet. This menu entry is here as a placeholder for now.</div>
+      <div class="line1">${t("notAvailableInBuild")}</div>
+      <div class="line2">${t("contactsLocationDesc")}</div>
     </div>
   `;
   wireSettingsBack("settings");
@@ -6948,17 +7336,17 @@ function renderSettingsContactsLocationScreen() {
    Shows a real usage estimate from the browser's Storage API where available. */
 function renderSettingsFreeUpSpaceScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Free up space")}
+    ${settingsTopbar(t("freeUpSpaceTitle"))}
     <div style="padding:20px 18px 6px;">
       <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;">
-        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Cache used on this device</div>
-        <div style="font-size:22px;font-weight:800;" id="cacheUsageLabel">Calculating…</div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">${t("cacheUsedOnDeviceLabel")}</div>
+        <div style="font-size:22px;font-weight:800;" id="cacheUsageLabel">${t("calculatingEllipsis")}</div>
       </div>
     </div>
     <div style="padding:0 14px;">
-      <button class="btn-primary" id="freeUpSpaceBtn">Clear cache</button>
+      <button class="btn-primary" id="freeUpSpaceBtn">${t("clearCacheBtn")}</button>
     </div>
-    <div class="settings-hint">This clears cached images/pages stored by the app so it can re-download the latest version — you stay logged in and none of your posts or profile data are touched.</div>
+    <div class="settings-hint">${t("freeUpSpaceHint")}</div>
   `;
   wireSettingsBack("settings");
   if (navigator.storage && navigator.storage.estimate) {
@@ -6968,22 +7356,22 @@ function renderSettingsFreeUpSpaceScreen() {
       if (label) label.textContent = `${mb} MB`;
     }).catch(() => {
       const label = document.getElementById("cacheUsageLabel");
-      if (label) label.textContent = "Unknown";
+      if (label) label.textContent = t("unknownLabel2");
     });
   } else {
     const label = document.getElementById("cacheUsageLabel");
-    if (label) label.textContent = "Unknown";
+    if (label) label.textContent = t("unknownLabel2");
   }
   document.getElementById("freeUpSpaceBtn").onclick = () => {
-    if (!confirm("Clear cached app data on this device? You'll stay logged in.")) return;
+    if (!confirm(t("clearCacheConfirmDialog"))) return;
     const clearCaches = window.caches ? caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))) : Promise.resolve();
     clearCaches.then(() => {
-      showToast("Cache cleared");
+      showToast(t("cacheClearedToast"));
       const label = document.getElementById("cacheUsageLabel");
       if (label) label.textContent = "0.0 MB";
     }).catch((err) => {
       console.error(err);
-      showToast("Couldn't clear cache");
+      showToast(t("couldntClearCache"));
     });
   };
 }
@@ -6995,9 +7383,9 @@ function renderSettingsDataSaverScreen() {
   const s = (state.myUserDoc && state.myUserDoc.settings) || getCachedSettings();
   const dataSaver = !!s.dataSaver;
   root.innerHTML = `
-    ${settingsTopbar("Data Saver")}
+    ${settingsTopbar(t("dataSaverTitle"))}
     <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Data Saver</div><div class="compose-toggle-sub">Turns off autoplay so videos only load when you tap them, to use less mobile data.</div></div>
+      <div><div class="compose-toggle-label">${t("dataSaverTitle")}</div><div class="compose-toggle-sub">${t("dataSaverDesc")}</div></div>
       <button class="toggle-switch ${dataSaver ? "on" : ""}" id="dataSaverToggle"></button>
     </div>
   `;
@@ -7020,12 +7408,12 @@ function renderSettingsWallpaperScreen() {
     return `
       <button class="wallpaper-swatch ${current === key ? "selected" : ""}" data-wallpaper-choice="${key}"
         style="background:${w.css || "var(--card)"}; border:1px solid var(--line); border-radius:12px; height:74px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; cursor:pointer;">
-        <span style="font-size:12px; font-weight:600; color:${w.css ? "#fff" : "var(--ink)"}; text-shadow:${w.css ? "0 1px 3px rgba(0,0,0,0.4)" : "none"};">${w.label}${current === key ? " ✓" : ""}</span>
+        <span style="font-size:12px; font-weight:600; color:${w.css ? "#fff" : "var(--ink)"}; text-shadow:${w.css ? "0 1px 3px rgba(0,0,0,0.4)" : "none"};">${t("wallpaper_" + key)}${current === key ? " ✓" : ""}</span>
       </button>`;
   };
   root.innerHTML = `
-    ${settingsTopbar("Wallpaper")}
-    <div class="settings-hint" style="margin-top:10px;">Applies to the background behind your chat messages.</div>
+    ${settingsTopbar(t("wallpaperTitle"))}
+    <div class="settings-hint" style="margin-top:10px;">${t("wallpaperHint")}</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:6px 14px 14px;">
       ${Object.keys(CHAT_WALLPAPERS).map(swatch).join("")}
     </div>
@@ -7041,20 +7429,20 @@ function renderSettingsWallpaperScreen() {
    pages; not tied to live data, so there's nothing to fake here. */
 function renderSettingsHelpCenterScreen() {
   const faq = [
-    ["How do I post something?", "Tap the + button in the bottom navigation, add a photo or video, then tap Post."],
-    ["How do I make my account private?", "Go to Settings and privacy → Privacy (or Audience control) and turn on Private account."],
-    ["How do I stop someone from contacting me?", "Open their profile, tap ⋯, and choose Block, Restrict, or Mute depending on how much you want to limit them."],
-    ["How do I delete my account?", "Go to Settings and privacy → Account → Delete account. This is permanent."],
-    ["How do I report a problem or bug?", "Milon doesn't have a live support inbox yet — for now, describe the issue to whoever manages your copy of the app."]
+    ["faqQ1", "faqA1"],
+    ["faqQ2", "faqA2"],
+    ["faqQ3", "faqA3"],
+    ["faqQ4", "faqA4"],
+    ["faqQ5", "faqA5"]
   ];
   root.innerHTML = `
-    ${settingsTopbar("Help Center")}
-    <div class="menu-section-label">Frequently asked questions</div>
+    ${settingsTopbar(t("helpCenterTitle"))}
+    <div class="menu-section-label">${t("faqSectionLabel")}</div>
     <div class="menu-list" style="padding:6px 4px;">
-      ${faq.map(([q, a]) => `
-        <div style="padding:12px 14px; ${a === faq[faq.length - 1][1] ? "" : "border-bottom:1px solid var(--line);"}">
-          <div style="font-weight:600; margin-bottom:4px;">${escapeHtml(q)}</div>
-          <div style="font-size:13px; color:var(--ink-soft); line-height:1.5;">${escapeHtml(a)}</div>
+      ${faq.map(([qk, ak], i) => `
+        <div style="padding:12px 14px; ${i === faq.length - 1 ? "" : "border-bottom:1px solid var(--line);"}">
+          <div style="font-weight:600; margin-bottom:4px;">${escapeHtml(t(qk))}</div>
+          <div style="font-size:13px; color:var(--ink-soft); line-height:1.5;">${escapeHtml(t(ak))}</div>
         </div>
       `).join("")}
     </div>
@@ -7063,20 +7451,20 @@ function renderSettingsHelpCenterScreen() {
 }
 function renderSettingsPrivacyCenterScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Privacy Center")}
+    ${settingsTopbar(t("privacyCenterTitle"))}
     <div style="padding:14px 18px 4px; font-size:13px; color:var(--ink-soft); line-height:1.6;">
-      This is a plain-language summary of what Milon actually stores about you. For the controls themselves, see Privacy or Audience control.
+      ${t("privacyCenterIntro")}
     </div>
-    <div class="menu-section-label">What's stored</div>
+    <div class="menu-section-label">${t("whatsStoredLabel")}</div>
     <div class="menu-list">
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">👤</span><span>Profile info</span><span class="menu-item-sub">name, handle, bio, avatar</span></div>
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📝</span><span>Your posts</span><span class="menu-item-sub">media, captions, privacy setting</span></div>
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">👥</span><span>Social graph</span><span class="menu-item-sub">followers, following, likes, comments</span></div>
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">💬</span><span>Messages</span><span class="menu-item-sub">DMs you send/receive in-app</span></div>
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">⚙️</span><span>App settings</span><span class="menu-item-sub">theme, accessibility, notification prefs</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">👤</span><span>${t("profileInfoLabel")}</span><span class="menu-item-sub">${t("profileInfoSub")}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📝</span><span>${t("yourPostsLabel")}</span><span class="menu-item-sub">${t("yourPostsSub")}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">👥</span><span>${t("socialGraphLabel")}</span><span class="menu-item-sub">${t("socialGraphSub")}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">💬</span><span>${t("messagesLabel")}</span><span class="menu-item-sub">${t("messagesSub")}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">⚙️</span><span>${t("appSettingsLabel")}</span><span class="menu-item-sub">${t("appSettingsSub")}</span></div>
     </div>
     <div class="menu-list" style="margin-top:14px;">
-      <button class="menu-item" id="privacyCenterGoPrivacyBtn"><span class="menu-item-icon">🔒</span><span>Go to Privacy settings</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privacyCenterGoPrivacyBtn"><span class="menu-item-icon">🔒</span><span>${t("goToPrivacySettingsLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
   `;
   wireSettingsBack("settings");
@@ -7084,12 +7472,12 @@ function renderSettingsPrivacyCenterScreen() {
 }
 function renderSettingsTermsScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Terms and Policies")}
+    ${settingsTopbar(t("termsAndPoliciesTitle"))}
     <div class="menu-list" style="margin-top:10px;">
-      <a class="menu-item" href="terms-of-service.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;"><span class="menu-item-icon">📄</span><span>Terms of Service</span><span class="menu-item-arrow">↗</span></a>
-      <a class="menu-item" href="privacy-policy.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;"><span class="menu-item-icon">🔏</span><span>Privacy Policy</span><span class="menu-item-arrow">↗</span></a>
+      <a class="menu-item" href="terms-of-service.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;"><span class="menu-item-icon">📄</span><span>${t("termsOfServiceLabel")}</span><span class="menu-item-arrow">↗</span></a>
+      <a class="menu-item" href="privacy-policy.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;"><span class="menu-item-icon">🔏</span><span>${t("privacyPolicyLabel")}</span><span class="menu-item-arrow">↗</span></a>
     </div>
-    <div class="settings-hint">Opens the full legal document in a new tab.</div>
+    <div class="settings-hint">${t("opensLegalDocHint")}</div>
   `;
   wireSettingsBack("settings");
 }
@@ -7101,7 +7489,7 @@ function updateMySettings(patch) {
   db.collection("users").doc(state.user.uid).set({ settings: patch }, { merge: true })
     .catch((err) => {
       console.error(err);
-      showToast("Couldn't save setting");
+      showToast(t("couldntSaveSetting"));
     });
 }
 
@@ -7163,7 +7551,7 @@ function handleAvatarSelect(e) {
         state.profile = { ...state.profile, avatar: compressed };
         render();
       })
-      .catch((err) => { console.error(err); showToast("Couldn't update photo"); });
+      .catch((err) => { console.error(err); showToast(t("couldntUpdatePhoto")); });
   });
 }
 
@@ -7209,7 +7597,7 @@ function wireSheetHandlers() {
   const reportBtn = document.getElementById("shareReport");
   if (reportBtn) reportBtn.onclick = doReportFromSheet;
   const statusBtn = document.getElementById("shareStatus");
-  if (statusBtn) statusBtn.onclick = () => { showToast("Status sharing isn't available in this build yet"); closeSheets(); };
+  if (statusBtn) statusBtn.onclick = () => { showToast(t("statusSharingNotAvailable")); closeSheets(); };
   const smsBtn = document.getElementById("shareSms");
   if (smsBtn) smsBtn.onclick = () => doShareTo("sms");
   const saveVideoBtn = document.getElementById("shareSaveVideo");
@@ -7271,9 +7659,9 @@ function doSendPostToFriend(uid) {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }).then(() => {
-    showToast("Sent!");
+    showToast(t("sentToast"));
     closeSheets();
-  }).catch((err) => { console.error(err); showToast("Couldn't send"); });
+  }).catch((err) => { console.error(err); showToast(t("couldntSend")); });
 }
 
 function doRepostFromSheet() {
@@ -7281,7 +7669,7 @@ function doRepostFromSheet() {
   if (post) {
     const author = findCachedUser(post.authorUid);
     if (author && author.allowReuse === false && post.authorUid !== state.user.uid) {
-      showToast("This creator doesn't allow their posts to be reposted");
+      showToast(t("creatorDisallowsRepost"));
       closeSheets();
       return;
     }
@@ -7306,9 +7694,9 @@ function doReportFromSheet() {
       tx.update(ref, { reports: newReports, hidden: newReports.length >= 5 ? true : (data.hidden || false) });
     });
   }).then(() => {
-    showToast("Thanks — this post has been reported");
+    showToast(t("thanksPostReported"));
     closeSheets();
-  }).catch((err) => { console.error(err); showToast("Couldn't submit report"); });
+  }).catch((err) => { console.error(err); showToast(t("couldntSubmitReport")); });
 }
 
 /* Real, detailed analytics for one of the user's own posts — shown as a proper bottom sheet
@@ -7490,10 +7878,10 @@ function makeLocalThumb(blob, mediaType) {
   });
 }
 function saveVideoOffline(post) {
-  if (!post || !post.media) { showToast("Nothing to save"); return; }
+  if (!post || !post.media) { showToast(t("nothingToSave")); return; }
   const existing = getOfflineVideos().find(v => v.id === post.id);
-  if (existing) { showToast("Already saved for offline viewing"); closeSheets(); return; }
-  showToast("Saving for offline…");
+  if (existing) { showToast(t("alreadySavedOffline")); closeSheets(); return; }
+  showToast(t("savingForOffline"));
   fetch(post.media)
     .then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.blob(); })
     .then((blob) => {
@@ -7519,19 +7907,19 @@ function saveVideoOffline(post) {
             try { localStorage.setItem(OFFLINE_VIDEOS_KEY, JSON.stringify(trimmed)); break; } catch (e2) { /* keep trimming */ }
           }
         }
-        showToast("Saved for offline viewing");
+        showToast(t("savedForOfflineViewing"));
         closeSheets();
       });
     })
     .catch((err) => {
       console.error(err);
-      showToast("Couldn't save this — check your connection and try again");
+      showToast(t("couldntSaveCheckConnection"));
     });
 }
 function doSaveVideoFromSheet() {
   const post = state.posts.find(p => p.id === activePostId);
   if (post && post.allowDownload === false && post.authorUid !== state.user.uid) {
-    showToast("The creator has turned off downloads for this post");
+    showToast(t("creatorTurnedOffDownloads"));
     return;
   }
   saveVideoOffline(post);
@@ -7574,20 +7962,20 @@ function renderOfflineVideosScreen(backView) {
   backView = backView || "menu";
   const list = getOfflineVideos();
   root.innerHTML = `
-    ${settingsTopbar("Offline videos", backView)}
+    ${settingsTopbar(t("offlineVideosTitle"), backView)}
     ${list.length ? `
-      <div class="settings-hint" style="margin-top:10px;">Saved on this device — plays even with no internet connection.</div>
+      <div class="settings-hint" style="margin-top:10px;">${t("offlineVideosHint")}</div>
       <div class="profile-grid">
         ${list.map(v => `
           <div class="profile-grid-item" id="offlineitem-${v.id}">
             ${v.cover ? `<img src="${v.cover}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--card);">${v.mediaType === "video" ? "🎬" : "🖼️"}</div>`}
             ${v.mediaType === "video" ? `<span class="grid-video-badge">▶</span>` : ""}
-            <button class="grid-pin-toggle" id="offlineremove-${v.id}" style="right:auto;left:6px;top:6px;" title="Remove">✕</button>
+            <button class="grid-pin-toggle" id="offlineremove-${v.id}" style="right:auto;left:6px;top:6px;" title="${t("removeLabel")}">✕</button>
           </div>
         `).join("")}
       </div>
     ` : `
-      <div class="empty-nav-tab"><div class="big">📥</div><div class="line1">No offline videos yet</div><div class="line2">Open any video's share sheet → Save video to keep a real, playable-offline copy here.</div></div>
+      <div class="empty-nav-tab"><div class="big">📥</div><div class="line1">${t("noOfflineVideosYet")}</div><div class="line2">${t("offlineVideosEmptyDesc")}</div></div>
     `}
   `;
   wireSettingsBack(backView);
@@ -7601,8 +7989,8 @@ function renderOfflineVideosScreen(backView) {
 
 function doDownloadFromSheet() {
   const post = state.posts.find(p => p.id === activePostId);
-  if (!post || !post.media) { showToast("Nothing to download"); return; }
-  showToast("Downloading…");
+  if (!post || !post.media) { showToast(t("nothingToDownload")); return; }
+  showToast(t("downloadingEllipsis"));
   fetch(post.media)
     .then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.blob(); })
     .then((blob) => {
@@ -7618,7 +8006,7 @@ function doDownloadFromSheet() {
     })
     .catch((err) => {
       console.error(err);
-      showToast("Couldn't download — check your connection and try again");
+      showToast(t("couldntDownloadCheckConnection"));
     });
 }
 
@@ -7642,7 +8030,7 @@ function renderYourMusicScreen() {
             </div>
           `).join("")}
         </div>
-      ` : `<div class="empty-nav-tab"><div class="big">🎵</div><div class="line1">No posts with this sound</div></div>`}
+      ` : `<div class="empty-nav-tab"><div class="big">🎵</div><div class="line1">${t("noPostsWithThisSound")}</div></div>`}
     `;
     list.forEach(p => {
       const el = document.getElementById(`musicitem-${p.id}`);
@@ -7657,19 +8045,19 @@ function renderYourMusicScreen() {
   const sounds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
 
   root.innerHTML = `
-    ${settingsTopbar("Your Music", "menu")}
+    ${settingsTopbar(t("yourMusicTitle"), "menu")}
     ${sounds.length ? `
       <div class="menu-list">
         ${sounds.map(name => `
           <button class="menu-item" id="soundrow-${encodeURIComponent(name)}">
             <span class="menu-item-icon">🎵</span>
             <span>${escapeHtml(name)}</span>
-            <span class="menu-item-sub">${counts[name]} post${counts[name] > 1 ? "s" : ""}</span>
+            <span class="menu-item-sub">${counts[name]} ${counts[name] > 1 ? t("postsPluralLabel") : t("postSingularLabel")}</span>
             <span class="menu-item-arrow">›</span>
           </button>
         `).join("")}
       </div>
-    ` : `<div class="empty-nav-tab"><div class="big">🎵</div><div class="line1">No sounds tagged yet</div><div class="line2">Add a sound name when you post to see it grouped here.</div></div>`}
+    ` : `<div class="empty-nav-tab"><div class="big">🎵</div><div class="line1">${t("noSoundsTaggedYet")}</div><div class="line2">${t("noSoundsTaggedDesc")}</div></div>`}
   `;
   wireSettingsBack("menu");
   sounds.forEach(name => {
@@ -7684,14 +8072,14 @@ function renderYourMusicScreen() {
    purchases or cash-outs work. */
 function renderBalanceScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Balance", "menu")}
+    ${settingsTopbar(t("balanceTitle"), "menu")}
     <div style="padding:24px 18px;">
       <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center;">
-        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Coin balance</div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">${t("coinBalanceLabel")}</div>
         <div style="font-size:32px;font-weight:800;color:var(--ink);">🪙 0</div>
       </div>
       <div style="margin-top:16px;font-size:12.5px;color:var(--ink-soft);line-height:1.6;text-align:center;">
-        This is a demo balance — this app has no payment system connected, so coins can't actually be bought, gifted, or cashed out here.
+        ${t("balanceDemoDesc")}
       </div>
     </div>
   `;
@@ -7710,26 +8098,26 @@ function renderCreatorStudioScreen() {
   const topPosts = [...myPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
 
   root.innerHTML = `
-    ${settingsTopbar("TikTok Studio", "menu")}
+    ${settingsTopbar(t("creatorStudioTitle"), "menu")}
     <div style="padding:18px;">
       <div class="profile-stats" style="padding:0 0 20px;">
-        <div class="profile-stat"><div class="num">${myPosts.length}</div><div class="lbl">Posts</div></div>
-        <div class="profile-stat"><div class="num">${totalViews.toLocaleString()}</div><div class="lbl">Views</div></div>
-        <div class="profile-stat"><div class="num">${totalLikes.toLocaleString()}</div><div class="lbl">Likes</div></div>
-        <div class="profile-stat"><div class="num">${totalComments.toLocaleString()}</div><div class="lbl">Comments</div></div>
+        <div class="profile-stat"><div class="num">${myPosts.length}</div><div class="lbl">${t("postsLabel")}</div></div>
+        <div class="profile-stat"><div class="num">${totalViews.toLocaleString()}</div><div class="lbl">${t("viewsLabel")}</div></div>
+        <div class="profile-stat"><div class="num">${totalLikes.toLocaleString()}</div><div class="lbl">${t("likesLabel")}</div></div>
+        <div class="profile-stat"><div class="num">${totalComments.toLocaleString()}</div><div class="lbl">${t("commentsLabel")}</div></div>
       </div>
-      <div class="menu-section-label" style="padding-left:0;">Top posts by views</div>
+      <div class="menu-section-label" style="padding-left:0;">${t("topPostsByViewsLabel")}</div>
       ${topPosts.length ? `
         <div class="menu-list">
           ${topPosts.map(p => `
             <div class="menu-item" style="cursor:default;">
               <span class="menu-item-icon">${p.mediaType === "video" ? "▶️" : "🖼️"}</span>
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;">${escapeHtml((p.text || "(no caption)").slice(0, 40))}</span>
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;">${escapeHtml((p.text || t("noCaptionPlaceholder")).slice(0, 40))}</span>
               <span class="menu-item-sub">👁 ${(p.views || 0).toLocaleString()} · ❤️ ${(p.likes || []).length}</span>
             </div>
           `).join("")}
         </div>
-      ` : `<div class="empty-nav-tab"><div class="big">📊</div><div class="line1">No posts yet</div><div class="line2">Post something to start seeing stats here.</div></div>`}
+      ` : `<div class="empty-nav-tab"><div class="big">📊</div><div class="line1">${t("noPostsYet")}</div><div class="line2">${t("postSomethingToSeeStats")}</div></div>`}
     </div>
   `;
   wireSettingsBack("menu");
@@ -7754,9 +8142,9 @@ function renderCreatorInsightsScreen() {
   const tags = Object.keys(tagStats).sort((a, b) => tagStats[b].views - tagStats[a].views);
 
   root.innerHTML = `
-    ${settingsTopbar("Creator Search Insights", "menu")}
+    ${settingsTopbar(t("creatorInsightsTitle"), "menu")}
     <div style="padding:14px 18px 0;font-size:12px;color:var(--ink-soft);line-height:1.5;">
-      Based only on hashtags you've used on your own posts — not platform-wide search trends.
+      ${t("creatorInsightsIntro")}
     </div>
     ${tags.length ? `
       <div class="menu-list" style="margin-top:14px;">
@@ -7764,11 +8152,11 @@ function renderCreatorInsightsScreen() {
           <div class="menu-item" style="cursor:default;">
             <span class="menu-item-icon">#</span>
             <span>${escapeHtml(tag)}</span>
-            <span class="menu-item-sub">${tagStats[tag].count} post${tagStats[tag].count > 1 ? "s" : ""} · 👁 ${tagStats[tag].views.toLocaleString()}</span>
+            <span class="menu-item-sub">${tagStats[tag].count} ${tagStats[tag].count > 1 ? t("postsPluralLabel") : t("postSingularLabel")} · 👁 ${tagStats[tag].views.toLocaleString()}</span>
           </div>
         `).join("")}
       </div>
-    ` : `<div class="empty-nav-tab"><div class="big">💡</div><div class="line1">No hashtags yet</div><div class="line2">Add #hashtags to your captions to see them tracked here.</div></div>`}
+    ` : `<div class="empty-nav-tab"><div class="big">💡</div><div class="line1">${t("noHashtagsYet")}</div><div class="line2">${t("noHashtagsDesc")}</div></div>`}
   `;
   wireSettingsBack("menu");
 }
@@ -7784,9 +8172,9 @@ function renderPromoteScreen() {
   const promoted = state.demoPromotedPosts || [];
 
   root.innerHTML = `
-    ${settingsTopbar("Promote", "menu")}
+    ${settingsTopbar(t("promoteTitle"), "menu")}
     <div style="padding:14px 18px 0;font-size:12px;color:var(--ink-soft);line-height:1.5;">
-      Demo only — this app has no ad payment or delivery system. Tapping "Promote" just previews a 🔥 Promoted label on your own screen; it doesn't spend money or boost real reach.
+      ${t("promoteDemoDesc")}
     </div>
     ${myPosts.length ? `
       <div class="profile-grid" style="margin-top:14px;">
@@ -7795,11 +8183,11 @@ function renderPromoteScreen() {
             ${p.mediaType === "video"
               ? `<video src="${p.media}" ${p.cover ? `poster="${p.cover}"` : ""} muted></video><span class="grid-video-badge">▶</span>`
               : p.media ? `<img src="${p.media}" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:8px;font-size:12px;">${escapeHtml(p.text || "")}</div>`}
-            <button class="promote-toggle-btn ${promoted.includes(p.id) ? "active" : ""}" id="promotebtn-${p.id}">${promoted.includes(p.id) ? "🔥 Promoted" : "Promote"}</button>
+            <button class="promote-toggle-btn ${promoted.includes(p.id) ? "active" : ""}" id="promotebtn-${p.id}">${promoted.includes(p.id) ? "🔥 " + t("promotedLabel") : t("promoteBtnLabel")}</button>
           </div>
         `).join("")}
       </div>
-    ` : `<div class="empty-nav-tab"><div class="big">🔥</div><div class="line1">No posts yet</div></div>`}
+    ` : `<div class="empty-nav-tab"><div class="big">🔥</div><div class="line1">${t("noPostsYet")}</div></div>`}
   `;
   wireSettingsBack("menu");
   myPosts.forEach(p => {
@@ -7822,9 +8210,9 @@ function doCreateGroupFromSheet() {
     name: `${state.user.name}'s group`,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    showToast("Group created — find it soon under Inbox");
+    showToast(t("groupCreatedToast"));
     closeSheets();
-  }).catch((err) => { console.error(err); showToast("Couldn't create group"); });
+  }).catch((err) => { console.error(err); showToast(t("couldntCreateGroup")); });
 }
 
 function openShareSheet(postId) {
@@ -7850,7 +8238,7 @@ function openOwnerMenu(postId) {
   const pinBtn = document.getElementById("pinPostBtn");
   if (pinBtn) {
     const myPinnedPosts = (state.myUserDoc && state.myUserDoc.pinnedPosts) || [];
-    pinBtn.textContent = myPinnedPosts.includes(postId) ? "📌 Unpin from profile" : "📌 Pin to profile";
+    pinBtn.textContent = myPinnedPosts.includes(postId) ? "📌 " + t("unpinFromProfileLabel") : "📌 " + t("pinToProfileLabel");
   }
 }
 
@@ -7886,10 +8274,10 @@ function getPostLink(postId) {
 function doCopyLink() {
   const link = getPostLink(activePostId);
   navigator.clipboard.writeText(link).then(() => {
-    showToast("Link copied!");
+    showToast(t("linkCopiedToast"));
     closeSheets();
   }).catch(() => {
-    showToast("Couldn't copy the link");
+    showToast(t("couldntCopyLink"));
   });
 }
 
@@ -7914,7 +8302,7 @@ function doShareTo(platform) {
 function doShareInstagram() {
   const link = getPostLink(activePostId);
   navigator.clipboard.writeText(link).catch(() => {});
-  showToast("Link copied — paste it in a Direct Message or Story on Instagram");
+  showToast(t("linkCopiedInstagramHint"));
   const fallbackTimer = setTimeout(() => {
     window.open("https://www.instagram.com/", "_blank");
   }, 1200);
@@ -7943,7 +8331,7 @@ function ensureQrLib() {
     const s = document.createElement("script");
     s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
     s.onload = resolve;
-    s.onerror = () => { ensureQrLib._pending = null; showToast("Couldn't load the QR generator — check your connection"); reject(); };
+    s.onerror = () => { ensureQrLib._pending = null; showToast(t("couldntLoadQrGenerator")); reject(); };
     document.head.appendChild(s);
   });
   return ensureQrLib._pending;
@@ -7968,7 +8356,7 @@ function openQrOverlay(link, title) {
   sheetEl.id = "qrSheetEl";
   sheetEl.innerHTML = `
     <div class="sheet-handle"></div>
-    <div class="sheet-title" style="text-align:center;">${escapeHtml(title || "Scan this QR code")}</div>
+    <div class="sheet-title" style="text-align:center;">${escapeHtml(title || t("scanThisQrCode"))}</div>
     <div id="qrCodeBox" style="display:flex; justify-content:center; padding:10px 0 6px;"></div>
     <div style="text-align:center; font-size:12px; color:var(--ink-soft); padding:0 10px 16px; word-break:break-all;">${escapeHtml(link)}</div>
   `;
@@ -7995,7 +8383,7 @@ function doShareProfile(uid) {
   if (navigator.share) {
     navigator.share({ title: "Milon profile", text: "Check out this profile on Milon", url: link }).catch(() => {});
   } else {
-    navigator.clipboard.writeText(link).then(() => showToast("Profile link copied!")).catch(() => showToast("Couldn't copy the link"));
+    navigator.clipboard.writeText(link).then(() => showToast(t("profileLinkCopiedToast"))).catch(() => showToast(t("couldntCopyLink")));
   }
 }
 
@@ -8014,7 +8402,7 @@ function handleDeepLink() {
       const target = findCachedUser(profileUid);
       const amFollowing = target && (target.followers || []).includes(state.user.uid);
       if (target && target.showProfileOnShare === false && !amFollowing) {
-        showToast("This profile isn't available via shared links");
+        showToast(t("profileNotAvailableViaLinks"));
         return;
       }
     }
@@ -8029,7 +8417,7 @@ function handleDeepLink() {
         state.posts = [...state.posts, { id: doc.id, ...doc.data() }];
         openPostViewer(postId);
       } else {
-        showToast("That post is no longer available");
+        showToast(t("postNoLongerAvailable"));
       }
     }).catch((err) => console.error("deep link post fetch error:", err));
   }
@@ -8042,8 +8430,8 @@ function doEditPost() {
   const newText = prompt("Edit post:", post.text || "");
   if (newText !== null && newText.trim() !== "") {
     db.collection("posts").doc(post.id).update({ text: newText.trim() })
-      .then(() => showToast("Post updated"))
-      .catch((err) => { console.error(err); showToast("Couldn't update the post"); });
+      .then(() => showToast(t("postUpdatedToast")))
+      .catch((err) => { console.error(err); showToast(t("couldntUpdateThePost")); });
   }
   closeSheets();
 }
@@ -8055,18 +8443,18 @@ function doPinPostFromSheet() {
 
 function doDeletePost() {
   if (!activePostId) return;
-  if (!confirm("Delete this post? This can't be undone.")) return;
+  if (!confirm(t("deletePostConfirm"))) return;
   db.collection("posts").doc(activePostId).delete()
-    .then(() => showToast("Post deleted"))
-    .catch((err) => { console.error(err); showToast("Couldn't delete the post"); });
+    .then(() => showToast(t("postDeletedToast")))
+    .catch((err) => { console.error(err); showToast(t("couldntDeleteThePost")); });
   closeSheets();
 }
 
 function setPrivacyForActivePost(level) {
   if (!activePostId) return;
   db.collection("posts").doc(activePostId).update({ privacy: level })
-    .then(() => showToast("Privacy updated"))
-    .catch((err) => { console.error(err); showToast("Couldn't update privacy"); });
+    .then(() => showToast(t("privacyUpdatedToast")))
+    .catch((err) => { console.error(err); showToast(t("couldntUpdatePrivacyToast")); });
   closeSheets();
 }
 
@@ -8125,17 +8513,17 @@ function submitPost() {
         composePrivacy: "public", composeAllowComments: true, composeAllowDownload: null,
         composeUploadPct: null, view: "feed"
       });
-      showToast("Posted!");
+      showToast(t("postedToast"));
     }).catch((err) => {
       console.error(err);
-      showToast("Couldn't create the post");
+      showToast(t("couldntCreateThePost"));
       setState({ composeUploadPct: null });
     });
   };
 
   const failPost = (err) => {
     console.error(err);
-    showToast("Couldn't upload — check your connection and try again");
+    showToast(t("couldntUploadCheckConnection"));
     setState({ composeUploadPct: null });
     if (postBtn) { postBtn.disabled = false; postBtn.textContent = "Post"; }
   };
@@ -8233,7 +8621,7 @@ function submitCommentOrReply(postId, text, parentId) {
     })
     .catch((err) => {
       console.error(err);
-      showToast("Couldn't send comment");
+      showToast(t("couldntSendComment"));
     });
 }
 
@@ -8256,7 +8644,7 @@ function deleteOwnComment(postId, commentId) {
   if (!state.user) return;
   const comment = state.fsComments.find(c => c.id === commentId);
   if (!comment || comment.uid !== state.user.uid) return;
-  if (!confirm("Delete this comment?")) return;
+  if (!confirm(t("deleteCommentConfirm"))) return;
 
   const colRef = db.collection("posts").doc(postId).collection("comments");
   const replies = state.fsComments.filter(c => c.parentId === commentId);
@@ -8270,7 +8658,7 @@ function deleteOwnComment(postId, commentId) {
     });
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't delete comment");
+    showToast(t("couldntDeleteComment"));
   });
 }
 
@@ -8289,10 +8677,10 @@ function reportComment(postId, commentId) {
     reportedByName: state.user.name,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    showToast("Comment reported");
+    showToast(t("commentReportedToast"));
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't submit report");
+    showToast(t("couldntSubmitReport"));
   });
 }
 
@@ -8359,7 +8747,7 @@ function sendWaveTo(uid) {
     openChat(uid);
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't send");
+    showToast(t("couldntSend"));
   });
 }
 

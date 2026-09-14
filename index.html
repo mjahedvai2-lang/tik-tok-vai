@@ -926,7 +926,331 @@ const TRANSLATIONS = {
     settingsLogin: "Login",
     post: "Post",
     posting: "Posting...",
-    clearCache: "Clear cache"
+    clearCache: "Clear cache",
+    navHome: "Home",
+    navFriends: "Friends",
+    navInbox: "Inbox",
+    navProfile: "Profile",
+    createPost: "Create post",
+    newPost: "New post",
+    savedDraft: "You have a saved draft",
+    resume: "Resume",
+    discard: "Discard",
+    writeACaption: "Write a caption... use #hashtags and @mentions",
+    photo: "Photo",
+    video: "Video",
+    removeMedia: "Remove media",
+    soundNameOptional: "Sound name (optional)",
+    whoCanSeeThis: "Who can see this",
+    publicPrivacy: "Public",
+    friendsPrivacy: "Friends",
+    onlyMe: "Only me",
+    allowComments: "Allow comments",
+    allowCommentsSub: "Others can reply to this post",
+    allowDownloads: "Allow downloads",
+    allowDownloadsSub: "Others can download your video/photo",
+    draftSaved: "Draft saved",
+    fileTypeNotSupported: "That file type isn't supported",
+    noOneFound: "No one found",
+    tryDifferentSearch: "Try a different search.",
+    noFriendsYet: "No friends yet",
+    searchFollowThemHint: "Search for people above and follow them — once they follow you back, they'll show up here.",
+    videosTab: "Videos",
+    searchPeopleByNameHandle: "Search people by name or @handle",
+    noFriendVideosYet: "No friend videos yet",
+    followPeopleVideosHint: "Follow people and their posts will show up here.",
+    discover: "Discover",
+    searchPeopleVideosHashtags: "Search people, videos, #hashtags",
+    recentSearches: "Recent searches",
+    clear: "Clear",
+    trendingHashtags: "Trending hashtags",
+    postsCount: "posts",
+    noHashtagsYet: "No hashtags yet — be the first to post with one!",
+    trendingCreators: "Trending creators",
+    noCreatorsYet: "No creators yet",
+    usersTab: "Users",
+    noUsersFound: "No users found",
+    hashtagsTab: "Hashtags",
+    noHashtagsFound: "No hashtags found",
+    videosAndPosts: "Videos & posts",
+    noResultsFor: "No results for",
+    topTab: "Top",
+    noPostsWithTag: "No posts with",
+    unpinned: "Unpinned",
+    pinnedToTop: "Pinned to top",
+    couldntUpdatePin: "Couldn't update pin",
+    following: "Following",
+    requested: "Requested",
+    follow: "Follow",
+    userFallback: "User",
+    pin: "Pin",
+    message: "Message",
+    create: "Create",
+    followRequests: "Follow requests",
+    someone: "Someone",
+    wantsToFollowYou: "wants to follow you",
+    newRequestsToFollowYou: "New requests to follow you",
+    newFollowers: "New followers",
+    noNewFollowersYet: "No new followers yet",
+    noActivityYet: "No activity yet",
+    messageRequests: "Message requests",
+    noNewMessages: "No new messages",
+    systemNotifications: "System notifications",
+    creatorUpdatesAppNews: "Creator updates and app news",
+    archivedChats: "Archived chats",
+    archivedChatsSub: "Chats you've hidden from your inbox",
+    suggestedAccounts: "Suggested accounts",
+    remove: "Remove",
+    noMessagesYet: "No messages yet",
+    messageFromFriendsHint: "Message someone from the Friends tab to start a chat.",
+    markAllRead: "Mark all read",
+    couldntOpenRequest: "Couldn't open request",
+    requestArchived: "Request archived",
+    couldntArchiveRequest: "Couldn't archive request",
+    chatUnarchived: "Chat unarchived",
+    couldntUnarchiveChat: "Couldn't unarchive chat",
+    chatDeleted: "Chat deleted",
+    couldntDeleteChat: "Couldn't delete chat",
+    couldntUpdateFollowStatus: "Couldn't update follow status — check your connection or try again",
+    requestAccepted: "Request accepted",
+    couldntAcceptRequest: "Couldn't accept request",
+    couldntDeclineRequest: "Couldn't decline request",
+    couldntLoadInbox: "Couldn't load inbox",
+    noticeSentToEveryone: "Notice sent to everyone",
+    couldntSendNotice: "Couldn't send notice",
+    cantMessageAccount: "You can't message this account",
+    couldntOpenChat: "Couldn't open chat",
+    couldntSend: "Couldn't send",
+    micNotAvailable: "Microphone isn't available on this device/browser",
+    couldntAccessMic: "Couldn't access the microphone",
+    couldntSendVoice: "Couldn't send the voice message",
+    couldntSendMessage: "Couldn't send message",
+    couldntLoadProfile: "Couldn't load profile",
+    cantFollowAccount: "You can't follow this account",
+    postNoLongerAvailable: "This post is no longer available",
+    dmNotAccepting: "This account isn't accepting direct messages",
+    dmFriendsOnly: "This account only accepts messages from friends they follow back",
+    voiceMessageLabel: "Voice message",
+    friendsWith: "Friends with",
+    acceptedYourFollowRequestText: "accepted your follow request",
+    startedFollowingYouText: "started following you",
+    sendWave: "Send a 👋",
+    followBack: "Follow back",
+    noPendingRequests: "No pending requests",
+    pendingRequestsHint: "Requests to follow your private account show up here.",
+    accept: "Accept",
+    decline: "Decline",
+    noFollowersYet: "No followers yet",
+    followersHint: "People who follow you show up here.",
+    filterAll: "All",
+    filterLikes: "Likes",
+    filterComments: "Comments",
+    noLikesYet: "No likes yet",
+    likesHint: "Likes on your posts show up here.",
+    noCommentsYet: "No comments yet",
+    commentsHint: "Comments and replies on your posts show up here.",
+    activityHint: "Likes, comments and approved follow requests show up here.",
+    newChatsHint: "New chats started with you show up here.",
+    writeNoticePlaceholder: "Write a notice to send to everyone...",
+    sendToEveryone: "Send to everyone",
+    welcomeToMilon: "Welcome to Milon",
+    welcomeToMilonSub: "Thanks for joining — explore Friends and Inbox to connect with people.",
+    unarchive: "Unarchive",
+    deleteBtn: "Delete",
+    noArchivedChats: "No archived chats",
+    archivedChatsHint2: "Chats you hide from your inbox show up here.",
+    activeNow: "Active now",
+    activePrefix: "Active",
+    seenLabel: "Seen",
+    photoVideoFromGallery: "Photo/video from gallery",
+    messagePlaceholder: "Message...",
+    stickersLabel: "Stickers",
+    voiceMessageTitle: "Voice message",
+    messageRequestTitle: "Message request",
+    profileTitle: "Profile",
+    profileQrTitle: "Profile QR code",
+    shareProfileTitle: "Share profile",
+    blockRestrictMuteTitle: "Block, restrict, mute",
+    editProfileTitle: "Edit profile",
+    privateAccountTitle: "Private account",
+    changePhotoTitle: "Change photo",
+    followersLabel: "Followers",
+    likesLabel: "Likes",
+    shareFirstPost: "Share your first post",
+    postsShowUpHere: "Posts you create will show up here.",
+    noPrivatePosts: "No private posts",
+    privacyPostsHint: "Posts set to Friends or Only me will show up here.",
+    noRepostsYet: "No reposts yet",
+    repostsHint: "Posts you repost will show up here.",
+    nothingSavedYet: "Nothing saved yet",
+    savedHint: "Posts you save will show up here.",
+    likedPostsHint: "Posts you like will show up here.",
+    blockedAccountMsg: "You've blocked this account",
+    accountNotAvailable: "This account isn't available",
+    privateAccountMsg: "This account is private",
+    followRequestPending: "Your follow request is pending.",
+    followToSeePosts: "Follow this account to see their posts.",
+    createAPost: "Create a post",
+    unfollowConfirmPrefix: "Unfollow",
+    thisUser: "this user",
+    noMessagesYetChat: "No messages yet",
+    onlyPinUpTo: "You can only pin up to {n} posts. Unpin one first.",
+    sendTo: "Send to",
+    followPeopleToSend: "Follow people to send posts directly",
+    saveVideo: "Save video",
+    statusLabel: "Status",
+    reportLabel: "Report",
+    telegramLabel: "Telegram",
+    instagramLabel: "Instagram",
+    smsLabel: "SMS",
+    emailLabel: "Email",
+    qrCodeLabel: "QR code",
+    moreLabel: "More",
+    messengerLabel: "Messenger",
+    whatsappLabel: "WhatsApp",
+    facebookLabel: "Facebook",
+    copyLinkLabel: "Copy link",
+    analyticsLabel: "Analytics",
+    downloadLabel: "Download",
+    unpinLabel: "Unpin",
+    pinLabel2: "Pin",
+    createGroup: "Create group",
+    editPost: "Edit post",
+    privacySettings: "Privacy settings",
+    pinToProfile: "Pin to profile",
+    flashLabel: "Flash",
+    timerLabel: "Timer",
+    flipCameraLabel: "Flip camera",
+    chooseFromGallery: "Choose from gallery",
+    retake: "Retake",
+    useThis: "Use this",
+    cameraNotAvailable: "Camera isn't available on this device/browser. Use the gallery button below to pick a photo or video instead.",
+    cameraAccessDenied: "Couldn't access the camera (permission denied or unavailable). Use the gallery button below to pick a photo or video instead.",
+    filterNormal: "Normal",
+    filterBw: "B&W",
+    filterWarm: "Warm",
+    filterCool: "Cool",
+    filterVivid: "Vivid",
+    filterSoft: "Soft",
+    recordingNotSupported: "Recording isn't supported on this browser",
+    nameLabel: "Name",
+    usernameLabel: "Username",
+    usernamePlaceholder: "username",
+    basicInfo: "Basic info",
+    bioLabel: "Bio",
+    bioPlaceholder: "Write a short description about who you are or what your account is about",
+    linksLabel: "Links",
+    youtubeLinkLabel: "YouTube link",
+    facebookLinkLabel: "Facebook link",
+    nameCantBeEmpty: "Name can't be empty",
+    savingLabel: "Saving...",
+    profileUpdated: "Profile updated",
+    couldntUpdateProfile: "Couldn't update profile",
+    repostRemoved: "Repost removed",
+    repostedLabel: "Reposted",
+    menuTitle: "Menu",
+    balanceLabel: "Balance",
+    activityCenter: "Activity center",
+    offlineVideos: "Offline videos",
+    yourQrCode: "Your QR code",
+    yourMusic: "Your Music",
+    tiktokStudio: "TikTok Studio",
+    creatorSearchInsights: "Creator Search Insights",
+    promoteLabel: "Promote",
+    settingsAndPrivacy: "Settings and privacy",
+    replyLabel: "Reply",
+    beFirstToComment: "Be the first to comment",
+    commentsTitle: "Comments",
+    newestSort: "Newest",
+    replyingToPrefix: "Replying to",
+    commentsOffForPost: "Comments are turned off for this post",
+    managePosts: "Manage posts",
+    contentPreferences: "Content preferences",
+    liveLabel: "LIVE",
+    notificationsLabel: "Notifications",
+    timeWellbeing: "Time and well-being",
+    familyPairing: "Family Pairing",
+    accountLabel: "Account",
+    securityPermissions: "Security & permissions",
+    analyticsLabel: "Analytics",
+    privateAccountLabel: "Private account",
+    privateAccountOnDesc: "Only approved followers can see your posts. New followers need your approval.",
+    privateAccountOffDesc: "Anyone can follow you and see your public posts.",
+    blockedAccountsLabel: "Blocked accounts",
+    restrictedAccountsLabel: "Restricted accounts",
+    mutedAccountsLabel: "Muted accounts",
+    commentsLabel: "Comments",
+    mentionsLabel: "Mentions",
+    directMessagesLabel: "Direct messages",
+    reuseOfContent: "Reuse of content",
+    displayProfileWhenSharing: "Display profile when sharing links",
+    downloadsLabel: "Downloads",
+    followingListLabel: "Following list",
+    likedVideosLabel: "Liked videos",
+    viewersLabel: "Viewers",
+    everyoneLabel: "Everyone",
+    noOneLabel: "No one",
+    onLabel: "On",
+    offLabel: "Off",
+    onlyYouLabel: "Only you",
+    blockRestrictMuteHint: "Blocking, restricting and muting someone can also be done from their profile — tap the ⋯ on their profile page.",
+    musicLabel: "Music",
+    audienceControl: "Audience control",
+    adsLabel: "Ads",
+    playbackLabel: "Playback",
+    displayLabel: "Display",
+    accessibilityLabel: "Accessibility",
+    contactsAndLocation: "Contacts and location",
+    freeUpSpace: "Free up space",
+    dataSaverLabel: "Data Saver",
+    wallpaperLabel: "Wallpaper",
+    helpCenterLabel: "Help Center",
+    privacyCenterLabel: "Privacy Center",
+    termsAndPolicies: "Terms and Policies",
+    clearData: "Clear data",
+    switchAccount: "Switch account",
+    logOut: "Log out",
+    couldntUpdatePrivacySetting: "Couldn't update privacy setting",
+    clearDataConfirm: "This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?",
+    switchAccountConfirm: "Log out of this account so you can sign in with a different one?",
+    logOutConfirm: "Log out of Milon?",
+    accountInformation: "Account information",
+    emailLabel: "Email",
+    handleLabel: "Handle",
+    manageAccount: "Manage account",
+    passwordSecurity: "Password & security",
+    deleteAccountLabel: "Delete account",
+    couldntSaveSetting: "Couldn't save setting",
+    whoCanPrefix: "Who can",
+    commentOnYourPosts: "comment on your posts",
+    mentionYou: "@mention you",
+    sendYouDirectMessages: "send you direct messages",
+    friendsMeansHint: "\"Friends\" means people who follow you and who you follow back. This applies going forward — it doesn't change anything already posted.",
+    allowContentReuse: "Allow content reuse",
+    reuseDesc: "When on, other people can repost your public posts to their own followers. When off, the Repost option is hidden on your posts.",
+    showProfileViaLinks: "Show profile via shared links",
+    shareLinkDesc: "When on, anyone who opens a link to your profile can view it. When off, shared links to your profile only open for people you already allow to see it.",
+    allowDownloadsByDefault: "Allow downloads by default",
+    downloadsDesc: "Sets the starting value of \"Allow downloads\" each time you create a new post. You can still override it per post when you post it.",
+    seeWhoViewedVideos: "See who viewed your videos",
+    viewersDesc: "Turn this on to see which accounts viewed your videos. It only works both ways — you'll only appear in someone else's viewer list, and see viewers on your own videos, if you both have this turned on.",
+    whoCanSeeAccountsFollow: "Who can see the accounts you follow",
+    whoCanSeeLikesTab: "Who can see your Likes tab",
+    havntBlockedAnyone: "You haven't blocked anyone.",
+    havntRestrictedAnyone: "You haven't restricted anyone.",
+    havntMutedAnyone: "You haven't muted anyone.",
+    unblockLabel: "Unblock",
+    unmuteLabel: "Unmute",
+    changePasswordLabel: "Change password",
+    appPermissions: "App permissions",
+    cameraLabel: "Camera",
+    microphoneLabel: "Microphone",
+    checkingLabel: "Checking…",
+    permissionsHint: "These show your browser's actual permission grant for this site — to change them, use your browser's site settings, not this app.",
+    allowedLabel: "Allowed",
+    blockedLabel: "Blocked",
+    askEachTime: "Ask each time",
+    unknownLabel: "Unknown"
   },
   bn: {
     appName: "মিলন",
@@ -972,7 +1296,331 @@ const TRANSLATIONS = {
     settingsLogin: "লগইন",
     post: "পোস্ট",
     posting: "পোস্ট করা হচ্ছে...",
-    clearCache: "ক্যাশ পরিষ্কার করুন"
+    clearCache: "ক্যাশ পরিষ্কার করুন",
+    navHome: "হোম",
+    navFriends: "ফ্রেন্ডস",
+    navInbox: "ইনবক্স",
+    navProfile: "প্রোফাইল",
+    createPost: "পোস্ট তৈরি করুন",
+    newPost: "নতুন পোস্ট",
+    savedDraft: "আপনার একটি সেভ করা ড্রাফট আছে",
+    resume: "চালিয়ে যান",
+    discard: "বাতিল করুন",
+    writeACaption: "একটি ক্যাপশন লিখুন... #হ্যাশট্যাগ ও @মেনশন ব্যবহার করুন",
+    photo: "ছবি",
+    video: "ভিডিও",
+    removeMedia: "মিডিয়া সরান",
+    soundNameOptional: "সাউন্ডের নাম (ঐচ্ছিক)",
+    whoCanSeeThis: "কারা এটি দেখতে পারবে",
+    publicPrivacy: "সবার জন্য",
+    friendsPrivacy: "ফ্রেন্ডস",
+    onlyMe: "শুধু আমি",
+    allowComments: "কমেন্ট করার অনুমতি দিন",
+    allowCommentsSub: "অন্যরা এই পোস্টে রিপ্লাই দিতে পারবে",
+    allowDownloads: "ডাউনলোডের অনুমতি দিন",
+    allowDownloadsSub: "অন্যরা আপনার ভিডিও/ছবি ডাউনলোড করতে পারবে",
+    draftSaved: "ড্রাফট সেভ হয়েছে",
+    fileTypeNotSupported: "এই ফাইল টাইপ সাপোর্ট করে না",
+    noOneFound: "কাউকে পাওয়া যায়নি",
+    tryDifferentSearch: "অন্য কিছু দিয়ে খুঁজে দেখুন।",
+    noFriendsYet: "এখনো কোনো ফ্রেন্ড নেই",
+    searchFollowThemHint: "উপরে মানুষ খুঁজে তাদের ফলো করুন — তারা ফিরে ফলো করলে এখানে দেখাবে।",
+    videosTab: "ভিডিও",
+    searchPeopleByNameHandle: "নাম বা @হ্যান্ডেল দিয়ে মানুষ খুঁজুন",
+    noFriendVideosYet: "এখনো কোনো ফ্রেন্ড ভিডিও নেই",
+    followPeopleVideosHint: "মানুষদের ফলো করুন, তাদের পোস্ট এখানে দেখাবে।",
+    discover: "খুঁজুন",
+    searchPeopleVideosHashtags: "মানুষ, ভিডিও, #হ্যাশট্যাগ খুঁজুন",
+    recentSearches: "সাম্প্রতিক সার্চ",
+    clear: "মুছুন",
+    trendingHashtags: "ট্রেন্ডিং হ্যাশট্যাগ",
+    postsCount: "পোস্ট",
+    noHashtagsYet: "এখনো কোনো হ্যাশট্যাগ নেই — প্রথম পোস্টটি আপনিই করুন!",
+    trendingCreators: "ট্রেন্ডিং ক্রিয়েটর",
+    noCreatorsYet: "এখনো কোনো ক্রিয়েটর নেই",
+    usersTab: "ইউজার",
+    noUsersFound: "কোনো ইউজার পাওয়া যায়নি",
+    hashtagsTab: "হ্যাশট্যাগ",
+    noHashtagsFound: "কোনো হ্যাশট্যাগ পাওয়া যায়নি",
+    videosAndPosts: "ভিডিও ও পোস্ট",
+    noResultsFor: "কোনো ফলাফল নেই",
+    topTab: "টপ",
+    noPostsWithTag: "এই ট্যাগে কোনো পোস্ট নেই",
+    unpinned: "আনপিন করা হয়েছে",
+    pinnedToTop: "উপরে পিন করা হয়েছে",
+    couldntUpdatePin: "পিন আপডেট করা যায়নি",
+    following: "ফলো করছেন",
+    requested: "রিকোয়েস্ট পাঠানো হয়েছে",
+    follow: "ফলো",
+    userFallback: "ইউজার",
+    pin: "পিন",
+    message: "মেসেজ",
+    create: "তৈরি করুন",
+    followRequests: "ফলো রিকোয়েস্ট",
+    someone: "কেউ একজন",
+    wantsToFollowYou: "আপনাকে ফলো করতে চায়",
+    newRequestsToFollowYou: "আপনাকে ফলো করার নতুন রিকোয়েস্ট",
+    newFollowers: "নতুন ফলোয়ার",
+    noNewFollowersYet: "এখনো কোনো নতুন ফলোয়ার নেই",
+    noActivityYet: "এখনো কোনো কার্যক্রম নেই",
+    messageRequests: "মেসেজ রিকোয়েস্ট",
+    noNewMessages: "নতুন কোনো মেসেজ নেই",
+    systemNotifications: "সিস্টেম নোটিফিকেশন",
+    creatorUpdatesAppNews: "ক্রিয়েটর আপডেট ও অ্যাপের খবর",
+    archivedChats: "আর্কাইভ করা চ্যাট",
+    archivedChatsSub: "যেসব চ্যাট আপনি ইনবক্স থেকে লুকিয়েছেন",
+    suggestedAccounts: "প্রস্তাবিত অ্যাকাউন্ট",
+    remove: "সরান",
+    noMessagesYet: "এখনো কোনো মেসেজ নেই",
+    messageFromFriendsHint: "চ্যাট শুরু করতে Friends ট্যাব থেকে কাউকে মেসেজ করুন।",
+    markAllRead: "সব পড়া হয়েছে বলে চিহ্নিত করুন",
+    couldntOpenRequest: "রিকোয়েস্ট খোলা যায়নি",
+    requestArchived: "রিকোয়েস্ট আর্কাইভ করা হয়েছে",
+    couldntArchiveRequest: "রিকোয়েস্ট আর্কাইভ করা যায়নি",
+    chatUnarchived: "চ্যাট আর্কাইভ থেকে ফেরত আনা হয়েছে",
+    couldntUnarchiveChat: "চ্যাট ফেরত আনা যায়নি",
+    chatDeleted: "চ্যাট ডিলিট করা হয়েছে",
+    couldntDeleteChat: "চ্যাট ডিলিট করা যায়নি",
+    couldntUpdateFollowStatus: "ফলো স্ট্যাটাস আপডেট করা যায়নি — কানেকশন চেক করুন অথবা আবার চেষ্টা করুন",
+    requestAccepted: "রিকোয়েস্ট গ্রহণ করা হয়েছে",
+    couldntAcceptRequest: "রিকোয়েস্ট গ্রহণ করা যায়নি",
+    couldntDeclineRequest: "রিকোয়েস্ট বাতিল করা যায়নি",
+    couldntLoadInbox: "ইনবক্স লোড করা যায়নি",
+    noticeSentToEveryone: "সবাইকে নোটিশ পাঠানো হয়েছে",
+    couldntSendNotice: "নোটিশ পাঠানো যায়নি",
+    cantMessageAccount: "আপনি এই অ্যাকাউন্টে মেসেজ পাঠাতে পারবেন না",
+    couldntOpenChat: "চ্যাট খোলা যায়নি",
+    couldntSend: "পাঠানো যায়নি",
+    micNotAvailable: "এই ডিভাইস/ব্রাউজারে মাইক্রোফোন সুবিধা নেই",
+    couldntAccessMic: "মাইক্রোফোন অ্যাক্সেস করা যায়নি",
+    couldntSendVoice: "ভয়েস মেসেজ পাঠানো যায়নি",
+    couldntSendMessage: "মেসেজ পাঠানো যায়নি",
+    couldntLoadProfile: "প্রোফাইল লোড করা যায়নি",
+    cantFollowAccount: "আপনি এই অ্যাকাউন্ট ফলো করতে পারবেন না",
+    postNoLongerAvailable: "এই পোস্টটি আর নেই",
+    dmNotAccepting: "এই অ্যাকাউন্ট ডাইরেক্ট মেসেজ গ্রহণ করছে না",
+    dmFriendsOnly: "এই অ্যাকাউন্ট শুধুমাত্র তাদের ফলো-ব্যাক করা ফ্রেন্ডদের কাছ থেকে মেসেজ গ্রহণ করে",
+    voiceMessageLabel: "ভয়েস মেসেজ",
+    friendsWith: "যাদের সাথে ফ্রেন্ড",
+    acceptedYourFollowRequestText: "আপনার ফলো রিকোয়েস্ট গ্রহণ করেছে",
+    startedFollowingYouText: "আপনাকে ফলো করা শুরু করেছে",
+    sendWave: "একটি 👋 পাঠান",
+    followBack: "ফলো ব্যাক",
+    noPendingRequests: "কোনো পেন্ডিং রিকোয়েস্ট নেই",
+    pendingRequestsHint: "আপনার প্রাইভেট অ্যাকাউন্ট ফলো করার রিকোয়েস্ট এখানে দেখাবে।",
+    accept: "গ্রহণ করুন",
+    decline: "বাতিল করুন",
+    noFollowersYet: "এখনো কোনো ফলোয়ার নেই",
+    followersHint: "যারা আপনাকে ফলো করে তারা এখানে দেখাবে।",
+    filterAll: "সব",
+    filterLikes: "লাইক",
+    filterComments: "কমেন্ট",
+    noLikesYet: "এখনো কোনো লাইক নেই",
+    likesHint: "আপনার পোস্টে করা লাইক এখানে দেখাবে।",
+    noCommentsYet: "এখনো কোনো কমেন্ট নেই",
+    commentsHint: "আপনার পোস্টে করা কমেন্ট ও রিপ্লাই এখানে দেখাবে।",
+    activityHint: "লাইক, কমেন্ট ও গ্রহণ করা ফলো রিকোয়েস্ট এখানে দেখাবে।",
+    newChatsHint: "আপনার সাথে শুরু হওয়া নতুন চ্যাট এখানে দেখাবে।",
+    writeNoticePlaceholder: "সবাইকে পাঠানোর জন্য একটি নোটিশ লিখুন...",
+    sendToEveryone: "সবাইকে পাঠান",
+    welcomeToMilon: "মিলনে স্বাগতম",
+    welcomeToMilonSub: "যোগ দেওয়ার জন্য ধন্যবাদ — মানুষদের সাথে যুক্ত হতে Friends ও Inbox ঘুরে দেখুন।",
+    unarchive: "আর্কাইভ থেকে ফেরান",
+    deleteBtn: "ডিলিট করুন",
+    noArchivedChats: "আর্কাইভ করা কোনো চ্যাট নেই",
+    archivedChatsHint2: "যেসব চ্যাট আপনি ইনবক্স থেকে লুকিয়েছেন তা এখানে দেখাবে।",
+    activeNow: "এখন অ্যাক্টিভ",
+    activePrefix: "অ্যাক্টিভ",
+    seenLabel: "দেখা হয়েছে",
+    photoVideoFromGallery: "গ্যালারি থেকে ছবি/ভিডিও",
+    messagePlaceholder: "মেসেজ...",
+    stickersLabel: "স্টিকার",
+    voiceMessageTitle: "ভয়েস মেসেজ",
+    messageRequestTitle: "মেসেজ রিকোয়েস্ট",
+    profileTitle: "প্রোফাইল",
+    profileQrTitle: "প্রোফাইল QR কোড",
+    shareProfileTitle: "প্রোফাইল শেয়ার করুন",
+    blockRestrictMuteTitle: "ব্লক, রেস্ট্রিক্ট, মিউট",
+    editProfileTitle: "প্রোফাইল এডিট করুন",
+    privateAccountTitle: "প্রাইভেট অ্যাকাউন্ট",
+    changePhotoTitle: "ছবি পরিবর্তন করুন",
+    followersLabel: "ফলোয়ার",
+    likesLabel: "লাইক",
+    shareFirstPost: "আপনার প্রথম পোস্ট শেয়ার করুন",
+    postsShowUpHere: "আপনার তৈরি করা পোস্ট এখানে দেখাবে।",
+    noPrivatePosts: "কোনো প্রাইভেট পোস্ট নেই",
+    privacyPostsHint: "Friends বা Only me সেট করা পোস্ট এখানে দেখাবে।",
+    noRepostsYet: "এখনো কোনো রিপোস্ট নেই",
+    repostsHint: "আপনার রিপোস্ট করা পোস্ট এখানে দেখাবে।",
+    nothingSavedYet: "এখনো কিছু সেভ করা হয়নি",
+    savedHint: "আপনার সেভ করা পোস্ট এখানে দেখাবে।",
+    likedPostsHint: "আপনার লাইক করা পোস্ট এখানে দেখাবে।",
+    blockedAccountMsg: "আপনি এই অ্যাকাউন্ট ব্লক করেছেন",
+    accountNotAvailable: "এই অ্যাকাউন্ট পাওয়া যাচ্ছে না",
+    privateAccountMsg: "এই অ্যাকাউন্টটি প্রাইভেট",
+    followRequestPending: "আপনার ফলো রিকোয়েস্ট পেন্ডিং আছে।",
+    followToSeePosts: "তাদের পোস্ট দেখতে এই অ্যাকাউন্ট ফলো করুন।",
+    createAPost: "একটি পোস্ট তৈরি করুন",
+    unfollowConfirmPrefix: "আনফলো করবেন",
+    thisUser: "এই ব্যবহারকারীকে",
+    noMessagesYetChat: "এখনো কোনো মেসেজ নেই",
+    onlyPinUpTo: "আপনি সর্বোচ্চ {n}টি পোস্ট পিন করতে পারবেন। আগে একটি আনপিন করুন।",
+    sendTo: "পাঠান",
+    followPeopleToSend: "সরাসরি পোস্ট পাঠাতে মানুষদের ফলো করুন",
+    saveVideo: "ভিডিও সেভ করুন",
+    statusLabel: "স্ট্যাটাস",
+    reportLabel: "রিপোর্ট",
+    telegramLabel: "টেলিগ্রাম",
+    instagramLabel: "ইনস্টাগ্রাম",
+    smsLabel: "SMS",
+    emailLabel: "ইমেইল",
+    qrCodeLabel: "QR কোড",
+    moreLabel: "আরও",
+    messengerLabel: "মেসেঞ্জার",
+    whatsappLabel: "হোয়াটসঅ্যাপ",
+    facebookLabel: "ফেসবুক",
+    copyLinkLabel: "লিংক কপি করুন",
+    analyticsLabel: "অ্যানালিটিক্স",
+    downloadLabel: "ডাউনলোড",
+    unpinLabel: "আনপিন",
+    pinLabel2: "পিন",
+    createGroup: "গ্রুপ তৈরি করুন",
+    editPost: "পোস্ট এডিট করুন",
+    privacySettings: "প্রাইভেসি সেটিংস",
+    pinToProfile: "প্রোফাইলে পিন করুন",
+    flashLabel: "ফ্ল্যাশ",
+    timerLabel: "টাইমার",
+    flipCameraLabel: "ক্যামেরা ফ্লিপ করুন",
+    chooseFromGallery: "গ্যালারি থেকে বাছাই করুন",
+    retake: "আবার তুলুন",
+    useThis: "এটা ব্যবহার করুন",
+    cameraNotAvailable: "এই ডিভাইস/ব্রাউজারে ক্যামেরা সুবিধা নেই। নিচের গ্যালারি বাটন দিয়ে ছবি বা ভিডিও বেছে নিন।",
+    cameraAccessDenied: "ক্যামেরা অ্যাক্সেস করা যায়নি (অনুমতি দেওয়া হয়নি বা উপলব্ধ নেই)। নিচের গ্যালারি বাটন দিয়ে ছবি বা ভিডিও বেছে নিন।",
+    filterNormal: "নরমাল",
+    filterBw: "সাদাকালো",
+    filterWarm: "ওয়ার্ম",
+    filterCool: "কুল",
+    filterVivid: "ভিভিড",
+    filterSoft: "সফট",
+    recordingNotSupported: "এই ব্রাউজারে রেকর্ডিং সাপোর্ট করে না",
+    nameLabel: "নাম",
+    usernameLabel: "ইউজারনেম",
+    usernamePlaceholder: "ইউজারনেম",
+    basicInfo: "মৌলিক তথ্য",
+    bioLabel: "বায়ো",
+    bioPlaceholder: "আপনি কে বা আপনার অ্যাকাউন্ট কী নিয়ে, তার একটি সংক্ষিপ্ত বর্ণনা লিখুন",
+    linksLabel: "লিংক",
+    youtubeLinkLabel: "ইউটিউব লিংক",
+    facebookLinkLabel: "ফেসবুক লিংক",
+    nameCantBeEmpty: "নাম খালি রাখা যাবে না",
+    savingLabel: "সেভ হচ্ছে...",
+    profileUpdated: "প্রোফাইল আপডেট হয়েছে",
+    couldntUpdateProfile: "প্রোফাইল আপডেট করা যায়নি",
+    repostRemoved: "রিপোস্ট সরানো হয়েছে",
+    repostedLabel: "রিপোস্ট করা হয়েছে",
+    menuTitle: "মেনু",
+    balanceLabel: "ব্যালেন্স",
+    activityCenter: "অ্যাক্টিভিটি সেন্টার",
+    offlineVideos: "অফলাইন ভিডিও",
+    yourQrCode: "আপনার QR কোড",
+    yourMusic: "আপনার মিউজিক",
+    tiktokStudio: "টিকটক স্টুডিও",
+    creatorSearchInsights: "ক্রিয়েটর সার্চ ইনসাইটস",
+    promoteLabel: "প্রোমোট",
+    settingsAndPrivacy: "সেটিংস ও প্রাইভেসি",
+    replyLabel: "রিপ্লাই",
+    beFirstToComment: "প্রথম কমেন্টটি আপনিই করুন",
+    commentsTitle: "কমেন্ট",
+    newestSort: "নতুন",
+    replyingToPrefix: "রিপ্লাই করছেন",
+    commentsOffForPost: "এই পোস্টে কমেন্ট বন্ধ করা আছে",
+    managePosts: "পোস্ট ম্যানেজ করুন",
+    contentPreferences: "কনটেন্ট প্রেফারেন্স",
+    liveLabel: "লাইভ",
+    notificationsLabel: "নোটিফিকেশন",
+    timeWellbeing: "সময় ও সুস্থতা",
+    familyPairing: "ফ্যামিলি পেয়ারিং",
+    accountLabel: "অ্যাকাউন্ট",
+    securityPermissions: "সিকিউরিটি ও পারমিশন",
+    analyticsLabel: "অ্যানালিটিক্স",
+    privateAccountLabel: "প্রাইভেট অ্যাকাউন্ট",
+    privateAccountOnDesc: "শুধু অনুমোদিত ফলোয়াররা আপনার পোস্ট দেখতে পারবে। নতুন ফলোয়ারদের আপনার অনুমোদন লাগবে।",
+    privateAccountOffDesc: "যে কেউ আপনাকে ফলো করতে ও আপনার পাবলিক পোস্ট দেখতে পারবে।",
+    blockedAccountsLabel: "ব্লক করা অ্যাকাউন্ট",
+    restrictedAccountsLabel: "রেস্ট্রিক্ট করা অ্যাকাউন্ট",
+    mutedAccountsLabel: "মিউট করা অ্যাকাউন্ট",
+    commentsLabel: "কমেন্ট",
+    mentionsLabel: "মেনশন",
+    directMessagesLabel: "ডাইরেক্ট মেসেজ",
+    reuseOfContent: "কনটেন্ট পুনরায় ব্যবহার",
+    displayProfileWhenSharing: "লিংক শেয়ার করার সময় প্রোফাইল দেখান",
+    downloadsLabel: "ডাউনলোড",
+    followingListLabel: "ফলোয়িং লিস্ট",
+    likedVideosLabel: "লাইক করা ভিডিও",
+    viewersLabel: "ভিউয়ার",
+    everyoneLabel: "সবাই",
+    noOneLabel: "কেউ না",
+    onLabel: "চালু",
+    offLabel: "বন্ধ",
+    onlyYouLabel: "শুধু আপনি",
+    blockRestrictMuteHint: "কাউকে ব্লক, রেস্ট্রিক্ট বা মিউট তার প্রোফাইল থেকেও করা যায় — তার প্রোফাইল পেজে ⋯ চাপুন।",
+    musicLabel: "মিউজিক",
+    audienceControl: "অডিয়েন্স কন্ট্রোল",
+    adsLabel: "বিজ্ঞাপন",
+    playbackLabel: "প্লেব্যাক",
+    displayLabel: "ডিসপ্লে",
+    accessibilityLabel: "অ্যাক্সেসিবিলিটি",
+    contactsAndLocation: "কন্টাক্টস ও লোকেশন",
+    freeUpSpace: "স্পেস খালি করুন",
+    dataSaverLabel: "ডেটা সেভার",
+    wallpaperLabel: "ওয়ালপেপার",
+    helpCenterLabel: "হেল্প সেন্টার",
+    privacyCenterLabel: "প্রাইভেসি সেন্টার",
+    termsAndPolicies: "শর্তাবলী ও নীতিমালা",
+    clearData: "ডেটা পরিষ্কার করুন",
+    switchAccount: "অ্যাকাউন্ট পরিবর্তন করুন",
+    logOut: "লগ আউট",
+    couldntUpdatePrivacySetting: "প্রাইভেসি সেটিং আপডেট করা যায়নি",
+    clearDataConfirm: "এটি এই ডিভাইসের সব লোকাল অ্যাপ ডেটা মুছে দেবে এবং আপনাকে লগ আউট করে দেবে। আপনার পোস্ট, ভিডিও ও প্রোফাইল সার্ভারে নিরাপদ থাকবে। এগিয়ে যাবেন?",
+    switchAccountConfirm: "ভিন্ন অ্যাকাউন্টে সাইন ইন করার জন্য এই অ্যাকাউন্ট থেকে লগ আউট করবেন?",
+    logOutConfirm: "মিলন থেকে লগ আউট করবেন?",
+    accountInformation: "অ্যাকাউন্ট তথ্য",
+    emailLabel: "ইমেইল",
+    handleLabel: "হ্যান্ডেল",
+    manageAccount: "অ্যাকাউন্ট ম্যানেজ করুন",
+    passwordSecurity: "পাসওয়ার্ড ও সিকিউরিটি",
+    deleteAccountLabel: "অ্যাকাউন্ট ডিলিট করুন",
+    couldntSaveSetting: "সেটিং সেভ করা যায়নি",
+    whoCanPrefix: "কে পারবে",
+    commentOnYourPosts: "আপনার পোস্টে কমেন্ট করতে",
+    mentionYou: "আপনাকে @মেনশন করতে",
+    sendYouDirectMessages: "আপনাকে ডাইরেক্ট মেসেজ পাঠাতে",
+    friendsMeansHint: "\"Friends\" মানে যারা আপনাকে ফলো করে এবং আপনিও তাদের ফলো-ব্যাক করেন। এটা এখন থেকে প্রযোজ্য — আগে করা কোনো পোস্টে প্রভাব ফেলে না।",
+    allowContentReuse: "কনটেন্ট পুনরায় ব্যবহারের অনুমতি দিন",
+    reuseDesc: "চালু থাকলে, অন্যরা আপনার পাবলিক পোস্ট নিজেদের ফলোয়ারদের কাছে রিপোস্ট করতে পারবে। বন্ধ থাকলে, আপনার পোস্টে Repost অপশনটি লুকানো থাকবে।",
+    showProfileViaLinks: "শেয়ার করা লিংকের মাধ্যমে প্রোফাইল দেখান",
+    shareLinkDesc: "চালু থাকলে, আপনার প্রোফাইলের লিংক যে কেউ খুললে দেখতে পারবে। বন্ধ থাকলে, শুধু যাদের আপনি আগে থেকে অনুমতি দিয়েছেন তারাই লিংক থেকে দেখতে পারবে।",
+    allowDownloadsByDefault: "ডিফল্টভাবে ডাউনলোডের অনুমতি দিন",
+    downloadsDesc: "প্রতিবার নতুন পোস্ট তৈরি করার সময় \"Allow downloads\"-এর শুরুর মান সেট করে। পোস্ট করার সময় আপনি প্রতিটি পোস্টে এটি আলাদাভাবে পাল্টাতে পারবেন।",
+    seeWhoViewedVideos: "কারা আপনার ভিডিও দেখেছে তা দেখুন",
+    viewersDesc: "কোন অ্যাকাউন্ট আপনার ভিডিও দেখেছে তা দেখতে এটি চালু করুন। এটি শুধু দুই দিক থেকেই কাজ করে — আপনি অন্য কারো ভিউয়ার লিস্টে দেখা যাবেন এবং নিজের ভিডিওর ভিউয়ার দেখতে পারবেন শুধু তখনই যদি দুজনেরই এটি চালু থাকে।",
+    whoCanSeeAccountsFollow: "কে দেখতে পারবে আপনি কাদের ফলো করেন",
+    whoCanSeeLikesTab: "কে আপনার Likes ট্যাব দেখতে পারবে",
+    havntBlockedAnyone: "আপনি এখনো কাউকে ব্লক করেননি।",
+    havntRestrictedAnyone: "আপনি এখনো কাউকে রেস্ট্রিক্ট করেননি।",
+    havntMutedAnyone: "আপনি এখনো কাউকে মিউট করেননি।",
+    unblockLabel: "আনব্লক",
+    unmuteLabel: "আনমিউট",
+    changePasswordLabel: "পাসওয়ার্ড পরিবর্তন করুন",
+    appPermissions: "অ্যাপ পারমিশন",
+    cameraLabel: "ক্যামেরা",
+    microphoneLabel: "মাইক্রোফোন",
+    checkingLabel: "চেক করা হচ্ছে…",
+    permissionsHint: "এগুলো এই সাইটের জন্য আপনার ব্রাউজারের প্রকৃত পারমিশন দেখায় — পরিবর্তন করতে এই অ্যাপ নয়, ব্রাউজারের সাইট সেটিংস ব্যবহার করুন।",
+    allowedLabel: "অনুমোদিত",
+    blockedLabel: "ব্লক করা",
+    askEachTime: "প্রতিবার জিজ্ঞাসা করুন",
+    unknownLabel: "অজানা"
   }
 };
 
@@ -2285,13 +2933,13 @@ function renderFsCommentsSheet() {
     const isMine = myUid && c.uid === myUid;
     return `
       <div class="comment-item ${isReply ? "is-reply" : ""}" data-id="${c.id}">
-        <div class="avatar">${c.avatar ? `<img src="${c.avatar}" />` : initials(c.name || "User")}</div>
+        <div class="avatar">${c.avatar ? `<img src="${c.avatar}" />` : initials(c.name || t("userFallback"))}</div>
         <div class="comment-body">
-          <div class="comment-meta"><b>${escapeHtml(c.name || "User")}</b><span class="comment-time">${timeAgo(c.createdAt)}</span></div>
+          <div class="comment-meta"><b>${escapeHtml(c.name || t("userFallback"))}</b><span class="comment-time">${timeAgo(c.createdAt)}</span></div>
           <div class="comment-text">${renderCommentText(c.text)}</div>
           <div class="comment-row-actions">
-            <button class="comment-reply-btn" data-id="${c.id}" data-name="${escapeHtml(c.name || "User")}">Reply</button>
-            ${isMine ? `<button class="comment-delete-btn" data-id="${c.id}">Delete</button>` : `<button class="comment-report-btn" data-id="${c.id}">Report</button>`}
+            <button class="comment-reply-btn" data-id="${c.id}" data-name="${escapeHtml(c.name || t("userFallback"))}">${t("replyLabel")}</button>
+            ${isMine ? `<button class="comment-delete-btn" data-id="${c.id}">${t("deleteBtn")}</button>` : `<button class="comment-report-btn" data-id="${c.id}">${t("reportLabel")}</button>`}
           </div>
         </div>
         <div class="comment-like-col">
@@ -2307,30 +2955,30 @@ function renderFsCommentsSheet() {
 
   const listHtml = tree.length
     ? tree.map(c => renderOne(c, false) + c.replies.map(r => renderOne(r, true)).join("")).join("")
-    : `<div class="comments-empty">Be the first to comment</div>`;
+    : `<div class="comments-empty">${t("beFirstToComment")}</div>`;
 
   return `
     <div class="sheet-overlay ${isOpen ? "open" : ""}" id="fsCommentsOverlay"></div>
     <div class="bottom-sheet fs-comments-sheet ${isOpen ? "open" : ""}" id="fsCommentsSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title">Comments (${post ? (post.commentCount || 0) : 0})</div>
+      <div class="sheet-title">${t("commentsTitle")} (${post ? (post.commentCount || 0) : 0})</div>
       <div class="comments-sort-row">
-        <button class="comments-sort-btn ${state.commentSort === "top" ? "active" : ""}" id="commentSortTop">Top</button>
-        <button class="comments-sort-btn ${state.commentSort === "newest" ? "active" : ""}" id="commentSortNewest">Newest</button>
+        <button class="comments-sort-btn ${state.commentSort === "top" ? "active" : ""}" id="commentSortTop">${t("topTab")}</button>
+        <button class="comments-sort-btn ${state.commentSort === "newest" ? "active" : ""}" id="commentSortNewest">${t("newestSort")}</button>
       </div>
       <div class="comments-scroll">${listHtml}</div>
       ${commentsOff && !isOwnerOfPost ? `
-        <div class="comments-empty" style="padding:10px 0;">🔒 Comments are turned off for this post</div>
+        <div class="comments-empty" style="padding:10px 0;">🔒 ${t("commentsOffForPost")}</div>
       ` : `
       ${state.replyingTo ? `
         <div class="reply-banner">
-          <span>Replying to @${escapeHtml(state.replyingTo.name)}</span>
+          <span>${t("replyingToPrefix")} @${escapeHtml(state.replyingTo.name)}</span>
           <button id="cancelReplyBtn">✕</button>
         </div>
       ` : ""}
       <div class="comment-input-row" style="margin-top:6px;">
-        <input id="fsCommentInput" type="text" placeholder="${state.replyingTo ? "Write a reply..." : "Write a comment..."}" />
-        <button id="fsCommentSubmit">Send</button>
+        <input id="fsCommentInput" type="text" placeholder="${state.replyingTo ? t("writeAReply") : t("writeAComment")}" />
+        <button id="fsCommentSubmit">${t("send")}</button>
       </div>
       `}
     </div>
@@ -2392,21 +3040,21 @@ function renderShareSheet() {
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title">Send to</div>
+      <div class="sheet-title">${t("sendTo")}</div>
       <div class="share-sendto-row">
         ${friends.length ? friends.map(u => `
           <button class="share-sendto-item" data-uid="${u.uid}">
-            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
-            <span style="font-size:11px;">${escapeHtml((u.name || "User").split(" ")[0])}</span>
+            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userFallback"))}</div>
+            <span style="font-size:11px;">${escapeHtml((u.name || t("userFallback")).split(" ")[0])}</span>
           </button>
-        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
+        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">${t("followPeopleToSend")}</div>`}
       </div>
       ${renderShareAppsRow()}
       <div class="sheet-row" style="margin-top:2px;">
-        ${downloadAllowed ? `<button class="sheet-item" id="shareSaveVideo"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Save video</button>` : ""}
-        ${reuseAllowed ? `<button class="sheet-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>Repost</button>` : ""}
-        <button class="sheet-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>Status</button>
-        <button class="sheet-item" id="shareReport"><span class="sheet-icon" style="background:#c0392b">⚑</span>Report</button>
+        ${downloadAllowed ? `<button class="sheet-item" id="shareSaveVideo"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>${t("saveVideo")}</button>` : ""}
+        ${reuseAllowed ? `<button class="sheet-item" id="shareRepost"><span class="sheet-icon" style="background:#0F6E56">↻</span>${t("repost")}</button>` : ""}
+        <button class="sheet-item" id="shareStatus"><span class="sheet-icon" style="background:#8e44ad">◎</span>${t("statusLabel")}</button>
+        <button class="sheet-item" id="shareReport"><span class="sheet-icon" style="background:#c0392b">⚑</span>${t("reportLabel")}</button>
       </div>
     </div>
   `;
@@ -2418,16 +3066,16 @@ function renderShareSheet() {
 function renderShareAppsRow() {
   return `
       <div class="sheet-row" id="shareAppsRow">
-        <button class="sheet-item" id="shareTelegram"><span class="sheet-icon" style="background:#26A5E4">✈️</span>Telegram</button>
-        <button class="sheet-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>Instagram</button>
-        <button class="sheet-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>SMS</button>
-        <button class="sheet-item" id="shareEmail"><span class="sheet-icon" style="background:#6b6860">📧</span>Email</button>
-        <button class="sheet-item" id="shareQr"><span class="sheet-icon" style="background:#111827">▦</span>QR code</button>
-        <button class="sheet-item" id="shareMore"><span class="sheet-icon" style="background:#8e44ad">⋯</span>More</button>
-        <button class="sheet-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>Messenger</button>
-        <button class="sheet-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>WhatsApp</button>
-        <button class="sheet-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>Facebook</button>
-        <button class="sheet-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>Copy link</button>
+        <button class="sheet-item" id="shareTelegram"><span class="sheet-icon" style="background:#26A5E4">✈️</span>${t("telegramLabel")}</button>
+        <button class="sheet-item" id="shareInstagram"><span class="sheet-icon" style="background:#E1306C">📷</span>${t("instagramLabel")}</button>
+        <button class="sheet-item" id="shareSms"><span class="sheet-icon" style="background:#6b6860">💬</span>${t("smsLabel")}</button>
+        <button class="sheet-item" id="shareEmail"><span class="sheet-icon" style="background:#6b6860">📧</span>${t("emailLabel")}</button>
+        <button class="sheet-item" id="shareQr"><span class="sheet-icon" style="background:#111827">▦</span>${t("qrCodeLabel")}</button>
+        <button class="sheet-item" id="shareMore"><span class="sheet-icon" style="background:#8e44ad">⋯</span>${t("moreLabel")}</button>
+        <button class="sheet-item" id="shareMessenger"><span class="sheet-icon" style="background:#0084FF">✉️</span>${t("messengerLabel")}</button>
+        <button class="sheet-item" id="shareWhatsapp"><span class="sheet-icon" style="background:#25D366">📱</span>${t("whatsappLabel")}</button>
+        <button class="sheet-item" id="shareFacebook"><span class="sheet-icon" style="background:#1877F2">f</span>${t("facebookLabel")}</button>
+        <button class="sheet-item" id="copyLinkBtn"><span class="sheet-icon" style="background:#3b82f6">🔗</span>${t("copyLinkLabel")}</button>
       </div>`;
 }
 
@@ -2439,36 +3087,36 @@ function renderOwnPostShareSheet() {
   const myUid = state.user ? state.user.uid : null;
   const friends = myUid ? (state.allUsers || []).filter(u => (u.followers || []).includes(myUid)).slice(0, 12) : [];
   const myPinnedPosts = (state.myUserDoc && state.myUserDoc.pinnedPosts) || [];
-  const pinLabel = (activePostId && myPinnedPosts.includes(activePostId)) ? "Unpin" : "Pin";
+  const pinLabel = (activePostId && myPinnedPosts.includes(activePostId)) ? t("unpinLabel") : t("pinLabel2");
   return `
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title">Send to</div>
+      <div class="sheet-title">${t("sendTo")}</div>
       <div class="share-sendto-row">
         ${friends.length ? friends.map(u => `
           <button class="share-sendto-item" data-uid="${u.uid}">
-            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
-            <span style="font-size:11px;">${escapeHtml((u.name || "User").split(" ")[0])}</span>
+            <div class="avatar" style="width:48px;height:48px;font-size:16px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userFallback"))}</div>
+            <span style="font-size:11px;">${escapeHtml((u.name || t("userFallback")).split(" ")[0])}</span>
           </button>
-        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">Follow people to send posts directly</div>`}
+        `).join("") : `<div style="color:var(--ink-soft);font-size:12px;padding:6px;">${t("followPeopleToSend")}</div>`}
       </div>
       ${renderShareAppsRow()}
       <div class="sheet-row" id="shareActionsRow" style="margin-top:2px;">
-        <button class="sheet-item" id="shareAnalytics"><span class="sheet-icon" style="background:#8e44ad">📊</span>Analytics</button>
-        <button class="sheet-item" id="shareDownload"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>Download</button>
+        <button class="sheet-item" id="shareAnalytics"><span class="sheet-icon" style="background:#8e44ad">📊</span>${t("analyticsLabel")}</button>
+        <button class="sheet-item" id="shareDownload"><span class="sheet-icon" style="background:#0F6E56">⬇️</span>${t("downloadLabel")}</button>
         <button class="sheet-item" id="sharePinOwn"><span class="sheet-icon" style="background:#D85A30">📌</span>${pinLabel}</button>
-        <button class="sheet-item" id="shareGroup"><span class="sheet-icon" style="background:#3b82f6">👥</span>Create group</button>
-        <button class="sheet-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>Edit post</button>
-        <button class="sheet-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>Privacy settings</button>
-        <button class="sheet-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>Delete</button>
+        <button class="sheet-item" id="shareGroup"><span class="sheet-icon" style="background:#3b82f6">👥</span>${t("createGroup")}</button>
+        <button class="sheet-item" id="shareEditOwn"><span class="sheet-icon" style="background:#6b6860">✏️</span>${t("editPost")}</button>
+        <button class="sheet-item" id="sharePrivacyOwn"><span class="sheet-icon" style="background:#0F6E56">🔒</span>${t("privacySettings")}</button>
+        <button class="sheet-item" id="shareDeleteOwn"><span class="sheet-icon" style="background:#c0392b">🗑️</span>${t("deleteBtn")}</button>
       </div>
       <div id="ownPrivacyPanel" style="display:none; padding: 4px 4px 10px;">
-        <div class="sheet-title" style="margin-top:6px;">Who can see this</div>
+        <div class="sheet-title" style="margin-top:6px;">${t("whoCanSeeThis")}</div>
         <div class="privacy-options" id="ownPrivacyOptions">
-          <button class="privacy-option" data-level="public">Public</button>
-          <button class="privacy-option" data-level="friends">Friends</button>
-          <button class="privacy-option" data-level="private">Only me</button>
+          <button class="privacy-option" data-level="public">${t("publicPrivacy")}</button>
+          <button class="privacy-option" data-level="friends">${t("friendsPrivacy")}</button>
+          <button class="privacy-option" data-level="private">${t("onlyMe")}</button>
         </div>
       </div>
     </div>
@@ -2480,17 +3128,17 @@ function renderOwnerSheet() {
     <div class="sheet-overlay" id="ownerOverlay"></div>
     <div class="bottom-sheet" id="ownerSheet">
       <div class="sheet-handle"></div>
-      <button class="menu-list-item" id="editPostBtn">✏️ Edit post</button>
-      <button class="menu-list-item" id="pinPostBtn">📌 Pin to profile</button>
+      <button class="menu-list-item" id="editPostBtn">✏️ ${t("editPost")}</button>
+      <button class="menu-list-item" id="pinPostBtn">📌 ${t("pinToProfile")}</button>
       <div class="menu-list-item" style="display:block; cursor:default;">
-        🔒 Who can see this
+        🔒 ${t("whoCanSeeThis")}
         <div class="privacy-options" id="privacyOptions">
-          <button class="privacy-option" data-level="public">Public</button>
-          <button class="privacy-option" data-level="friends">Friends</button>
-          <button class="privacy-option" data-level="private">Only me</button>
+          <button class="privacy-option" data-level="public">${t("publicPrivacy")}</button>
+          <button class="privacy-option" data-level="friends">${t("friendsPrivacy")}</button>
+          <button class="privacy-option" data-level="private">${t("onlyMe")}</button>
         </div>
       </div>
-      <button class="menu-list-item danger" id="deletePostBtn">🗑️ Delete</button>
+      <button class="menu-list-item danger" id="deletePostBtn">🗑️ ${t("deleteBtn")}</button>
     </div>
   `;
 }
@@ -2508,14 +3156,14 @@ function renderBottomNav(activeKey) {
     <div class="bottom-nav">
       <button class="nav-item ${activeKey === "feed" ? "active" : ""}" id="navHomeBtn">
         ${homeIconSvg(activeKey === "feed")}
-        <span>Home</span>
+        <span>${t("navHome")}</span>
       </button>
       <button class="nav-item ${activeKey === "friends" ? "active" : ""}" id="navFriendsBtn">
         ${friendsIconSvg(activeKey === "friends")}
-        <span>Friends</span>
+        <span>${t("navFriends")}</span>
       </button>
       <div class="nav-add">
-        <button class="nav-add-btn" id="navAddBtn" title="Create post">
+        <button class="nav-add-btn" id="navAddBtn" title="${t("createPost")}">
           <span class="nav-add-btn-inner">${plusIconSvg()}</span>
         </button>
       </div>
@@ -2524,11 +3172,11 @@ function renderBottomNav(activeKey) {
           ${inboxIconSvg(activeKey === "inbox")}
           ${inboxBadge > 0 ? `<span class="nav-badge">${inboxBadge > 9 ? "9+" : inboxBadge}</span>` : ""}
         </span>
-        <span>Inbox</span>
+        <span>${t("navInbox")}</span>
       </button>
       <button class="nav-item ${activeKey === "profile" ? "active" : ""}" id="navProfileBtn">
         ${profileIconSvg(activeKey === "profile")}
-        <span>Profile</span>
+        <span>${t("navProfile")}</span>
       </button>
     </div>
   `;
@@ -2581,7 +3229,7 @@ function stopCameraStream() {
 function startCameraStream(facing) {
   const facingMode = facing || state.cameraFacing || "user";
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    state.cameraError = "Camera isn't available on this device/browser. Use the gallery button below to pick a photo or video instead.";
+    state.cameraError = t("cameraNotAvailable");
     render();
     return;
   }
@@ -2600,7 +3248,7 @@ function startCameraStream(facing) {
     })
     .catch((err) => {
       console.error(err);
-      state.cameraError = "Couldn't access the camera (permission denied or unavailable). Use the gallery button below to pick a photo or video instead.";
+      state.cameraError = t("cameraAccessDenied");
       render();
     });
 }
@@ -2642,8 +3290,8 @@ function renderCameraScreen() {
           </div>
         </div>
         <div class="capture-review-bar">
-          <button class="capture-retake-btn" id="camRetakeBtn">Retake</button>
-          <button class="capture-use-btn" id="camUseBtn">Use this</button>
+          <button class="capture-retake-btn" id="camRetakeBtn">${t("retake")}</button>
+          <button class="capture-use-btn" id="camUseBtn">${t("useThis")}</button>
         </div>
       </div>
     `;
@@ -2660,12 +3308,12 @@ function renderCameraScreen() {
   const modes = ["10m", "60s", "15s", "PHOTO", "TEXT"];
   const speeds = ["0.5x", "1x", "2x", "3x"];
   const filters = [
-    { key: "none", label: "Normal" },
-    { key: "bw", label: "B&W" },
-    { key: "warm", label: "Warm" },
-    { key: "cool", label: "Cool" },
-    { key: "vivid", label: "Vivid" },
-    { key: "soft", label: "Soft" }
+    { key: "none", label: t("filterNormal") },
+    { key: "bw", label: t("filterBw") },
+    { key: "warm", label: t("filterWarm") },
+    { key: "cool", label: t("filterCool") },
+    { key: "vivid", label: t("filterVivid") },
+    { key: "soft", label: t("filterSoft") }
   ];
   const filterClass = state.cameraFilter && state.cameraFilter !== "none" ? `filter-${state.cameraFilter}` : "";
 
@@ -2682,9 +3330,9 @@ function renderCameraScreen() {
           <button class="camera-close-btn" id="camCloseBtn2">✕</button>
           ${!state.cameraError ? `
           <div class="camera-top-icons">
-            <button class="camera-flash-btn ${state.cameraFlashOn ? "on" : ""}" id="camFlashBtn" title="Flash">${state.cameraFlashOn ? "⚡" : "⚡"}</button>
-            <button class="camera-timer-btn ${state.cameraTimerOn ? "on" : ""}" id="camTimerBtn" title="Timer">⏱</button>
-            <button class="camera-flip-btn" id="camFlipBtn" title="Flip camera">🔄</button>
+            <button class="camera-flash-btn ${state.cameraFlashOn ? "on" : ""}" id="camFlashBtn" title="${t("flashLabel")}">${state.cameraFlashOn ? "⚡" : "⚡"}</button>
+            <button class="camera-timer-btn ${state.cameraTimerOn ? "on" : ""}" id="camTimerBtn" title="${t("timerLabel")}">⏱</button>
+            <button class="camera-flip-btn" id="camFlipBtn" title="${t("flipCameraLabel")}">🔄</button>
           </div>` : `<div></div>`}
         </div>
       </div>
@@ -2700,7 +3348,7 @@ function renderCameraScreen() {
           ${modes.map(m => `<button class="camera-mode-btn ${state.cameraMode === m ? "active" : ""}" data-mode="${m}">${m}</button>`).join("")}
         </div>
         <div class="camera-controls-row">
-          <div class="camera-gallery-shortcut" id="camGalleryShortcut" title="Choose from gallery">
+          <div class="camera-gallery-shortcut" id="camGalleryShortcut" title="${t("chooseFromGallery")}">
             ${state.cameraLastGalleryThumb ? `<img src="${state.cameraLastGalleryThumb}" />` : "🖼️"}
             <input type="file" accept="image/*,video/*" id="camGalleryInput" style="display:none" />
           </div>
@@ -2839,7 +3487,7 @@ function startVideoRecording() {
     mediaRecorderRef = new MediaRecorder(state.cameraStream, options);
   } catch (e) {
     console.error(e);
-    showToast("Recording isn't supported on this browser");
+    showToast(t("recordingNotSupported"));
     return;
   }
   mediaRecorderRef.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunksRef.push(e.data); };
@@ -2875,7 +3523,7 @@ function handleCameraGallerySelect(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (!isAllowedMediaFile(file)) {
-    showToast("That file type isn't supported");
+    showToast(t("fileTypeNotSupported"));
     e.target.value = "";
     return;
   }
@@ -2927,15 +3575,15 @@ function renderPostComposeScreen() {
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="composeBackBtn">←</button>
-      <div class="back-title">New post</div>
+      <div class="back-title">${t("newPost")}</div>
     </div>
     <div class="compose-screen">
       ${draft ? `
         <div class="reply-banner" style="margin:12px 14px 0;">
-          <span>You have a saved draft</span>
+          <span>${t("savedDraft")}</span>
           <span style="display:flex;gap:10px;">
-            <button id="resumeDraftBtn" style="color:var(--coral);font-weight:700;">Resume</button>
-            <button id="discardDraftBtn">Discard</button>
+            <button id="resumeDraftBtn" style="color:var(--coral);font-weight:700;">${t("resume")}</button>
+            <button id="discardDraftBtn">${t("discard")}</button>
           </span>
         </div>
       ` : ""}
@@ -2947,36 +3595,36 @@ function renderPostComposeScreen() {
       <div class="compose-body">
         ${uploading ? `
           <div class="compose-upload-bar-wrap"><div class="compose-upload-bar" style="width:${state.composeUploadPct}%"></div></div>
-          <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">Posting… ${state.composeUploadPct}%</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">${t("posting")} ${state.composeUploadPct}%</div>
         ` : ""}
-        <textarea id="composeTextInput" placeholder="Write a caption... use #hashtags and @mentions" maxlength="2200" ${uploading ? "disabled" : ""}>${escapeHtml(state.composerText)}</textarea>
+        <textarea id="composeTextInput" placeholder="${t("writeACaption")}" maxlength="2200" ${uploading ? "disabled" : ""}>${escapeHtml(state.composerText)}</textarea>
         <div class="compose-char-count ${charCount > 2200 ? "over" : ""}">${charCount}/2200</div>
         ${hashtags.length ? `<div class="compose-hashtag-chips">${hashtags.map(h => `<span class="compose-hashtag-chip">#${escapeHtml(h)}</span>`).join("")}</div>` : ""}
         <div class="compose-media-actions">
-          <label>🖼️ Photo
+          <label>🖼️ ${t("photo")}
             <input type="file" accept="image/*" id="composePhotoInput" style="display:none" ${uploading ? "disabled" : ""} />
           </label>
-          <label>🎬 Video
+          <label>🎬 ${t("video")}
             <input type="file" accept="video/*" id="composeVideoInput" style="display:none" ${uploading ? "disabled" : ""} />
           </label>
-          ${state.composerMedia ? `<button id="composeRemoveMediaBtn" ${uploading ? "disabled" : ""}>✕ Remove media</button>` : ""}
+          ${state.composerMedia ? `<button id="composeRemoveMediaBtn" ${uploading ? "disabled" : ""}>✕ ${t("removeMedia")}</button>` : ""}
         </div>
-        <input type="text" id="composeSoundInput" class="compose-sound-input" placeholder="🎵 Sound name (optional)" maxlength="60" value="${escapeHtml(state.composerSoundName || "")}" ${uploading ? "disabled" : ""} />
-        <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Who can see this</div>
+        <input type="text" id="composeSoundInput" class="compose-sound-input" placeholder="🎵 ${t("soundNameOptional")}" maxlength="60" value="${escapeHtml(state.composerSoundName || "")}" ${uploading ? "disabled" : ""} />
+        <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">${t("whoCanSeeThis")}</div>
         <div class="compose-privacy-row">
-          <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public" ${uploading ? "disabled" : ""}>Public</button>
-          <button class="privacy-option ${state.composePrivacy === "friends" ? "selected" : ""}" data-level="friends" ${uploading ? "disabled" : ""}>Friends</button>
-          <button class="privacy-option ${state.composePrivacy === "private" ? "selected" : ""}" data-level="private" ${uploading ? "disabled" : ""}>Only me</button>
+          <button class="privacy-option ${state.composePrivacy === "public" ? "selected" : ""}" data-level="public" ${uploading ? "disabled" : ""}>${t("publicPrivacy")}</button>
+          <button class="privacy-option ${state.composePrivacy === "friends" ? "selected" : ""}" data-level="friends" ${uploading ? "disabled" : ""}>${t("friendsPrivacy")}</button>
+          <button class="privacy-option ${state.composePrivacy === "private" ? "selected" : ""}" data-level="private" ${uploading ? "disabled" : ""}>${t("onlyMe")}</button>
         </div>
         <div class="compose-toggle-row">
-          <div><div class="compose-toggle-label">Allow comments</div><div class="compose-toggle-sub">Others can reply to this post</div></div>
+          <div><div class="compose-toggle-label">${t("allowComments")}</div><div class="compose-toggle-sub">${t("allowCommentsSub")}</div></div>
           <button class="toggle-switch ${state.composeAllowComments !== false ? "on" : ""}" id="composeCommentsToggle" ${uploading ? "disabled" : ""}></button>
         </div>
         <div class="compose-toggle-row">
-          <div><div class="compose-toggle-label">Allow downloads</div><div class="compose-toggle-sub">Others can download your video/photo</div></div>
+          <div><div class="compose-toggle-label">${t("allowDownloads")}</div><div class="compose-toggle-sub">${t("allowDownloadsSub")}</div></div>
           <button class="toggle-switch ${composeAllowDownloadEffective() ? "on" : ""}" id="composeDownloadToggle" ${uploading ? "disabled" : ""}></button>
         </div>
-        <button class="btn-primary" id="composePostBtn" style="margin-top:14px;" ${(!state.composerText.trim() && !state.composerMedia) || uploading || charCount > 2200 ? "disabled" : ""}>${uploading ? "Posting..." : "Post"}</button>
+        <button class="btn-primary" id="composePostBtn" style="margin-top:14px;" ${(!state.composerText.trim() && !state.composerMedia) || uploading || charCount > 2200 ? "disabled" : ""}>${uploading ? t("posting") : t("post")}</button>
       </div>
     </div>
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
@@ -2988,7 +3636,7 @@ function renderPostComposeScreen() {
         localStorage.setItem("milon_draft", JSON.stringify({
           text: state.composerText, media: state.composerMedia, mediaType: state.composerMediaType
         }));
-        showToast("Draft saved");
+        showToast(t("draftSaved"));
       } catch (e) { /* storage full or unavailable — just discard silently */ }
     }
     setState({ view: "feed", composerMedia: null, composerMediaType: null, composerText: "", composerSoundName: "" });
@@ -2998,13 +3646,13 @@ function renderPostComposeScreen() {
   document.getElementById("composePhotoInput").onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!isAllowedImageFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
+    if (!isAllowedImageFile(file)) { showToast(t("fileTypeNotSupported")); e.target.value = ""; return; }
     compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "image" }));
   };
   document.getElementById("composeVideoInput").onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!isAllowedVideoFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
+    if (!isAllowedVideoFile(file)) { showToast(t("fileTypeNotSupported")); e.target.value = ""; return; }
     fileToDataUrl(file, (dataUrl) => setState({ composerMedia: dataUrl, composerMediaType: "video" }));
   };
   const removeBtn = document.getElementById("composeRemoveMediaBtn");
@@ -3089,19 +3737,19 @@ function renderFriendsScreen() {
   const rowsHtml = list.length
     ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
     : (isSearching
-        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
-        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No friends yet</div><div class="line2">Search for people above and follow them — once they follow you back, they'll show up here.</div></div>`);
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">${t("noOneFound")}</div><div class="line2">${t("tryDifferentSearch")}</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">${t("noFriendsYet")}</div><div class="line2">${t("searchFollowThemHint")}</div></div>`);
 
   root.innerHTML = `
     <div class="topbar">
-      <div class="brand-sm" id="brandHomeBtn2">Friends</div>
+      <div class="brand-sm" id="brandHomeBtn2">${t("navFriends")}</div>
     </div>
     <div class="friends-sub-tabs">
-      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeople">Friends</button>
-      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideos">Videos</button>
+      <button class="simple-tab ${state.friendsSubTab === "people" ? "active" : ""}" id="friendsSubPeople">${t("navFriends")}</button>
+      <button class="simple-tab ${state.friendsSubTab === "videos" ? "active" : ""}" id="friendsSubVideos">${t("videosTab")}</button>
     </div>
     <div class="friends-search-wrap">
-      <input id="friendsSearchInput" type="text" placeholder="Search people by name or @handle" value="${escapeHtml(state.friendsSearch)}" />
+      <input id="friendsSearchInput" type="text" placeholder="${t("searchPeopleByNameHandle")}" value="${escapeHtml(state.friendsSearch)}" />
     </div>
     <div class="user-list">${rowsHtml}</div>
     ${renderBottomNav("friends")}
@@ -3133,8 +3781,8 @@ function renderFriendsListOnly() {
   listEl.innerHTML = list.length
     ? list.map(u => renderUserRow(u, myUid, myPinned)).join("")
     : (isSearching
-        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">No one found</div><div class="line2">Try a different search.</div></div>`
-        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No friends yet</div><div class="line2">Search for people above and follow them — once they follow you back, they'll show up here.</div></div>`);
+        ? `<div class="empty-nav-tab"><div class="big">🔍</div><div class="line1">${t("noOneFound")}</div><div class="line2">${t("tryDifferentSearch")}</div></div>`
+        : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">${t("noFriendsYet")}</div><div class="line2">${t("searchFollowThemHint")}</div></div>`);
   wireFriendsRowHandlers(list);
 }
 
@@ -3170,14 +3818,14 @@ function renderFriendsVideoFeed() {
 
   root.innerHTML = `
     <div class="feed-topbar on-light">
-      <div class="feed-tab-btn active" style="pointer-events:none;">Friends</div>
+      <div class="feed-tab-btn active" style="pointer-events:none;">${t("navFriends")}</div>
       <button class="feed-search-btn" id="friendsFeedSearchBtn">🔍</button>
     </div>
     ${videos.length ? `<div class="fs-scroll" id="fsScrollFriends">${videos.map(renderFsSlide).join("")}</div>` : `
       <div class="fs-empty-full" style="position:static; min-height:60vh;">
         <div style="font-size:40px;margin-bottom:10px;">🎬</div>
-        <div style="font-weight:700;margin-bottom:6px;">No friend videos yet</div>
-        <div style="font-size:13px;">Follow people and their posts will show up here.</div>
+        <div style="font-weight:700;margin-bottom:6px;">${t("noFriendVideosYet")}</div>
+        <div style="font-size:13px;">${t("followPeopleVideosHint")}</div>
       </div>
     `}
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
@@ -3260,10 +3908,10 @@ function renderDiscoverScreen() {
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="discoverBackBtn">←</button>
-      <div class="back-title">Discover</div>
+      <div class="back-title">${t("discover")}</div>
     </div>
     <div class="discover-search-wrap">
-      <input id="discoverSearchInput" type="text" placeholder="Search people, videos, #hashtags" value="${escapeHtml(state.discoverQuery)}" />
+      <input id="discoverSearchInput" type="text" placeholder="${t("searchPeopleVideosHashtags")}" value="${escapeHtml(state.discoverQuery)}" />
     </div>
     <div id="discoverResults"></div>
     ${renderShareSheet()}
@@ -3293,18 +3941,18 @@ function renderDiscoverResultsOnly() {
     const trendingCreators = computeTrendingCreators(8);
     box.innerHTML = `
       ${recent.length ? `
-        <div class="discover-section-title">Recent searches<button id="clearRecentBtn">Clear</button></div>
+        <div class="discover-section-title">${t("recentSearches")}<button id="clearRecentBtn">${t("clear")}</button></div>
         <div class="discover-chip-row">${recent.map(r => `<button class="discover-chip" data-q="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join("")}</div>
       ` : ""}
-      <div class="discover-section-title">Trending hashtags</div>
+      <div class="discover-section-title">${t("trendingHashtags")}</div>
       ${trendingTags.length ? trendingTags.map(([tag, count]) => `
         <div class="discover-hashtag-card" data-tag="${escapeHtml(tag)}">
           <span class="tag">#${escapeHtml(tag)}</span>
-          <span class="count">${count} post${count === 1 ? "" : "s"}</span>
+          <span class="count">${count} ${t("postsCount")}</span>
         </div>
-      `).join("") : `<div class="discover-empty">No hashtags yet — be the first to post with one!</div>`}
-      <div class="discover-section-title">Trending creators</div>
-      <div class="user-list">${trendingCreators.length ? trendingCreators.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("") : `<div class="discover-empty">No creators yet</div>`}</div>
+      `).join("") : `<div class="discover-empty">${t("noHashtagsYet")}</div>`}
+      <div class="discover-section-title">${t("trendingCreators")}</div>
+      <div class="user-list">${trendingCreators.length ? trendingCreators.map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("") : `<div class="discover-empty">${t("noCreatorsYet")}</div>`}</div>
     `;
     document.querySelectorAll(".discover-chip").forEach(chip => {
       chip.onclick = () => { state.discoverQuery = chip.dataset.q; renderDiscoverResultsOnly(); const inp = document.getElementById("discoverSearchInput"); if (inp) inp.value = chip.dataset.q; };
@@ -3324,23 +3972,23 @@ function renderDiscoverResultsOnly() {
 
   let bodyHtml = "";
   if (tab === "users" || (tab === "top" && users.length)) {
-    bodyHtml += `<div class="discover-section-title">Users</div><div class="user-list">${
-      (tab === "top" ? users.slice(0, 4) : users).map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("") || `<div class="discover-empty">No users found</div>`
+    bodyHtml += `<div class="discover-section-title">${t("usersTab")}</div><div class="user-list">${
+      (tab === "top" ? users.slice(0, 4) : users).map(u => renderUserRow(u, myUid, (state.myUserDoc && state.myUserDoc.pinnedFriends) || [])).join("") || `<div class="discover-empty">${t("noUsersFound")}</div>`
     }</div>`;
   }
   if (tab === "hashtags" || (tab === "top" && hashtags.length)) {
-    bodyHtml += `<div class="discover-section-title">Hashtags</div>${
+    bodyHtml += `<div class="discover-section-title">${t("hashtagsTab")}</div>${
       (tab === "top" ? hashtags.slice(0, 4) : hashtags).map(([tag, count]) => `
         <div class="discover-hashtag-card" data-tag="${escapeHtml(tag)}">
           <span class="tag">#${escapeHtml(tag)}</span>
-          <span class="count">${count} post${count === 1 ? "" : "s"}</span>
+          <span class="count">${count} ${t("postsCount")}</span>
         </div>
-      `).join("") || `<div class="discover-empty">No hashtags found</div>`
+      `).join("") || `<div class="discover-empty">${t("noHashtagsFound")}</div>`
     }`;
   }
   if (tab === "videos" || (tab === "top" && videos.length)) {
     const list = tab === "top" ? videos.slice(0, 9) : videos;
-    bodyHtml += `<div class="discover-section-title">Videos & posts</div><div class="profile-grid">${
+    bodyHtml += `<div class="discover-section-title">${t("videosAndPosts")}</div><div class="profile-grid">${
       list.map(p => `
         <div class="profile-grid-item ${!p.media ? "text-only" : ""}" id="discovervid-${p.id}">
           ${p.media
@@ -3351,15 +3999,15 @@ function renderDiscoverResultsOnly() {
     }</div>`;
   }
   if (!users.length && !videos.length && !hashtags.length) {
-    bodyHtml = `<div class="discover-empty">No results for "${escapeHtml(q)}"</div>`;
+    bodyHtml = `<div class="discover-empty">${t("noResultsFor")} "${escapeHtml(q)}"</div>`;
   }
 
   box.innerHTML = `
     <div class="discover-tabs">
-      <button class="discover-tab-btn ${tab === "top" ? "active" : ""}" data-tab="top">Top</button>
-      <button class="discover-tab-btn ${tab === "users" ? "active" : ""}" data-tab="users">Users (${tabCounts.users})</button>
-      <button class="discover-tab-btn ${tab === "videos" ? "active" : ""}" data-tab="videos">Videos (${tabCounts.videos})</button>
-      <button class="discover-tab-btn ${tab === "hashtags" ? "active" : ""}" data-tab="hashtags">Hashtags (${tabCounts.hashtags})</button>
+      <button class="discover-tab-btn ${tab === "top" ? "active" : ""}" data-tab="top">${t("topTab")}</button>
+      <button class="discover-tab-btn ${tab === "users" ? "active" : ""}" data-tab="users">${t("usersTab")} (${tabCounts.users})</button>
+      <button class="discover-tab-btn ${tab === "videos" ? "active" : ""}" data-tab="videos">${t("videosTab")} (${tabCounts.videos})</button>
+      <button class="discover-tab-btn ${tab === "hashtags" ? "active" : ""}" data-tab="hashtags">${t("hashtagsTab")} (${tabCounts.hashtags})</button>
     </div>
     ${bodyHtml}
   `;
@@ -3400,7 +4048,7 @@ function renderHashtagFeedScreen() {
     ${videos.length ? `<div class="fs-scroll" id="fsScrollHashtag">${videos.map(renderFsSlide).join("")}</div>` : `
       <div class="fs-empty-full" style="position:static; min-height:60vh;">
         <div style="font-size:40px;margin-bottom:10px;">🔖</div>
-        <div style="font-weight:700;margin-bottom:6px;">No posts with #${escapeHtml(tag)}</div>
+        <div style="font-weight:700;margin-bottom:6px;">${t("noPostsWithTag")} #${escapeHtml(tag)}</div>
       </div>
     `}
     <div class="toast" id="toast">${escapeHtml(state.toastMsg)}</div>
@@ -3424,27 +4072,27 @@ function togglePinFriend(uid) {
       ? firebase.firestore.FieldValue.arrayRemove(uid)
       : firebase.firestore.FieldValue.arrayUnion(uid)
   }).then(() => {
-    showToast(isPinned ? "Unpinned" : "Pinned to top");
-  }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
+    showToast(isPinned ? t("unpinned") : t("pinnedToTop"));
+  }).catch((err) => { console.error(err); showToast(t("couldntUpdatePin")); });
 }
 
 function renderUserRow(u, myUid, myPinned) {
   const amFollowing = (u.followers || []).includes(myUid);
   const isRequested = !amFollowing && (u.followRequests || []).includes(myUid);
-  const label = amFollowing ? "Following" : (isRequested ? "Requested" : "Follow");
+  const label = amFollowing ? t("following") : (isRequested ? t("requested") : t("follow"));
   const cls = amFollowing ? "following" : (isRequested ? "requested" : "");
   const isPinned = (myPinned || []).includes(u.uid);
   const online = isUserOnline(u.uid);
   return `
     <div class="user-row">
-      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}${online ? `<span class="presence-dot"></span>` : ""}</div>
+      <div class="avatar" id="useravatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userFallback"))}${online ? `<span class="presence-dot"></span>` : ""}</div>
       <div class="user-row-info" id="userinfo-${u.uid}">
-        <div class="u-name">${escapeHtml(u.name || "User")} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
+        <div class="u-name">${escapeHtml(u.name || t("userFallback"))} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
         <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
       </div>
       <div class="user-row-actions">
-        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinfriendbtn-${u.uid}" title="Pin">📌</button>
-        <button class="pill-btn ghost" id="msgbtn-${u.uid}">Message</button>
+        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinfriendbtn-${u.uid}" title="${t("pin")}">📌</button>
+        <button class="pill-btn ghost" id="msgbtn-${u.uid}">${t("message")}</button>
         <button class="pill-btn ${cls}" id="followbtn-${u.uid}">${label}</button>
       </div>
     </div>
@@ -3503,7 +4151,7 @@ function toggleFollowFromList(targetUid) {
     }
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update follow status — check your connection or try again");
+    showToast(t("couldntUpdateFollowStatus"));
   });
 }
 
@@ -3521,10 +4169,10 @@ function acceptFollowRequest(fromUid) {
   batch.update(fromRef, { following: firebase.firestore.FieldValue.arrayUnion(myUid) });
   batch.commit().then(() => {
     logActivity(fromUid, "follow_accept", `${state.user.name} accepted your follow request`);
-    showToast("Request accepted");
+    showToast(t("requestAccepted"));
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't accept request");
+    showToast(t("couldntAcceptRequest"));
   });
 }
 
@@ -3535,7 +4183,7 @@ function declineFollowRequest(fromUid) {
     followRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't decline request");
+    showToast(t("couldntDeclineRequest"));
   });
 }
 
@@ -3576,7 +4224,7 @@ function listenToThreads() {
       setState({ threads });
     }, (err) => {
       console.error(err);
-      showToast("Couldn't load inbox");
+      showToast(t("couldntLoadInbox"));
     });
 }
 
@@ -3662,8 +4310,8 @@ function sendSystemNotice() {
     text, fromName: state.user.name, createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
     setState({ ownerNoticeText: "" });
-    showToast("Notice sent to everyone");
-  }).catch((err) => { console.error(err); showToast("Couldn't send notice"); });
+    showToast(t("noticeSentToEveryone"));
+  }).catch((err) => { console.error(err); showToast(t("couldntSendNotice")); });
 }
 
 function renderInboxScreen() {
@@ -3701,15 +4349,15 @@ function renderInboxScreen() {
     <div class="inbox-stories-row">
       <div class="inbox-story-item" id="storyCreateBtn">
         <div class="inbox-story-avatar-wrap"><div class="inbox-story-avatar create">+</div></div>
-        <div class="inbox-story-label">Create</div>
+        <div class="inbox-story-label">${t("create")}</div>
       </div>
       ${storyPeople.map(u => `
         <div class="inbox-story-item" data-uid="${u.uid}">
           <div class="inbox-story-avatar-wrap">
-            <div class="inbox-story-avatar">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+            <div class="inbox-story-avatar">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userFallback"))}</div>
             ${myPinned.includes(u.uid) ? `<div class="inbox-story-pin-mark">📌</div>` : ""}
           </div>
-          <div class="inbox-story-label">${escapeHtml((u.name || "User").split(" ")[0])}</div>
+          <div class="inbox-story-label">${escapeHtml((u.name || t("userFallback")).split(" ")[0])}</div>
         </div>
       `).join("")}
     </div>
@@ -3725,8 +4373,8 @@ function renderInboxScreen() {
     <div class="inbox-section-row" id="secFollowRequests">
       <div class="inbox-section-icon" style="background:#0F6E56">🔒</div>
       <div class="inbox-section-info">
-        <div class="is-title">Follow requests (${pendingFollowRequests.length})</div>
-        <div class="is-sub">${lastRequester ? `${escapeHtml(lastRequester.name || "Someone")} wants to follow you` : "New requests to follow you"}</div>
+        <div class="is-title">${t("followRequests")} (${pendingFollowRequests.length})</div>
+        <div class="is-sub">${lastRequester ? `${escapeHtml(lastRequester.name || t("someone"))} ${t("wantsToFollowYou")}` : t("newRequestsToFollowYou")}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -3736,32 +4384,32 @@ function renderInboxScreen() {
     <div class="inbox-section-row" id="secFollowers">
       <div class="inbox-section-icon" style="background:#2f8cf0">👥</div>
       <div class="inbox-section-info">
-        <div class="is-title">New followers${followUnread > 0 ? ` (${followUnread})` : ""}</div>
-        <div class="is-sub">${lastFollow ? escapeHtml(lastFollow.text) : "No new followers yet"}</div>
+        <div class="is-title">${t("newFollowers")}${followUnread > 0 ? ` (${followUnread})` : ""}</div>
+        <div class="is-sub">${lastFollow ? escapeHtml(lastFollow.text) : t("noNewFollowersYet")}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
     <div class="inbox-section-row" id="secActivity">
       <div class="inbox-section-icon" style="background:#e84393">❤️</div>
       <div class="inbox-section-info">
-        <div class="is-title">Activity${activityUnread > 0 ? ` (${activityUnread})` : ""}</div>
-        <div class="is-sub">${lastActivityItem ? escapeHtml(lastActivityItem.text) : "No activity yet"}</div>
+        <div class="is-title">${t("settingsActivity")}${activityUnread > 0 ? ` (${activityUnread})` : ""}</div>
+        <div class="is-sub">${lastActivityItem ? escapeHtml(lastActivityItem.text) : t("noActivityYet")}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
     <div class="inbox-section-row" id="secRequests">
       <div class="inbox-section-icon" style="background:#5352ed">💬</div>
       <div class="inbox-section-info">
-        <div class="is-title">Message requests${messageNotifUnread > 0 ? ` (${messageNotifUnread})` : ""}</div>
-        <div class="is-sub">${lastMessageNotif ? escapeHtml(lastMessageNotif.text) : "No new messages"}</div>
+        <div class="is-title">${t("messageRequests")}${messageNotifUnread > 0 ? ` (${messageNotifUnread})` : ""}</div>
+        <div class="is-sub">${lastMessageNotif ? escapeHtml(lastMessageNotif.text) : t("noNewMessages")}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
     <div class="inbox-section-row" id="secSystem">
       <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
       <div class="inbox-section-info">
-        <div class="is-title">System notifications</div>
-        <div class="is-sub">${lastSystemNotice ? escapeHtml(lastSystemNotice.text) : "Creator updates and app news"}</div>
+        <div class="is-title">${t("systemNotifications")}</div>
+        <div class="is-sub">${lastSystemNotice ? escapeHtml(lastSystemNotice.text) : t("creatorUpdatesAppNews")}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>
@@ -3769,8 +4417,8 @@ function renderInboxScreen() {
     <div class="inbox-section-row" id="secArchive">
       <div class="inbox-section-icon" style="background:#636e72">🗄️</div>
       <div class="inbox-section-info">
-        <div class="is-title">Archived chats (${archivedThreadsList.length})</div>
-        <div class="is-sub">Chats you've hidden from your inbox</div>
+        <div class="is-title">${t("archivedChats")} (${archivedThreadsList.length})</div>
+        <div class="is-sub">${t("archivedChatsSub")}</div>
       </div>
       <div class="inbox-section-chevron">›</div>
     </div>` : ""}
@@ -3778,19 +4426,19 @@ function renderInboxScreen() {
 
   const suggested = state.allUsers.filter(u => !(u.followers || []).includes(myUid)).slice(0, 6);
   const suggestedHtml = suggested.length ? `
-    <div class="inbox-suggested-heading">Suggested accounts</div>
+    <div class="inbox-suggested-heading">${t("suggestedAccounts")}</div>
     ${suggested.map(u => {
       const isRequested = (u.followRequests || []).includes(myUid);
       return `
       <div class="user-row">
-        <div class="avatar" id="sugavatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
+        <div class="avatar" id="sugavatar-${u.uid}">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userFallback"))}</div>
         <div class="user-row-info" id="suginfo-${u.uid}">
-          <div class="u-name">${escapeHtml(u.name || "User")}</div>
+          <div class="u-name">${escapeHtml(u.name || t("userFallback"))}</div>
           <div class="u-handle">@${escapeHtml(u.handle || slugifyHandle(u.name || "user"))}</div>
         </div>
         <div class="user-row-actions">
-          <button class="pill-btn ${isRequested ? "requested" : ""}" id="sugfollow-${u.uid}">${isRequested ? "Requested" : "Follow"}</button>
-          <button class="pin-icon-btn" id="sugremove-${u.uid}" title="Remove">✕</button>
+          <button class="pill-btn ${isRequested ? "requested" : ""}" id="sugfollow-${u.uid}">${isRequested ? t("requested") : t("follow")}</button>
+          <button class="pin-icon-btn" id="sugremove-${u.uid}" title="${t("remove")}">✕</button>
         </div>
       </div>
     `;
@@ -3799,13 +4447,13 @@ function renderInboxScreen() {
 
   const threadsHtml = activeThreads.length
     ? activeThreads.map(t => renderThreadRow(t, myUid, myPinned)).join("")
-    : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No messages yet</div><div class="line2">Message someone from the Friends tab to start a chat.</div></div>`;
+    : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">${t("noMessagesYet")}</div><div class="line2">${t("messageFromFriendsHint")}</div></div>`;
 
   const anyUnreadNotifs = state.activity.some(a => !a.read);
   root.innerHTML = `
     <div class="topbar">
-      <div class="brand-sm" id="brandHomeBtn3">Inbox</div>
-      ${anyUnreadNotifs ? `<button class="mark-all-read-btn" id="markAllReadBtn">Mark all read</button>` : ""}
+      <div class="brand-sm" id="brandHomeBtn3">${t("navInbox")}</div>
+      ${anyUnreadNotifs ? `<button class="mark-all-read-btn" id="markAllReadBtn">${t("markAllRead")}</button>` : ""}
     </div>
     ${storiesHtml}
     ${rowsHtml}
@@ -3872,7 +4520,7 @@ function renderInboxSubScreen() {
       const extra = mutuals.length - shown.length;
       subLine = `
         <div class="notif-mutual-line">
-          <span>Friends with</span>
+          <span>${t("friendsWith")}</span>
           <span class="notif-mutual-avatars">${shown.map(m => `<span>${m.avatar ? `<img src="${m.avatar}" />` : ""}</span>`).join("")}</span>
           ${extra > 0 ? `<span>+${extra}</span>` : ""}
         </div>`;
@@ -3885,11 +4533,11 @@ function renderInboxSubScreen() {
         <div class="inbox-section-info">
           <div class="notif-row-name">${escapeHtml(name)}</div>
           ${subLine}
-          <div class="notif-row-sub">${a.type === "follow_accept" ? "accepted your follow request" : "started following you"} · ${timeAgoShort(a.createdAt)}</div>
+          <div class="notif-row-sub">${a.type === "follow_accept" ? t("acceptedYourFollowRequestText") : t("startedFollowingYouText")} · ${timeAgoShort(a.createdAt)}</div>
         </div>
         ${a.fromUid ? (amFollowingBack
-          ? `<button class="wave-btn" data-wave="${a.fromUid}">Send a 👋</button>`
-          : `<button class="followback-btn" data-followback="${a.fromUid}">Follow back</button>`) : ""}
+          ? `<button class="wave-btn" data-wave="${a.fromUid}">${t("sendWave")}</button>`
+          : `<button class="followback-btn" data-followback="${a.fromUid}">${t("followBack")}</button>`) : ""}
       </div>
     `;
   };
@@ -3917,7 +4565,7 @@ function renderInboxSubScreen() {
   };
 
   if (section === "followRequests") {
-    title = "Follow requests";
+    title = t("followRequests");
     const pendingUids = (state.myUserDoc && state.myUserDoc.followRequests) || [];
     const requesters = pendingUids.map(uid => state.allUsers.find(u => u.uid === uid)).filter(Boolean);
     bodyHtml = requesters.length
@@ -3929,7 +4577,7 @@ function renderInboxSubScreen() {
             const extra = mutuals.length - shown.length;
             subLine = `
               <div class="notif-mutual-line">
-                <span>Friends with</span>
+                <span>${t("friendsWith")}</span>
                 <span class="notif-mutual-avatars">${shown.map(m => `<span>${m.avatar ? `<img src="${m.avatar}" />` : ""}</span>`).join("")}</span>
                 ${extra > 0 ? `<span>+${extra}</span>` : ""}
               </div>`;
@@ -3940,24 +4588,24 @@ function renderInboxSubScreen() {
             <div class="inbox-section-info" style="cursor:pointer;" data-open="${u.uid}">
               <div class="notif-row-name">${escapeHtml(u.name || "User")}</div>
               ${subLine}
-              <div class="notif-row-sub">wants to follow you</div>
+              <div class="notif-row-sub">${t("wantsToFollowYou")}</div>
             </div>
             <div class="user-row-actions" style="flex-direction:column; gap:6px;">
-              <button class="pill-btn" data-accept="${u.uid}">Accept</button>
-              <button class="pill-btn ghost" data-decline="${u.uid}">Decline</button>
+              <button class="pill-btn" data-accept="${u.uid}">${t("accept")}</button>
+              <button class="pill-btn ghost" data-decline="${u.uid}">${t("decline")}</button>
             </div>
           </div>
         `;
         }).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">No pending requests</div><div class="line2">Requests to follow your private account show up here.</div></div>`;
+      : `<div class="empty-nav-tab"><div class="big">🔒</div><div class="line1">${t("noPendingRequests")}</div><div class="line2">${t("pendingRequestsHint")}</div></div>`;
   } else if (section === "followers") {
-    title = "New followers";
+    title = t("newFollowers");
     const list = state.activity.filter(a => a.type === "follow");
     bodyHtml = list.length
       ? `<div class="thread-list">${list.map(followerRow).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">No followers yet</div><div class="line2">People who follow you show up here.</div></div>`;
+      : `<div class="empty-nav-tab"><div class="big">👥</div><div class="line1">${t("noFollowersYet")}</div><div class="line2">${t("followersHint")}</div></div>`;
   } else if (section === "activity") {
-    title = "Activity";
+    title = t("settingsActivity");
     const filter = state.activityFilter || "all";
     const likeCount = state.activity.filter(a => a.type === "like").length;
     const commentCount = state.activity.filter(a => a.type === "comment").length;
@@ -3968,19 +4616,19 @@ function renderInboxSubScreen() {
       : state.activity.filter(a => a.type === "like" || a.type === "comment" || a.type === "follow_accept");
     const chipsHtml = `
       <div class="friends-sub-tabs">
-        <button class="simple-tab ${filter === "all" ? "active" : ""}" data-activity-filter="all">All</button>
-        <button class="simple-tab ${filter === "like" ? "active" : ""}" data-activity-filter="like">Likes${likeCount ? ` (${likeCount})` : ""}</button>
-        <button class="simple-tab ${filter === "comment" ? "active" : ""}" data-activity-filter="comment">Comments${commentCount ? ` (${commentCount})` : ""}</button>
+        <button class="simple-tab ${filter === "all" ? "active" : ""}" data-activity-filter="all">${t("filterAll")}</button>
+        <button class="simple-tab ${filter === "like" ? "active" : ""}" data-activity-filter="like">${t("filterLikes")}${likeCount ? ` (${likeCount})` : ""}</button>
+        <button class="simple-tab ${filter === "comment" ? "active" : ""}" data-activity-filter="comment">${t("filterComments")}${commentCount ? ` (${commentCount})` : ""}</button>
       </div>
     `;
-    const emptyText = filter === "like" ? { big: "❤️", l1: "No likes yet", l2: "Likes on your posts show up here." }
-      : filter === "comment" ? { big: "💬", l1: "No comments yet", l2: "Comments and replies on your posts show up here." }
-      : { big: "🔔", l1: "No activity yet", l2: "Likes, comments and approved follow requests show up here." };
+    const emptyText = filter === "like" ? { big: "❤️", l1: t("noLikesYet"), l2: t("likesHint") }
+      : filter === "comment" ? { big: "💬", l1: t("noCommentsYet"), l2: t("commentsHint") }
+      : { big: "🔔", l1: t("noActivityYet"), l2: t("activityHint") };
     bodyHtml = chipsHtml + (filterList.length
       ? `<div class="thread-list">${filterList.map(a => a.type === "follow_accept" ? followerRow(a) : activityRow(a)).join("")}</div>`
       : `<div class="empty-nav-tab"><div class="big">${emptyText.big}</div><div class="line1">${emptyText.l1}</div><div class="line2">${emptyText.l2}</div></div>`);
   } else if (section === "requests") {
-    title = "Message requests";
+    title = t("messageRequests");
     const list = state.activity.filter(a => a.type === "message");
     bodyHtml = list.length
       ? `<div class="thread-list">${list.map(a => `
@@ -3989,14 +4637,14 @@ function renderInboxSubScreen() {
             <div class="inbox-section-info"><div class="is-title">${escapeHtml(a.text)}</div></div>
           </div>
         `).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No new messages</div><div class="line2">New chats started with you show up here.</div></div>`;
+      : `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">${t("noNewMessages")}</div><div class="line2">${t("newChatsHint")}</div></div>`;
   } else if (section === "system") {
-    title = "System notifications";
+    title = t("systemNotifications");
     const notices = state.systemNotices;
     const composerHtml = isOwnerAccount() ? `
       <div style="padding:14px;">
-        <textarea id="ownerNoticeInput" rows="3" placeholder="Write a notice to send to everyone..." style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.ownerNoticeText)}</textarea>
-        <button class="btn-primary" id="sendOwnerNoticeBtn" style="margin-top:8px;">Send to everyone</button>
+        <textarea id="ownerNoticeInput" rows="3" placeholder="${t("writeNoticePlaceholder")}" style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.ownerNoticeText)}</textarea>
+        <button class="btn-primary" id="sendOwnerNoticeBtn" style="margin-top:8px;">${t("sendToEveryone")}</button>
       </div>
     ` : "";
     bodyHtml = `
@@ -4005,8 +4653,8 @@ function renderInboxSubScreen() {
         <div class="inbox-section-row">
           <div class="inbox-section-icon" style="background:#1e1e2e">📥</div>
           <div class="inbox-section-info">
-            <div class="is-title">Welcome to Milon</div>
-            <div class="is-sub">Thanks for joining — explore Friends and Inbox to connect with people.</div>
+            <div class="is-title">${t("welcomeToMilon")}</div>
+            <div class="is-sub">${t("welcomeToMilonSub")}</div>
           </div>
         </div>
         ${notices.map(n => `
@@ -4021,12 +4669,12 @@ function renderInboxSubScreen() {
       </div>
     `;
   } else if (section === "archive") {
-    title = "Archived chats";
+    title = t("archivedChats");
     const list = state.threads.filter(t => t.archivedFor && t.archivedFor[myUid]);
     bodyHtml = list.length
       ? `<div class="thread-list">${list.map(t => {
           const otherUid = (t.participants || []).find(p => p !== myUid);
-          const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
+          const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: t("userFallback"), avatar: null };
           return `
           <div class="inbox-section-row" id="archrow-${t.id}" style="cursor:pointer;">
             <div class="notif-row-avatar" data-open="${otherUid}">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}</div>
@@ -4035,12 +4683,12 @@ function renderInboxSubScreen() {
               <div class="notif-row-sub">${escapeHtml(t.lastMessage || "")}</div>
             </div>
             <div class="user-row-actions" style="flex-direction:column; gap:6px;">
-              <button class="pill-btn" data-unarchive="${t.id}">Unarchive</button>
-              <button class="pill-btn ghost" data-delete-archived="${t.id}">Delete</button>
+              <button class="pill-btn" data-unarchive="${t.id}">${t("unarchive")}</button>
+              <button class="pill-btn ghost" data-delete-archived="${t.id}">${t("deleteBtn")}</button>
             </div>
           </div>`;
         }).join("")}</div>`
-      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">No archived chats</div><div class="line2">Chats you hide from your inbox show up here.</div></div>`;
+      : `<div class="empty-nav-tab"><div class="big">🗄️</div><div class="line1">${t("noArchivedChats")}</div><div class="line2">${t("archivedChatsHint2")}</div></div>`;
   }
 
   const sectionTypeMap = {
@@ -4057,7 +4705,7 @@ function renderInboxSubScreen() {
     <div class="back-row">
       <button class="profile-back-btn" id="inboxSubBackBtn">←</button>
       <div class="back-title">${title}</div>
-      ${sectionUnread > 0 ? `<button class="mark-all-read-btn" id="markSectionReadBtn">Mark all read</button>` : ""}
+      ${sectionUnread > 0 ? `<button class="mark-all-read-btn" id="markSectionReadBtn">${t("markAllRead")}</button>` : ""}
     </div>
     ${bodyHtml}
     ${renderBottomNav("inbox")}
@@ -4117,24 +4765,24 @@ function renderInboxSubScreen() {
   wireBottomNav();
 }
 
-function renderThreadRow(t, myUid, myPinned) {
-  const otherUid = (t.participants || []).find(p => p !== myUid);
-  const otherInfo = (t.participantInfo && t.participantInfo[otherUid]) || { name: "User", avatar: null };
-  const unread = (t.unread && t.unread[myUid]) || 0;
+function renderThreadRow(thread, myUid, myPinned) {
+  const otherUid = (thread.participants || []).find(p => p !== myUid);
+  const otherInfo = (thread.participantInfo && thread.participantInfo[otherUid]) || { name: t("userFallback"), avatar: null };
+  const unread = (thread.unread && thread.unread[myUid]) || 0;
   const isPinned = (myPinned || []).includes(otherUid);
   const online = isUserOnline(otherUid);
   return `
-    <div class="thread-row ${unread > 0 ? "unread" : ""}" id="thread-${t.id}">
+    <div class="thread-row ${unread > 0 ? "unread" : ""}" id="thread-${thread.id}">
       <div class="avatar">${otherInfo.avatar ? `<img src="${otherInfo.avatar}" />` : initials(otherInfo.name)}${online ? `<span class="presence-dot"></span>` : ""}</div>
       <div class="thread-info">
         <div class="t-name">${escapeHtml(otherInfo.name)} ${isPinned ? `<span class="pin-flag">📌</span>` : ""}</div>
-        <div class="t-preview">${escapeHtml(t.lastMessage || "")}</div>
+        <div class="t-preview">${escapeHtml(thread.lastMessage || "")}</div>
       </div>
       ${unread > 0 ? `<div class="thread-unread-dot"></div>` : ""}
       <div class="thread-row-actions">
-        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${t.id}" title="Pin">📌</button>
+        <button class="pin-icon-btn ${isPinned ? "pinned" : ""}" id="pinthread-${thread.id}" title="${t("pin")}">📌</button>
       </div>
-      <div class="thread-time">${timeAgo(t.lastMessageAt)}</div>
+      <div class="thread-time">${timeAgo(thread.lastMessageAt)}</div>
     </div>
   `;
 }
@@ -4153,7 +4801,7 @@ function openMessageRequestPreview(otherUid, notifId) {
   const threadId = threadIdFor(myUid, otherUid);
 
   db.collection("users").doc(otherUid).get().then((doc) => {
-    const previewProfile = doc.exists ? doc.data() : { name: "User", avatar: null };
+    const previewProfile = doc.exists ? doc.data() : { name: t("userFallback"), avatar: null };
     setState({
       view: "requestPreview",
       requestPreviewUid: otherUid,
@@ -4172,7 +4820,7 @@ function openMessageRequestPreview(otherUid, notifId) {
       }, (err) => console.error(err));
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't open request");
+    showToast(t("couldntOpenRequest"));
   });
 }
 
@@ -4213,10 +4861,10 @@ function declineMessageRequest() {
   batch.commit().then(() => {
     closeRequestPreview("inbox");
     setState({ inboxSection: "requests" });
-    showToast("Request archived");
+    showToast(t("requestArchived"));
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't archive request");
+    showToast(t("couldntArchiveRequest"));
   });
 }
 
@@ -4225,8 +4873,8 @@ function unarchiveThread(threadId) {
   const myUid = state.user.uid;
   if (!threadId) return;
   db.collection("threads").doc(threadId).set({ archivedFor: { [myUid]: false } }, { merge: true })
-    .then(() => showToast("Chat unarchived"))
-    .catch((err) => { console.error(err); showToast("Couldn't unarchive chat"); });
+    .then(() => showToast(t("chatUnarchived")))
+    .catch((err) => { console.error(err); showToast(t("couldntUnarchiveChat")); });
 }
 
 /* Permanently deletes an archived thread and its messages — the only place in the app
@@ -4240,10 +4888,10 @@ function deleteArchivedThread(threadId) {
     batch.delete(threadRef);
     return batch.commit();
   }).then(() => {
-    showToast("Chat deleted");
+    showToast(t("chatDeleted"));
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't delete chat");
+    showToast(t("couldntDeleteChat"));
   });
 }
 
@@ -4261,14 +4909,14 @@ function renderRequestPreviewScreen() {
   root.innerHTML = `
     <div class="back-row">
       <button class="profile-back-btn" id="reqPreviewBackBtn">←</button>
-      <div class="back-title">${escapeHtml(other.name || "Message request")}</div>
+      <div class="back-title">${escapeHtml(other.name || t("messageRequestTitle"))}</div>
     </div>
     <div class="chat-messages" style="padding-bottom:14px;">
-      ${bubblesHtml || `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">No messages yet</div></div>`}
+      ${bubblesHtml || `<div class="empty-nav-tab"><div class="big">💬</div><div class="line1">${t("noMessagesYetChat")}</div></div>`}
     </div>
     <div style="display:flex; gap:10px; padding:14px; border-top:1px solid var(--line);">
-      <button class="btn-primary" id="reqPreviewDeleteBtn" style="flex:1; width:auto; margin-top:0; background:var(--card); color:var(--ink); border:1px solid var(--line);">Delete</button>
-      <button class="btn-primary" id="reqPreviewAcceptBtn" style="flex:1; width:auto; margin-top:0;">Accept</button>
+      <button class="btn-primary" id="reqPreviewDeleteBtn" style="flex:1; width:auto; margin-top:0; background:var(--card); color:var(--ink); border:1px solid var(--line);">${t("deleteBtn")}</button>
+      <button class="btn-primary" id="reqPreviewAcceptBtn" style="flex:1; width:auto; margin-top:0;">${t("accept")}</button>
     </div>
   `;
   document.getElementById("reqPreviewBackBtn").onclick = () => closeRequestPreview("inbox");
@@ -4277,18 +4925,18 @@ function renderRequestPreviewScreen() {
 }
 function openChat(otherUid) {
   if (!otherUid) return;
-  if (isBlockedEitherWay(otherUid)) { showToast("You can't message this account"); return; }
+  if (isBlockedEitherWay(otherUid)) { showToast(t("cantMessageAccount")); return; }
   if (!canMessage(otherUid, state.user.uid)) {
     const other = findCachedUser(otherUid);
     const tier = other && other.dmPrivacy;
-    showToast(tier === "noone" ? "This account isn't accepting direct messages" : "This account only accepts messages from friends they follow back");
+    showToast(tier === "noone" ? t("dmNotAccepting") : t("dmFriendsOnly"));
     return;
   }
   const myUid = state.user.uid;
   const threadId = threadIdFor(myUid, otherUid);
 
   db.collection("users").doc(otherUid).get().then((doc) => {
-    const chatProfile = doc.exists ? doc.data() : { name: "User", avatar: null };
+    const chatProfile = doc.exists ? doc.data() : { name: t("userFallback"), avatar: null };
     setState({ view: "chat", chatUid: otherUid, chatProfile, chatMessages: [], chatText: "", chatMedia: null });
 
     // Mark this thread read for me now that I've opened it
@@ -4316,7 +4964,7 @@ function openChat(otherUid) {
     }, (err) => console.error(err));
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't open chat");
+    showToast(t("couldntOpenChat"));
   });
 }
 
@@ -4332,8 +4980,8 @@ const CHAT_QUICK_REACTIONS = ["❤️", "😂", "👍", "👉", "🐾"]; // last
 
 function chatPresenceLabel() {
   const p = state.chatOtherPresence;
-  if (p && p.online) return "Active now";
-  if (p && p.lastSeenAt && p.lastSeenAt.toDate) return `Active ${timeAgo(p.lastSeenAt)}`;
+  if (p && p.online) return t("activeNow");
+  if (p && p.lastSeenAt && p.lastSeenAt.toDate) return `${t("activePrefix")} ${timeAgo(p.lastSeenAt)}`;
   return "";
 }
 
@@ -4357,7 +5005,7 @@ function renderChatScreen() {
       ${m.audio ? `<audio src="${m.audio}" controls></audio>` : ""}
       ${m.text ? `<div class="${(m.image || m.video) ? "bubble-text-with-image" : ""}">${escapeHtml(m.text)}</div>` : ""}
     </div>
-    ${showSeen ? `<div class="chat-seen-label">Seen</div>` : ""}
+    ${showSeen ? `<div class="chat-seen-label">${t("seenLabel")}</div>` : ""}
   `;
   }).join("");
 
@@ -4369,9 +5017,9 @@ function renderChatScreen() {
   root.innerHTML = `
     <div class="chat-header">
       <button class="profile-back-btn" id="chatBackBtn">←</button>
-      <div class="avatar" id="chatHeaderAvatar">${other.avatar ? `<img src="${other.avatar}" />` : initials(other.name || "User")}${state.chatOtherPresence && state.chatOtherPresence.online ? `<span class="presence-dot"></span>` : ""}</div>
+      <div class="avatar" id="chatHeaderAvatar">${other.avatar ? `<img src="${other.avatar}" />` : initials(other.name || t("userFallback"))}${state.chatOtherPresence && state.chatOtherPresence.online ? `<span class="presence-dot"></span>` : ""}</div>
       <div class="chat-header-info">
-        <div class="c-name" id="chatHeaderName">${escapeHtml(other.name || "User")}</div>
+        <div class="c-name" id="chatHeaderName">${escapeHtml(other.name || t("userFallback"))}</div>
         ${presenceLabel ? `<div class="c-status">${escapeHtml(presenceLabel)}</div>` : ""}
       </div>
     </div>
@@ -4393,13 +5041,13 @@ function renderChatScreen() {
         </div>` : ""}
       <div class="chat-input-row">
         ${!hasContent ? `
-        <label class="chat-image-btn" title="Photo/video from gallery">
+        <label class="chat-image-btn" title="${t("photoVideoFromGallery")}">
           🖼️
           <input type="file" accept="image/*,video/*" id="chatGalleryInput" style="display:none" />
         </label>` : ""}
-        <input id="chatInput" type="text" placeholder="Message..." value="${escapeHtml(state.chatText)}" />
-        ${!hasContent ? `<button class="chat-image-btn" id="chatStickerBtn" title="Stickers">😊</button>` : ""}
-        ${!hasContent ? `<button class="chat-image-btn chat-mic-btn ${state.chatRecordingVoice ? "recording" : ""}" id="chatMicBtn" title="Voice message">${state.chatRecordingVoice ? "⏹" : "🎤"}</button>` : ""}
+        <input id="chatInput" type="text" placeholder="${t("messagePlaceholder")}" value="${escapeHtml(state.chatText)}" />
+        ${!hasContent ? `<button class="chat-image-btn" id="chatStickerBtn" title="${t("stickersLabel")}">😊</button>` : ""}
+        ${!hasContent ? `<button class="chat-image-btn chat-mic-btn ${state.chatRecordingVoice ? "recording" : ""}" id="chatMicBtn" title="${t("voiceMessageTitle")}">${state.chatRecordingVoice ? "⏹" : "🎤"}</button>` : ""}
         ${hasContent ? `<button class="chat-send-btn" id="chatSendBtn">➤</button>` : ""}
       </div>
     </div>
@@ -4463,7 +5111,7 @@ function handleChatMediaSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (!isAllowedMediaFile(file)) {
-    showToast("That file type isn't supported");
+    showToast(t("fileTypeNotSupported"));
     e.target.value = "";
     return;
   }
@@ -4487,7 +5135,7 @@ function sendReactionMessage(emoji) {
     participants: [myUid, otherUid],
     participantInfo: {
       [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-      [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || t("userFallback"), avatar: (state.chatProfile && state.chatProfile.avatar) || null }
     },
     lastMessage: emoji,
     lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -4501,7 +5149,7 @@ function sendReactionMessage(emoji) {
     });
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't send");
+    showToast(t("couldntSend"));
   });
 }
 
@@ -4511,7 +5159,7 @@ let voiceChunksRef = [];
 let voiceTimerRef = null;
 function startVoiceRecording() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showToast("Microphone isn't available on this device/browser");
+    showToast(t("micNotAvailable"));
     return;
   }
   navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
@@ -4535,7 +5183,7 @@ function startVoiceRecording() {
     }, 1000);
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't access the microphone");
+    showToast(t("couldntAccessMic"));
   });
 }
 
@@ -4556,9 +5204,9 @@ function sendVoiceMessage(audioDataUrl) {
     participants: [myUid, otherUid],
     participantInfo: {
       [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-      [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+      [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || t("userFallback"), avatar: (state.chatProfile && state.chatProfile.avatar) || null }
     },
-    lastMessage: "🎤 Voice message",
+    lastMessage: "🎤 " + t("voiceMessageLabel"),
     lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
     [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
     [`unread.${myUid}`]: 0
@@ -4570,7 +5218,7 @@ function sendVoiceMessage(audioDataUrl) {
     });
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't send the voice message");
+    showToast(t("couldntSendVoice"));
   });
 }
 
@@ -4580,7 +5228,7 @@ function sendChatMessage() {
   const mediaType = state.chatMediaType;
   if (!text && !media) return;
   if (!state.chatUid) return;
-  if (isBlockedEitherWay(state.chatUid)) { showToast("You can't message this account"); return; }
+  if (isBlockedEitherWay(state.chatUid)) { showToast(t("cantMessageAccount")); return; }
   const myUid = state.user.uid;
   const otherUid = state.chatUid;
   const threadId = threadIdFor(myUid, otherUid);
@@ -4600,9 +5248,9 @@ function sendChatMessage() {
       participants: [myUid, otherUid],
       participantInfo: {
         [myUid]: { name: state.user.name, avatar: (state.profile && state.profile.avatar) || null },
-        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || "User", avatar: (state.chatProfile && state.chatProfile.avatar) || null }
+        [otherUid]: { name: (state.chatProfile && state.chatProfile.name) || t("userFallback"), avatar: (state.chatProfile && state.chatProfile.avatar) || null }
       },
-      lastMessage: text || (mediaType === "video" ? "🎬 Video" : "📷 Photo"),
+      lastMessage: text || (mediaType === "video" ? "🎬 " + t("video") : "📷 " + t("photo")),
       lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
       [`unread.${otherUid}`]: firebase.firestore.FieldValue.increment(1),
       [`unread.${myUid}`]: 0
@@ -4619,7 +5267,7 @@ function sendChatMessage() {
     });
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't send message");
+    showToast(t("couldntSendMessage"));
   });
 }
 
@@ -4649,7 +5297,7 @@ function openProfile(targetUid) {
   const ref = db.collection("users").doc(uid);
 
   ref.get().then((doc) => {
-    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : "User", handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], private: false, pinnedPosts: [] };
+    const data = doc.exists ? doc.data() : { name: isOwn ? state.user.name : t("userFallback"), handle: slugifyHandle(isOwn ? state.user.name : "user"), bio: "", avatar: null, followers: [], following: [], followRequests: [], private: false, pinnedPosts: [] };
 
     if (isOwn) {
       setState({ view: "profile", viewingUid: null, profile: { uid, ...data }, profileTab: "posts" });
@@ -4672,7 +5320,7 @@ function openProfile(targetUid) {
     });
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't load profile");
+    showToast(t("couldntLoadProfile"));
   });
 }
 
@@ -4710,7 +5358,7 @@ function toggleFollow(targetUid) {
     // No need to manually reload — listenToProfileUser's real-time listener will refresh state.profile
   }).catch((err) => {
     console.error(err);
-    showToast("Couldn't update follow status — check your connection or try again");
+    showToast(t("couldntUpdateFollowStatus"));
   });
 }
 
@@ -4760,20 +5408,20 @@ function renderProfileScreen() {
   ];
 
   const tabConfig = {
-    posts: { list: publicPosts, empty1: "Share your first post", empty2: "Posts you create will show up here.", cta: isOwn },
-    private: { list: privatePosts, empty1: "No private posts", empty2: "Posts set to Friends or Only me will show up here.", cta: false },
-    reposts: { list: repostedPosts, empty1: "No reposts yet", empty2: "Posts you repost will show up here.", cta: false },
-    saved: { list: savedPosts, empty1: "Nothing saved yet", empty2: "Posts you save will show up here.", cta: false },
-    likes: { list: likedPosts, empty1: "No likes yet", empty2: "Posts you like will show up here.", cta: false }
+    posts: { list: publicPosts, empty1: t("shareFirstPost"), empty2: t("postsShowUpHere"), cta: isOwn },
+    private: { list: privatePosts, empty1: t("noPrivatePosts"), empty2: t("privacyPostsHint"), cta: false },
+    reposts: { list: repostedPosts, empty1: t("noRepostsYet"), empty2: t("repostsHint"), cta: false },
+    saved: { list: savedPosts, empty1: t("nothingSavedYet"), empty2: t("savedHint"), cta: false },
+    likes: { list: likedPosts, empty1: t("noLikesYet"), empty2: t("likedPostsHint"), cta: false }
   };
 
   const isLockedForMe = !isOwn && profile.private && !amFollowing;
   const isBlockedRelation = !isOwn && isBlockedEitherWay(targetUid);
   const activeTab = tabConfig[state.profileTab] || tabConfig.posts;
   const tabBodyHtml = isBlockedRelation
-    ? `<div class="empty-state"><div class="big">🚫</div><div>${isBlockedByMe(targetUid) ? "You've blocked this account" : "This account isn't available"}</div></div>`
+    ? `<div class="empty-state"><div class="big">🚫</div><div>${isBlockedByMe(targetUid) ? t("blockedAccountMsg") : t("accountNotAvailable")}</div></div>`
     : isLockedForMe
-    ? `<div class="empty-state"><div class="big">🔒</div><div>This account is private</div><div style="font-size:13px; margin-top:6px;">${requestedByMe ? "Your follow request is pending." : "Follow this account to see their posts."}</div></div>`
+    ? `<div class="empty-state"><div class="big">🔒</div><div>${t("privateAccountMsg")}</div><div style="font-size:13px; margin-top:6px;">${requestedByMe ? t("followRequestPending") : t("followToSeePosts")}</div></div>`
     : (activeTab.list.length
       ? renderProfileGrid(activeTab.list, pinnedPosts, isOwn)
       : profileEmptyHtml(activeTab.empty1, activeTab.empty2, activeTab.cta));
@@ -4788,28 +5436,28 @@ function renderProfileScreen() {
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="profileBackBtn">←</button>
-      <div class="profile-title">Profile</div>
+      <div class="profile-title">${t("profileTitle")}</div>
       <div style="display:flex; align-items:center; gap:4px;">
-        <button class="profile-menu-btn" id="profileQrBtn" title="Profile QR code">▦</button>
-        <button class="profile-menu-btn" id="profileShareBtn" title="Share profile">↗️</button>
-        ${!isOwn ? `<button class="profile-menu-btn" id="profileSafetyBtn" title="Block, restrict, mute">⋯</button>` : ""}
+        <button class="profile-menu-btn" id="profileQrBtn" title="${t("profileQrTitle")}">▦</button>
+        <button class="profile-menu-btn" id="profileShareBtn" title="${t("shareProfileTitle")}">↗️</button>
+        ${!isOwn ? `<button class="profile-menu-btn" id="profileSafetyBtn" title="${t("blockRestrictMuteTitle")}">⋯</button>` : ""}
         ${isOwn ? `<button class="profile-menu-btn" id="profileMenuBtn">☰</button>` : ""}
       </div>
     </div>
 
     <div class="profile-hero">
       <div class="profile-avatar-wrap">
-        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || "User")}</div>
+        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || t("userFallback"))}</div>
         ${isOwn ? `
-        <label class="profile-avatar-edit" title="Change photo">
+        <label class="profile-avatar-edit" title="${t("changePhotoTitle")}">
           +
           <input type="file" accept="image/*" id="avatarInput" style="display:none" />
         </label>` : ""}
       </div>
       <div class="profile-name-row">
-        <div class="profile-name" id="profileNameText">${escapeHtml(profile.name || "User")}</div>
-        ${profile.private ? `<span title="Private account" style="font-size:14px;">🔒</span>` : ""}
-        ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="Edit profile">✏️</button>` : ""}
+        <div class="profile-name" id="profileNameText">${escapeHtml(profile.name || t("userFallback"))}</div>
+        ${profile.private ? `<span title="${t("privateAccountTitle")}" style="font-size:14px;">🔒</span>` : ""}
+        ${isOwn ? `<button class="profile-name-edit-btn" id="editNameBtn" title="${t("editProfileTitle")}">✏️</button>` : ""}
       </div>
       <div class="profile-handle">@${escapeHtml(profile.handle || slugifyHandle(profile.name || "user"))}</div>
       ${profile.bio ? `<div class="profile-bio">${escapeHtml(profile.bio)}</div>` : ""}
@@ -4818,20 +5466,20 @@ function renderProfileScreen() {
       ${!isOwn && !isBlockedRelation
         ? (amFollowing
             ? `<div class="profile-action-row">
-                <button class="profile-follow-btn following primary" id="profileMsgBtn">➤ Message</button>
-                <button class="profile-icon-btn" id="followManageBtn" title="${theyFollowMe ? "Friends" : "Following"}">👤</button>
+                <button class="profile-follow-btn following primary" id="profileMsgBtn">➤ ${t("message")}</button>
+                <button class="profile-icon-btn" id="followManageBtn" title="${theyFollowMe ? t("navFriends") : t("following")}">👤</button>
               </div>`
             : `<div class="profile-action-row">
-                <button class="profile-follow-btn ${requestedByMe ? "requested" : ""}" id="followBtn">${requestedByMe ? "Requested" : (theyFollowMe ? "Follow back" : "Follow")}</button>
-                <button class="profile-follow-btn following" id="profileMsgBtn">Message</button>
+                <button class="profile-follow-btn ${requestedByMe ? "requested" : ""}" id="followBtn">${requestedByMe ? t("requested") : (theyFollowMe ? t("followBack") : t("follow"))}</button>
+                <button class="profile-follow-btn following" id="profileMsgBtn">${t("message")}</button>
               </div>`)
         : ""
       }
 
       <div class="profile-stats">
-        <button class="profile-stat" id="followingStat"><div class="num">${following}</div><div class="lbl">Following</div></button>
-        <button class="profile-stat" id="followersStat"><div class="num">${followers}</div><div class="lbl">Followers</div></button>
-        <div class="profile-stat"><div class="num">${totalLikesReceived}</div><div class="lbl">Likes</div></div>
+        <button class="profile-stat" id="followingStat"><div class="num">${following}</div><div class="lbl">${t("following")}</div></button>
+        <button class="profile-stat" id="followersStat"><div class="num">${followers}</div><div class="lbl">${t("followersLabel")}</div></button>
+        <div class="profile-stat"><div class="num">${totalLikesReceived}</div><div class="lbl">${t("likesLabel")}</div></div>
       </div>
     </div>
 
@@ -4862,16 +5510,16 @@ function renderProfileScreen() {
     const followBtn = document.getElementById("followBtn");
     const followManageBtn = document.getElementById("followManageBtn");
     if (followBtn) followBtn.onclick = () => {
-      if (isBlockedEitherWay(targetUid)) { showToast("You can't follow this account"); return; }
+      if (isBlockedEitherWay(targetUid)) { showToast(t("cantFollowAccount")); return; }
       toggleFollow(targetUid);
     };
     if (followManageBtn) followManageBtn.onclick = () => {
-      if (!confirm(`Unfollow ${profile.name || "this user"}?`)) return;
+      if (!confirm(`${t("unfollowConfirmPrefix")} ${profile.name || t("thisUser")}?`)) return;
       toggleFollow(targetUid);
     };
     const msgBtn = document.getElementById("profileMsgBtn");
     if (msgBtn) msgBtn.onclick = () => {
-      if (isBlockedEitherWay(targetUid)) { showToast("You can't message this account"); return; }
+      if (isBlockedEitherWay(targetUid)) { showToast(t("cantMessageAccount")); return; }
       openChat(targetUid);
     };
     const safetyBtn = document.getElementById("profileSafetyBtn");
@@ -4915,7 +5563,7 @@ function renderProfileScreen() {
 /* Simple full-post viewer opened from a profile grid thumbnail (own post) */
 function openPostViewer(postId) {
   const post = state.posts.find(p => p.id === postId) || (state.viewingPosts || []).find(p => p.id === postId);
-  if (!post) { showToast("This post is no longer available"); return; }
+  if (!post) { showToast(t("postNoLongerAvailable")); return; }
   activePostId = postId;
   if (unsubscribeFsComments) { unsubscribeFsComments(); unsubscribeFsComments = null; }
   setState({ openFsComments: null, fsComments: [], replyingTo: null });
@@ -4990,7 +5638,7 @@ function togglePinPost(postId) {
   const pinnedPosts = (state.myUserDoc && state.myUserDoc.pinnedPosts) || [];
   const isPinned = pinnedPosts.includes(postId);
   if (!isPinned && pinnedPosts.length >= MAX_PINNED_POSTS) {
-    showToast(`You can only pin up to ${MAX_PINNED_POSTS} posts. Unpin one first.`);
+    showToast(t("onlyPinUpTo").replace("{n}", MAX_PINNED_POSTS));
     return;
   }
   const newPinnedPosts = isPinned
@@ -4999,8 +5647,8 @@ function togglePinPost(postId) {
   db.collection("users").doc(myUid).update({
     pinnedPosts: newPinnedPosts
   }).then(() => {
-    showToast(isPinned ? "Unpinned" : "Pinned to top");
-  }).catch((err) => { console.error(err); showToast("Couldn't update pin"); });
+    showToast(isPinned ? t("unpinned") : t("pinnedToTop"));
+  }).catch((err) => { console.error(err); showToast(t("couldntUpdatePin")); });
 }
 
 function profileEmptyHtml(line1, line2, showCta) {
@@ -5009,7 +5657,7 @@ function profileEmptyHtml(line1, line2, showCta) {
       ${mailboxIconSvg()}
       <div class="line1">${escapeHtml(line1)}</div>
       <div class="line2">${escapeHtml(line2)}</div>
-      ${showCta ? `<button class="profile-upload-btn" id="profileUploadBtn">Create a post</button>` : ""}
+      ${showCta ? `<button class="profile-upload-btn" id="profileUploadBtn">${t("createAPost")}</button>` : ""}
     </div>
   `;
 }
@@ -5225,49 +5873,49 @@ function renderEditProfileScreen() {
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="editBackBtn">←</button>
-      <div class="profile-title">Edit profile</div>
+      <div class="profile-title">${t("editProfileTitle")}</div>
       <div style="width:28px"></div>
     </div>
 
     <div class="profile-hero">
       <div class="profile-avatar-wrap">
-        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || "User")}</div>
-        <label class="profile-avatar-edit" title="Change photo">
+        <div class="profile-avatar">${profile.avatar ? `<img src="${profile.avatar}" />` : initials(profile.name || t("userFallback"))}</div>
+        <label class="profile-avatar-edit" title="${t("changePhotoTitle")}">
           📷
           <input type="file" accept="image/*" id="editAvatarInput" style="display:none" />
         </label>
       </div>
-      <label class="link-btn" id="changePhotoLabel" style="color:var(--teal-deep); font-weight:600; cursor:pointer;">Change photo</label>
+      <label class="link-btn" id="changePhotoLabel" style="color:var(--teal-deep); font-weight:600; cursor:pointer;">${t("changePhotoTitle")}</label>
     </div>
 
     <div style="padding: 0 14px;">
       <div class="field">
-        <label>Name</label>
-        <input id="editNameInput" type="text" value="${escapeHtml(state.editName)}" placeholder="Your name" maxlength="40" />
+        <label>${t("nameLabel")}</label>
+        <input id="editNameInput" type="text" value="${escapeHtml(state.editName)}" placeholder="${t("yourName")}" maxlength="40" />
       </div>
       <div class="field">
-        <label>Username</label>
-        <input id="editHandleInput" type="text" value="${escapeHtml(state.editHandle)}" placeholder="username" maxlength="24" />
+        <label>${t("usernameLabel")}</label>
+        <input id="editHandleInput" type="text" value="${escapeHtml(state.editHandle)}" placeholder="${t("usernamePlaceholder")}" maxlength="24" />
         <div style="font-size:12px; color:var(--ink-soft); margin-top:6px; word-break:break-all;">${escapeHtml(appOrigin)}?u=${escapeHtml(state.editHandle || "")}</div>
       </div>
 
-      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">Basic info</div>
+      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">${t("basicInfo")}</div>
       <div class="field">
-        <label>Bio</label>
-        <textarea id="editBioInput" rows="3" maxlength="150" placeholder="Write a short description about who you are or what your account is about" style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.editBio)}</textarea>
+        <label>${t("bioLabel")}</label>
+        <textarea id="editBioInput" rows="3" maxlength="150" placeholder="${t("bioPlaceholder")}" style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; background:var(--card); color:var(--ink); resize:vertical;">${escapeHtml(state.editBio)}</textarea>
       </div>
 
-      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">Links</div>
+      <div style="font-size:12px; color:var(--ink-soft); margin: 18px 0 8px;">${t("linksLabel")}</div>
       <div class="field">
-        <label>YouTube link</label>
+        <label>${t("youtubeLinkLabel")}</label>
         <input id="editYoutubeInput" type="url" value="${escapeHtml(state.editYoutube)}" placeholder="https://youtube.com/@yourchannel" />
       </div>
       <div class="field">
-        <label>Facebook link</label>
+        <label>${t("facebookLinkLabel")}</label>
         <input id="editFacebookInput" type="url" value="${escapeHtml(state.editFacebook)}" placeholder="https://facebook.com/yourprofile" />
       </div>
 
-      <button class="btn-primary" id="saveProfileBtn" style="margin-top:10px; margin-bottom:30px;">Save</button>
+      <button class="btn-primary" id="saveProfileBtn" style="margin-top:10px; margin-bottom:30px;">${t("save")}</button>
     </div>
   `;
 
@@ -5289,34 +5937,34 @@ function renderMenuScreen() {
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="menuBackBtn">←</button>
-      <div class="profile-title">Menu</div>
+      <div class="profile-title">${t("menuTitle")}</div>
       <div style="width:28px"></div>
     </div>
 
-    <div class="menu-section-label">Assets</div>
+    <div class="menu-section-label">${t("menuAssets")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="menuBalanceBtn"><span class="menu-item-icon">👛</span><span>Balance</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuBalanceBtn"><span class="menu-item-icon">👛</span><span>${t("balanceLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Personal tools</div>
+    <div class="menu-section-label">${t("menuPersonalTools")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="menuActivityBtn"><span class="menu-item-icon">🕐</span><span>Activity center</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="menuOfflineBtn"><span class="menu-item-icon">⬇️</span><span>Offline videos</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="menuQrBtn"><span class="menu-item-icon">▦</span><span>Your QR code</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="menuMusicBtn"><span class="menu-item-icon">🎵</span><span>Your Music</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuActivityBtn"><span class="menu-item-icon">🕐</span><span>${t("activityCenter")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuOfflineBtn"><span class="menu-item-icon">⬇️</span><span>${t("offlineVideos")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuQrBtn"><span class="menu-item-icon">▦</span><span>${t("yourQrCode")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuMusicBtn"><span class="menu-item-icon">🎵</span><span>${t("yourMusic")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Creation &amp; business tools</div>
+    <div class="menu-section-label">${t("menuCreationBusinessTools")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="menuStudioBtn"><span class="menu-item-icon">📊</span><span>TikTok Studio</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="menuInsightsBtn"><span class="menu-item-icon">💡</span><span>Creator Search Insights</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="menuPromoteBtn"><span class="menu-item-icon">🔥</span><span>Promote</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuStudioBtn"><span class="menu-item-icon">📊</span><span>${t("tiktokStudio")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuInsightsBtn"><span class="menu-item-icon">💡</span><span>${t("creatorSearchInsights")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="menuPromoteBtn"><span class="menu-item-icon">🔥</span><span>${t("promoteLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
     <div class="menu-list">
       <button class="menu-item" id="menuSettingsBtn">
         <span class="menu-item-icon">⚙️</span>
-        <span>Settings and privacy</span>
+        <span>${t("settingsAndPrivacy")}</span>
         <span class="menu-item-arrow">›</span>
       </button>
     </div>
@@ -5362,105 +6010,105 @@ function renderSettingsScreen() {
   const blockedCount = (d.blockedUsers || []).length;
   const restrictedCount = (d.restrictedUsers || []).length;
   const mutedCount = (d.mutedUsers || []).length;
-  const tierLabel = (v) => v === "friends" ? "Friends" : v === "noone" ? "No one" : "Everyone";
-  const onOff = (v) => v === false ? "Off" : "On";
+  const tierLabel = (v) => v === "friends" ? t("friendsPrivacy") : v === "noone" ? t("noOneLabel") : t("everyoneLabel");
+  const onOff = (v) => v === false ? t("offLabel") : t("onLabel");
   root.innerHTML = `
     <div class="profile-topbar">
       <button class="profile-back-btn" id="settingsBackBtn">←</button>
-      <div class="profile-title">Settings and privacy</div>
+      <div class="profile-title">${t("settingsAndPrivacy")}</div>
       <div style="width:28px"></div>
     </div>
 
-    <div class="menu-section-label" style="margin-top:14px;">Activity</div>
+    <div class="menu-section-label" style="margin-top:14px;">${t("settingsActivity")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>Manage posts</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎬</span><span>Content preferences</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goLiveBtn"><span class="menu-item-icon">📺</span><span>LIVE</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>Notifications</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goWellbeingBtn"><span class="menu-item-icon">⏳</span><span>Time and well-being</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goFamilyBtn"><span class="menu-item-icon">👨‍👩‍👧</span><span>Family Pairing</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goManagePostsBtn"><span class="menu-item-icon">🎞️</span><span>${t("managePosts")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goContentBtn"><span class="menu-item-icon">🎬</span><span>${t("contentPreferences")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goLiveBtn"><span class="menu-item-icon">📺</span><span>${t("liveLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goNotifBtn"><span class="menu-item-icon">🔔</span><span>${t("notificationsLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goWellbeingBtn"><span class="menu-item-icon">⏳</span><span>${t("timeWellbeing")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goFamilyBtn"><span class="menu-item-icon">👨‍👩‍👧</span><span>${t("familyPairing")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Account</div>
+    <div class="menu-section-label">${t("settingsAccount")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>Account</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Security &amp; permissions</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>Analytics</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>Share profile</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAccountBtn"><span class="menu-item-icon">👤</span><span>${t("accountLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goSecurityBtn"><span class="menu-item-icon">🛡️</span><span>${t("securityPermissions")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAnalyticsBtn"><span class="menu-item-icon">📊</span><span>${t("analyticsLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goShareProfileBtn"><span class="menu-item-icon">↗️</span><span>${t("shareProfileTitle")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Visibility</div>
+    <div class="menu-section-label">${t("settingsVisibility")}</div>
     <div class="compose-toggle-row" style="margin:0 14px 14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;">
-      <div><div class="compose-toggle-label">Private account</div><div class="compose-toggle-sub">${isPrivate ? "Only approved followers can see your posts. New followers need your approval." : "Anyone can follow you and see your public posts."}</div></div>
+      <div><div class="compose-toggle-label">${t("privateAccountLabel")}</div><div class="compose-toggle-sub">${isPrivate ? t("privateAccountOnDesc") : t("privateAccountOffDesc")}</div></div>
       <button class="toggle-switch ${isPrivate ? "on" : ""}" id="privateAccountToggle"></button>
     </div>
     <div class="menu-list">
       ${pendingCount > 0 ? `
-      <button class="menu-item" id="settingsFollowRequestsBtn"><span class="menu-item-icon">🔒</span><span>Follow requests</span><span class="menu-item-sub">${pendingCount}</span><span class="menu-item-arrow">›</span></button>` : ""}
-      <button class="menu-item" id="privBlockedBtn"><span class="menu-item-icon">🚫</span><span>Blocked accounts</span><span class="menu-item-sub">${blockedCount || ""}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>Restricted accounts</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>Muted accounts</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="settingsFollowRequestsBtn"><span class="menu-item-icon">🔒</span><span>${t("followRequests")}</span><span class="menu-item-sub">${pendingCount}</span><span class="menu-item-arrow">›</span></button>` : ""}
+      <button class="menu-item" id="privBlockedBtn"><span class="menu-item-icon">🚫</span><span>${t("blockedAccountsLabel")}</span><span class="menu-item-sub">${blockedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privRestrictedBtn"><span class="menu-item-icon">🧯</span><span>${t("restrictedAccountsLabel")}</span><span class="menu-item-sub">${restrictedCount || ""}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privMutedBtn"><span class="menu-item-icon">🔇</span><span>${t("mutedAccountsLabel")}</span><span class="menu-item-sub">${mutedCount || ""}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Interactions</div>
+    <div class="menu-section-label">${t("settingsInteractions")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="privCommentsBtn"><span class="menu-item-icon">💬</span><span>Comments</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privMentionsBtn"><span class="menu-item-icon">@</span><span>Mentions</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privDmBtn"><span class="menu-item-icon">📩</span><span>Direct messages</span><span class="menu-item-sub">${tierLabel(d.dmPrivacy)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privReuseBtn"><span class="menu-item-icon">🔁</span><span>Reuse of content</span><span class="menu-item-sub">${onOff(d.allowReuse)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privShareLinkBtn"><span class="menu-item-icon">🔗</span><span>Display profile when sharing links</span><span class="menu-item-sub">${onOff(d.showProfileOnShare)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privDownloadsBtn"><span class="menu-item-icon">⬇️</span><span>Downloads</span><span class="menu-item-sub">${onOff(d.allowDownloadsDefault)}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privFollowingListBtn"><span class="menu-item-icon">👥</span><span>Following list</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? "Everyone" : "Only you"}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privLikedVideosBtn"><span class="menu-item-icon">❤️</span><span>Liked videos</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? "Everyone" : (d.likedVideosPrivacy === "friends" ? "Friends" : "Only you")}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="privViewersBtn"><span class="menu-item-icon">👣</span><span>Viewers</span><span class="menu-item-sub">${onOff(d.viewersEnabled)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privCommentsBtn"><span class="menu-item-icon">💬</span><span>${t("commentsLabel")}</span><span class="menu-item-sub">${tierLabel(d.commentPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privMentionsBtn"><span class="menu-item-icon">@</span><span>${t("mentionsLabel")}</span><span class="menu-item-sub">${tierLabel(d.mentionPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privDmBtn"><span class="menu-item-icon">📩</span><span>${t("directMessagesLabel")}</span><span class="menu-item-sub">${tierLabel(d.dmPrivacy)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privReuseBtn"><span class="menu-item-icon">🔁</span><span>${t("reuseOfContent")}</span><span class="menu-item-sub">${onOff(d.allowReuse)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privShareLinkBtn"><span class="menu-item-icon">🔗</span><span>${t("displayProfileWhenSharing")}</span><span class="menu-item-sub">${onOff(d.showProfileOnShare)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privDownloadsBtn"><span class="menu-item-icon">⬇️</span><span>${t("downloadsLabel")}</span><span class="menu-item-sub">${onOff(d.allowDownloadsDefault)}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privFollowingListBtn"><span class="menu-item-icon">👥</span><span>${t("followingListLabel")}</span><span class="menu-item-sub">${(d.followingListPrivacy || "onlyMe") === "everyone" ? t("everyoneLabel") : t("onlyYouLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privLikedVideosBtn"><span class="menu-item-icon">❤️</span><span>${t("likedVideosLabel")}</span><span class="menu-item-sub">${(d.likedVideosPrivacy || "onlyMe") === "everyone" ? t("everyoneLabel") : (d.likedVideosPrivacy === "friends" ? t("friendsPrivacy") : t("onlyYouLabel"))}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="privViewersBtn"><span class="menu-item-icon">👣</span><span>${t("viewersLabel")}</span><span class="menu-item-sub">${onOff(d.viewersEnabled)}</span><span class="menu-item-arrow">›</span></button>
     </div>
-    <div class="settings-hint">Blocking, restricting and muting someone can also be done from their profile — tap ⋯ on their profile page.</div>
+    <div class="settings-hint">${t("blockRestrictMuteHint")}</div>
 
-    <div class="menu-section-label">Content &amp; Display</div>
+    <div class="menu-section-label">${t("settingsContentDisplay")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="goMusicBtn"><span class="menu-item-icon">🎵</span><span>Music</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goActivityCenterBtn"><span class="menu-item-icon">🕒</span><span>Activity center</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAudienceBtn"><span class="menu-item-icon">👥</span><span>Audience control</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAdsBtn"><span class="menu-item-icon">📢</span><span>Ads</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goPlaybackBtn"><span class="menu-item-icon">▶️</span><span>Playback</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🌙</span><span>Display</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goMusicBtn"><span class="menu-item-icon">🎵</span><span>${t("musicLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goActivityCenterBtn"><span class="menu-item-icon">🕒</span><span>${t("activityCenter")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAudienceBtn"><span class="menu-item-icon">👥</span><span>${t("audienceControl")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAdsBtn"><span class="menu-item-icon">📢</span><span>${t("adsLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goPlaybackBtn"><span class="menu-item-icon">▶️</span><span>${t("playbackLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goThemeBtn"><span class="menu-item-icon">🌙</span><span>${t("displayLabel")}</span><span class="menu-item-arrow">›</span></button>
       <button class="menu-item" id="goLanguageBtn"><span class="menu-item-icon">🔤</span><span>${t("settingsLanguageMenuItem")}</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>Accessibility</span><span class="menu-item-dot"></span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goContactsLocationBtn"><span class="menu-item-icon">📍</span><span>Contacts and location</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goAccessibilityBtn"><span class="menu-item-icon">♿</span><span>${t("accessibilityLabel")}</span><span class="menu-item-dot"></span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goContactsLocationBtn"><span class="menu-item-icon">📍</span><span>${t("contactsAndLocation")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Cache &amp; Cellular</div>
+    <div class="menu-section-label">${t("settingsCacheCellular")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="goOfflineVideosBtn"><span class="menu-item-icon">⬇️</span><span>Offline videos</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goFreeUpSpaceBtn"><span class="menu-item-icon">🗑️</span><span>Free up space</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goDataSaverBtn"><span class="menu-item-icon">📶</span><span>Data Saver</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goWallpaperBtn"><span class="menu-item-icon">🖼️</span><span>Wallpaper</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goOfflineVideosBtn"><span class="menu-item-icon">⬇️</span><span>${t("offlineVideos")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goFreeUpSpaceBtn"><span class="menu-item-icon">🗑️</span><span>${t("freeUpSpace")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goDataSaverBtn"><span class="menu-item-icon">📶</span><span>${t("dataSaverLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goWallpaperBtn"><span class="menu-item-icon">🖼️</span><span>${t("wallpaperLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
-    <div class="menu-section-label">Support &amp; About</div>
+    <div class="menu-section-label">${t("settingsSupportAbout")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="goHelpCenterBtn"><span class="menu-item-icon">🎧</span><span>Help Center</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goPrivacyCenterBtn"><span class="menu-item-icon">🔏</span><span>Privacy Center</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item" id="goTermsBtn"><span class="menu-item-icon">ℹ️</span><span>Terms and Policies</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goHelpCenterBtn"><span class="menu-item-icon">🎧</span><span>${t("helpCenterLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goPrivacyCenterBtn"><span class="menu-item-icon">🔏</span><span>${t("privacyCenterLabel")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="goTermsBtn"><span class="menu-item-icon">ℹ️</span><span>${t("termsAndPolicies")}</span><span class="menu-item-arrow">›</span></button>
     </div>
 
     <div class="menu-list" style="margin-top:14px;">
       <button class="menu-item danger" id="clearDataBtn">
         <span class="menu-item-icon">🧹</span>
-        <span>Clear data</span>
+        <span>${t("clearData")}</span>
       </button>
     </div>
 
-    <div class="menu-section-label">Login</div>
+    <div class="menu-section-label">${t("settingsLogin")}</div>
     <div class="menu-list">
       <button class="menu-item" id="switchAccountBtn">
-        <span class="menu-item-icon">⇄</span><span>Switch account</span>
+        <span class="menu-item-icon">⇄</span><span>${t("switchAccount")}</span>
         <span class="avatar" style="width:26px;height:26px;font-size:11px;margin-left:auto;">${myAvatarThumb ? `<img src="${myAvatarThumb}" />` : initials((state.profile && state.profile.name) || "U")}</span>
         <span class="menu-item-arrow">›</span>
       </button>
       <button class="menu-item danger" id="logoutBtn">
         <span class="menu-item-icon">⎋</span>
-        <span>Log out</span>
+        <span>${t("logOut")}</span>
       </button>
     </div>
     <div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:18px 0 8px;">Milon v1.0.0</div>
@@ -5494,15 +6142,15 @@ function renderSettingsScreen() {
   document.getElementById("goPrivacyCenterBtn").onclick = () => setState({ view: "settingsPrivacyCenter" });
   document.getElementById("goTermsBtn").onclick = () => setState({ view: "settingsTerms" });
   document.getElementById("clearDataBtn").onclick = () => {
-    if (!confirm("This clears all local app data on this device and logs you out. Your posts, videos and profile stay safe on the server. Continue?")) return;
+    if (!confirm(t("clearDataConfirm"))) return;
     handleClearData();
   };
   document.getElementById("switchAccountBtn").onclick = () => {
-    if (!confirm("Log out of this account so you can sign in with a different one?")) return;
+    if (!confirm(t("switchAccountConfirm"))) return;
     handleLogout();
   };
   document.getElementById("logoutBtn").onclick = () => {
-    if (!confirm("Log out of Milon?")) return;
+    if (!confirm(t("logOutConfirm"))) return;
     handleLogout();
   };
   // Visibility + Interactions — inlined directly on this page (this is where real TikTok
@@ -5510,7 +6158,7 @@ function renderSettingsScreen() {
   document.getElementById("privateAccountToggle").onclick = () => {
     db.collection("users").doc(state.user.uid).update({ private: !isPrivate }).catch((err) => {
       console.error(err);
-      showToast("Couldn't update privacy setting");
+      showToast(t("couldntUpdatePrivacySetting"));
     });
   };
   const followReqBtn = document.getElementById("settingsFollowRequestsBtn");
@@ -5534,17 +6182,17 @@ function renderSettingsAccountScreen() {
   const email = state.user.email || "—";
   const handle = (state.profile && state.profile.handle) || (state.myUserDoc && state.myUserDoc.handle) || "";
   root.innerHTML = `
-    ${settingsTopbar("Account")}
-    <div class="menu-section-label">Account information</div>
+    ${settingsTopbar(t("accountLabel"))}
+    <div class="menu-section-label">${t("accountInformation")}</div>
     <div class="menu-list">
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">✉️</span><span>Email</span><span class="menu-item-sub">${escapeHtml(email)}</span></div>
-      ${handle ? `<div class="menu-item" style="cursor:default;"><span class="menu-item-icon">@</span><span>Handle</span><span class="menu-item-sub">@${escapeHtml(handle)}</span></div>` : ""}
-      <button class="menu-item" id="acctEditProfileBtn"><span class="menu-item-icon">✏️</span><span>Edit profile</span><span class="menu-item-arrow">›</span></button>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">✉️</span><span>${t("emailLabel")}</span><span class="menu-item-sub">${escapeHtml(email)}</span></div>
+      ${handle ? `<div class="menu-item" style="cursor:default;"><span class="menu-item-icon">@</span><span>${t("handleLabel")}</span><span class="menu-item-sub">@${escapeHtml(handle)}</span></div>` : ""}
+      <button class="menu-item" id="acctEditProfileBtn"><span class="menu-item-icon">✏️</span><span>${t("editProfileTitle")}</span><span class="menu-item-arrow">›</span></button>
     </div>
-    <div class="menu-section-label">Manage account</div>
+    <div class="menu-section-label">${t("manageAccount")}</div>
     <div class="menu-list">
-      <button class="menu-item" id="acctSecurityBtn"><span class="menu-item-icon">🛡️</span><span>Password &amp; security</span><span class="menu-item-arrow">›</span></button>
-      <button class="menu-item danger" id="acctDeleteBtn"><span class="menu-item-icon">⚠️</span><span>Delete account</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="acctSecurityBtn"><span class="menu-item-icon">🛡️</span><span>${t("passwordSecurity")}</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item danger" id="acctDeleteBtn"><span class="menu-item-icon">⚠️</span><span>${t("deleteAccountLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
   `;
   wireSettingsBack("settings");
@@ -5565,7 +6213,7 @@ function renderSettingsAccountScreen() {
 function updateMyPrivacyField(field, value) {
   db.collection("users").doc(state.user.uid).update({ [field]: value }).catch((err) => {
     console.error(err);
-    showToast("Couldn't save setting");
+    showToast(t("couldntSaveSetting"));
   });
 }
 
@@ -5577,23 +6225,23 @@ function renderPrivacyTierScreen(field, title, subtitleFor) {
   root.innerHTML = `
     ${settingsTopbar(title)}
     <div class="settings-field">
-      <label>Who can ${subtitleFor}</label>
+      <label>${t("whoCanPrefix")} ${subtitleFor}</label>
       <div class="privacy-options">
-        ${opt("everyone", "Everyone")}
-        ${opt("friends", "Friends")}
-        ${opt("noone", "No one")}
+        ${opt("everyone", t("everyoneLabel"))}
+        ${opt("friends", t("friendsPrivacy"))}
+        ${opt("noone", t("noOneLabel"))}
       </div>
     </div>
-    <div class="settings-hint">"Friends" means people who follow you and who you follow back. This applies going forward — it doesn't change anything already posted.</div>
+    <div class="settings-hint">${t("friendsMeansHint")}</div>
   `;
   wireSettingsBack("settings");
   document.querySelectorAll("[data-tier-choice]").forEach((btn) => {
     btn.onclick = () => updateMyPrivacyField(field, btn.dataset.tierChoice);
   });
 }
-function renderSettingsPrivacyCommentsScreen() { renderPrivacyTierScreen("commentPrivacy", "Comments", "comment on your posts"); }
-function renderSettingsPrivacyMentionsScreen() { renderPrivacyTierScreen("mentionPrivacy", "Mentions", "@mention you"); }
-function renderSettingsPrivacyDmScreen() { renderPrivacyTierScreen("dmPrivacy", "Direct messages", "send you direct messages"); }
+function renderSettingsPrivacyCommentsScreen() { renderPrivacyTierScreen("commentPrivacy", t("commentsLabel"), t("commentOnYourPosts")); }
+function renderSettingsPrivacyMentionsScreen() { renderPrivacyTierScreen("mentionPrivacy", t("mentionsLabel"), t("mentionYou")); }
+function renderSettingsPrivacyDmScreen() { renderPrivacyTierScreen("dmPrivacy", t("directMessagesLabel"), t("sendYouDirectMessages")); }
 
 /* Generic on/off toggle screen — used by Reuse of content, Display profile when sharing
    links, Downloads and Viewers. */
@@ -5610,20 +6258,20 @@ function renderPrivacyToggleScreen(field, title, label, sub, defaultOn) {
   document.getElementById("privToggleSwitch").onclick = () => updateMyPrivacyField(field, !val);
 }
 function renderSettingsPrivacyReuseScreen() {
-  renderPrivacyToggleScreen("allowReuse", "Reuse of content", "Allow content reuse",
-    "When on, other people can repost your public posts to their own followers. When off, the Repost option is hidden on your posts.", true);
+  renderPrivacyToggleScreen("allowReuse", t("reuseOfContent"), t("allowContentReuse"),
+    t("reuseDesc"), true);
 }
 function renderSettingsPrivacyShareLinkScreen() {
-  renderPrivacyToggleScreen("showProfileOnShare", "Display profile when sharing links", "Show profile via shared links",
-    "When on, anyone who opens a link to your profile can view it. When off, shared links to your profile only open for people you already allow to see it.", true);
+  renderPrivacyToggleScreen("showProfileOnShare", t("displayProfileWhenSharing"), t("showProfileViaLinks"),
+    t("shareLinkDesc"), true);
 }
 function renderSettingsPrivacyDownloadsScreen() {
-  renderPrivacyToggleScreen("allowDownloadsDefault", "Downloads", "Allow downloads by default",
-    "Sets the starting value of \"Allow downloads\" each time you create a new post. You can still override it per post when you post it.", true);
+  renderPrivacyToggleScreen("allowDownloadsDefault", t("downloadsLabel"), t("allowDownloadsByDefault"),
+    t("downloadsDesc"), true);
 }
 function renderSettingsPrivacyViewersScreen() {
-  renderPrivacyToggleScreen("viewersEnabled", "Viewers", "See who viewed your videos",
-    "Turn this on to see which accounts viewed your videos. It only works both ways — you'll only appear in someone else's viewer list, and see viewers on your own videos, if you both have this turned on.", true);
+  renderPrivacyToggleScreen("viewersEnabled", t("viewersLabel"), t("seeWhoViewedVideos"),
+    t("viewersDesc"), true);
 }
 
 /* Following list: Everyone / Only you. */
@@ -5631,12 +6279,12 @@ function renderSettingsPrivacyFollowingListScreen() {
   const current = (state.myUserDoc && state.myUserDoc.followingListPrivacy) || "onlyMe";
   const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-follow-list-choice="${key}">${label}</button>`;
   root.innerHTML = `
-    ${settingsTopbar("Following list")}
+    ${settingsTopbar(t("followingListLabel"))}
     <div class="settings-field">
-      <label>Who can see the accounts you follow</label>
+      <label>${t("whoCanSeeAccountsFollow")}</label>
       <div class="privacy-options">
-        ${opt("everyone", "Everyone")}
-        ${opt("onlyMe", "Only you")}
+        ${opt("everyone", t("everyoneLabel"))}
+        ${opt("onlyMe", t("onlyYouLabel"))}
       </div>
     </div>
   `;
@@ -5651,13 +6299,13 @@ function renderSettingsPrivacyLikedVideosScreen() {
   const current = (state.myUserDoc && state.myUserDoc.likedVideosPrivacy) || "onlyMe";
   const opt = (key, label) => `<button class="privacy-option ${current === key ? "selected" : ""}" data-liked-choice="${key}">${label}</button>`;
   root.innerHTML = `
-    ${settingsTopbar("Liked videos")}
+    ${settingsTopbar(t("likedVideosLabel"))}
     <div class="settings-field">
-      <label>Who can see your Likes tab</label>
+      <label>${t("whoCanSeeLikesTab")}</label>
       <div class="privacy-options">
-        ${opt("everyone", "Everyone")}
-        ${opt("friends", "Friends")}
-        ${opt("onlyMe", "Only you")}
+        ${opt("everyone", t("everyoneLabel"))}
+        ${opt("friends", t("friendsPrivacy"))}
+        ${opt("onlyMe", t("onlyYouLabel"))}
       </div>
     </div>
   `;
@@ -5670,9 +6318,9 @@ function renderSettingsPrivacyLikedVideosScreen() {
 /* ================= SETTINGS > Privacy > Blocked/Restricted/Muted account lists ================= */
 function renderSafetyListScreen(type) {
   const config = {
-    blocked: { title: "Blocked accounts", field: "blockedUsers", empty: "You haven't blocked anyone.", action: toggleBlockUser, actionLabel: "Unblock" },
-    restricted: { title: "Restricted accounts", field: "restrictedUsers", empty: "You haven't restricted anyone.", action: toggleRestrictUser, actionLabel: "Remove" },
-    muted: { title: "Muted accounts", field: "mutedUsers", empty: "You haven't muted anyone.", action: toggleMuteUser, actionLabel: "Unmute" }
+    blocked: { title: t("blockedAccountsLabel"), field: "blockedUsers", empty: t("havntBlockedAnyone"), action: toggleBlockUser, actionLabel: t("unblockLabel") },
+    restricted: { title: t("restrictedAccountsLabel"), field: "restrictedUsers", empty: t("havntRestrictedAnyone"), action: toggleRestrictUser, actionLabel: t("remove") },
+    muted: { title: t("mutedAccountsLabel"), field: "mutedUsers", empty: t("havntMutedAnyone"), action: toggleMuteUser, actionLabel: t("unmuteLabel") }
   }[type];
   const uids = (state.myUserDoc && state.myUserDoc[config.field]) || [];
   const users = uids.map(uid => findCachedUser(uid)).filter(Boolean);
@@ -5681,8 +6329,8 @@ function renderSafetyListScreen(type) {
     ${settingsTopbar(config.title)}
     ${users.length ? `<div class="menu-list">${users.map(u => `
       <div class="menu-item" style="cursor:default;">
-        <div class="avatar" style="width:32px;height:32px;font-size:12px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || "User")}</div>
-        <span>${escapeHtml(u.name || "User")}</span>
+        <div class="avatar" style="width:32px;height:32px;font-size:12px;">${u.avatar ? `<img src="${u.avatar}" />` : initials(u.name || t("userFallback"))}</div>
+        <span>${escapeHtml(u.name || t("userFallback"))}</span>
         <button class="menu-item-arrow" data-uid="${u.uid}" style="margin-left:auto; background:none; border:none; color:var(--teal-deep); font-size:13px; font-weight:600; cursor:pointer;">${config.actionLabel}</button>
       </div>
     `).join("")}</div>` : `<div class="settings-hint">${config.empty}</div>`}
@@ -5699,31 +6347,31 @@ function renderSafetyListScreen(type) {
 /* ================= SETTINGS > Security ================= */
 function renderSettingsSecurityScreen() {
   root.innerHTML = `
-    ${settingsTopbar("Security & permissions")}
+    ${settingsTopbar(t("securityPermissions"))}
     <div class="menu-list">
-      <button class="menu-item" id="secChangePwBtn"><span class="menu-item-icon">🔑</span><span>Change password</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item" id="secChangePwBtn"><span class="menu-item-icon">🔑</span><span>${t("changePasswordLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
-    <div class="menu-section-label">App permissions</div>
+    <div class="menu-section-label">${t("appPermissions")}</div>
     <div class="menu-list">
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📷</span><span>Camera</span><span class="menu-item-sub" id="camPermStatus">Checking…</span></div>
-      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">🎙️</span><span>Microphone</span><span class="menu-item-sub" id="micPermStatus">Checking…</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">📷</span><span>${t("cameraLabel")}</span><span class="menu-item-sub" id="camPermStatus">${t("checkingLabel")}</span></div>
+      <div class="menu-item" style="cursor:default;"><span class="menu-item-icon">🎙️</span><span>${t("microphoneLabel")}</span><span class="menu-item-sub" id="micPermStatus">${t("checkingLabel")}</span></div>
     </div>
-    <div class="settings-hint">These show your browser's actual permission grant for this site — to change them, use your browser's site settings, not this app.</div>
+    <div class="settings-hint">${t("permissionsHint")}</div>
     <div class="menu-list" style="margin-top:14px;">
-      <button class="menu-item danger" id="secDeleteBtn"><span class="menu-item-icon">⚠️</span><span>Delete account</span><span class="menu-item-arrow">›</span></button>
+      <button class="menu-item danger" id="secDeleteBtn"><span class="menu-item-icon">⚠️</span><span>${t("deleteAccountLabel")}</span><span class="menu-item-arrow">›</span></button>
     </div>
   `;
   wireSettingsBack("settings");
   document.getElementById("secChangePwBtn").onclick = () => setState({ view: "settingsChangePassword" });
   document.getElementById("secDeleteBtn").onclick = () => setState({ view: "settingsDeleteAccount" });
-  const fmt = (s) => s === "granted" ? "Allowed" : s === "denied" ? "Blocked" : s === "prompt" ? "Ask each time" : "Unknown";
+  const fmt = (s) => s === "granted" ? t("allowedLabel") : s === "denied" ? t("blockedLabel") : s === "prompt" ? t("askEachTime") : t("unknownLabel");
   if (navigator.permissions && navigator.permissions.query) {
     navigator.permissions.query({ name: "camera" })
       .then(r => { const el = document.getElementById("camPermStatus"); if (el) el.textContent = fmt(r.state); })
-      .catch(() => { const el = document.getElementById("camPermStatus"); if (el) el.textContent = "Unknown"; });
+      .catch(() => { const el = document.getElementById("camPermStatus"); if (el) el.textContent = t("unknownLabel"); });
     navigator.permissions.query({ name: "microphone" })
       .then(r => { const el = document.getElementById("micPermStatus"); if (el) el.textContent = fmt(r.state); })
-      .catch(() => { const el = document.getElementById("micPermStatus"); if (el) el.textContent = "Unknown"; });
+      .catch(() => { const el = document.getElementById("micPermStatus"); if (el) el.textContent = t("unknownLabel"); });
   } else {
     const cam = document.getElementById("camPermStatus"); if (cam) cam.textContent = "Unknown";
     const mic = document.getElementById("micPermStatus"); if (mic) mic.textContent = "Unknown";
@@ -6459,25 +7107,25 @@ function updateMySettings(patch) {
 
 function saveEditedProfile() {
   const name = state.editName.trim();
-  if (!name) { showToast("Name can't be empty"); return; }
+  if (!name) { showToast(t("nameCantBeEmpty")); return; }
   const handle = slugifyHandle(state.editHandle.trim() || name);
   const bio = state.editBio.trim().slice(0, 150);
   const youtubeLink = state.editYoutube.trim();
   const facebookLink = state.editFacebook.trim();
 
   const btn = document.getElementById("saveProfileBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }
+  if (btn) { btn.disabled = true; btn.textContent = t("savingLabel"); }
 
   db.collection("users").doc(state.user.uid).update({ name, handle, bio, youtubeLink, facebookLink })
     .then(() => {
       state.profile = { ...state.profile, name, handle, bio, youtubeLink, facebookLink };
       setState({ view: "profile" });
-      showToast("Profile updated");
+      showToast(t("profileUpdated"));
     })
     .catch((err) => {
       console.error(err);
-      showToast("Couldn't update profile");
-      if (btn) { btn.disabled = false; btn.textContent = "Save"; }
+      showToast(t("couldntUpdateProfile"));
+      if (btn) { btn.disabled = false; btn.textContent = t("save"); }
     });
 }
 
@@ -6489,7 +7137,7 @@ function toggleRepost(post) {
       ? firebase.firestore.FieldValue.arrayRemove(uid)
       : firebase.firestore.FieldValue.arrayUnion(uid)
   }).then(() => {
-    showToast(reposted ? "Repost removed" : "Reposted");
+    showToast(reposted ? t("repostRemoved") : t("repostedLabel"));
   }).catch((err) => console.error(err));
 }
 
@@ -6508,7 +7156,7 @@ function toggleSave(post) {
 function handleAvatarSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (!isAllowedImageFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
+  if (!isAllowedImageFile(file)) { showToast(t("fileTypeNotSupported")); e.target.value = ""; return; }
   compressImageToDataUrl(file, { maxDim: 300, quality: 0.75, square: true }, (compressed) => {
     db.collection("users").doc(state.user.uid).update({ avatar: compressed })
       .then(() => {
@@ -7426,7 +8074,7 @@ function setPrivacyForActivePost(level) {
 function handleImageSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (!isAllowedImageFile(file)) { showToast("That file type isn't supported"); e.target.value = ""; return; }
+  if (!isAllowedImageFile(file)) { showToast(t("fileTypeNotSupported")); e.target.value = ""; return; }
   compressImageToDataUrl(file, { maxDim: 900, quality: 0.7 }, (compressed) => {
     setState({ composerMedia: compressed, composerMediaType: "image" });
   });

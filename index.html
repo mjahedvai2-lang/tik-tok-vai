@@ -2614,17 +2614,15 @@ auth.onAuthStateChanged((firebaseUser) => {
         alert("Your account has been suspended by the admin.");
         return;
       }
-      listenToPosts();
-      listenToOwnUser(state.user.uid);
-      listenToAllUsers(state.user.uid);
-      listenToThreads();
-      listenToNotifications();
-      listenToSystemNotices();
-      goOnline(state.user.uid);
-      startScreenTimeTracker();
-      if (window.Notification && Notification.permission === "default") {
-        Notification.requestPermission().catch(() => {});
+      // Age gate: every account (email or Google sign-in) must have a stored
+      // date of birth before entering the app. Existing accounts created
+      // before this feature get asked once too, on their next login.
+      if (!doc.exists || !doc.data().dateOfBirth) {
+        state.view = "ageGate";
+        render();
+        return;
       }
+      enterApp(state.user.uid);
     });
   } else {
     if (unsubscribeOwnUser) unsubscribeOwnUser();
@@ -2646,6 +2644,107 @@ auth.onAuthStateChanged((firebaseUser) => {
   }
   render();
 });
+
+/* Called once we know the signed-in user has a stored date of birth —
+   starts all the real-time listeners and marks the user online. */
+function enterApp(uid) {
+  listenToPosts();
+  listenToOwnUser(uid);
+  listenToAllUsers(uid);
+  listenToThreads();
+  listenToNotifications();
+  listenToSystemNotices();
+  goOnline(uid);
+  startScreenTimeTracker();
+  if (window.Notification && Notification.permission === "default") {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
+/* ================= Age gate (date of birth) ================= */
+const MIN_AGE = 13; // matches TikTok's own minimum signup age
+
+function calculateAge(dobStr) {
+  const dob = new Date(dobStr);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
+}
+
+function submitBirthdate() {
+  const day = document.getElementById("dobDay").value;
+  const month = document.getElementById("dobMonth").value;
+  const year = document.getElementById("dobYear").value;
+  const errEl = document.getElementById("dobError");
+
+  if (!day || !month || !year) {
+    errEl.textContent = "Please select day, month and year.";
+    return;
+  }
+  const dobStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const dobDate = new Date(dobStr);
+  if (isNaN(dobDate.getTime()) || dobDate > new Date()) {
+    errEl.textContent = "That date doesn't look right.";
+    return;
+  }
+  const age = calculateAge(dobStr);
+  if (age < MIN_AGE) {
+    errEl.textContent = `You must be at least ${MIN_AGE} years old to use Milon.`;
+    auth.signOut();
+    return;
+  }
+
+  db.collection("users").doc(state.user.uid).update({
+    dateOfBirth: dobStr,
+    age: age
+  }).then(() => {
+    enterApp(state.user.uid);
+  }).catch((err) => {
+    errEl.textContent = "Something went wrong, please try again.";
+    console.error("submitBirthdate error:", err);
+  });
+}
+
+function renderAgeGateScreen() {
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+
+  root.innerHTML = `
+    <div class="login-screen">
+      <div class="brand">Confirm your birthday</div>
+      <div class="tagline">This won't be shown on your profile. It just keeps Milon safe for everyone.</div>
+
+      <div class="field">
+        <label>Date of birth</label>
+        <div style="display:flex; gap:8px;">
+          <select id="dobDay" style="flex:1; padding:13px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+            <option value="">Day</option>
+            ${days.map(d => `<option value="${d}">${d}</option>`).join("")}
+          </select>
+          <select id="dobMonth" style="flex:1.4; padding:13px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+            <option value="">Month</option>
+            ${months.map((m, i) => `<option value="${i + 1}">${m}</option>`).join("")}
+          </select>
+          <select id="dobYear" style="flex:1; padding:13px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+            <option value="">Year</option>
+            ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+
+      <div id="dobError" class="error-msg"></div>
+
+      <button class="btn-primary" onclick="submitBirthdate()">Continue</button>
+    </div>
+  `;
+}
 
 /* Presence: mark this user online now, and offline automatically when the tab closes. */
 function goOnline(uid) {
@@ -2673,6 +2772,7 @@ function ensureUserProfile(user) {
         name: user.name,
         handle: handle,
         bio: "",
+        dateOfBirth: null, // "YYYY-MM-DD" — collected via the age-gate screen after first login
         avatar: null,
         followers: [],
         following: [],
@@ -2793,6 +2893,8 @@ function render() {
     } else {
       renderLogin();
     }
+  } else if (state.view === "ageGate") {
+    renderAgeGateScreen();
   } else if (state.view === "profile") {
     renderProfileScreen();
   } else if (state.view === "editProfile") {
